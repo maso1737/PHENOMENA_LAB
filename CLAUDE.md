@@ -21,7 +21,7 @@
 - 見本（Claude Design の書き出し・**見るだけで編集しない**）：`wave/styleframe/`（SHELL_PARTS・SHELL_TOKENS・A1・E1・W1）。見るときは `wave/styleframe` で `python -m http.server`。旧 `wave2/` は空にした（中身は全部 `wave/styleframe/` へ移動）。
 - **ラボで変えるのは 3 つの変数だけ**：`--accent`・`--accent-ink`・`--accent-line`（A1＝空の青 #3A74A0／白／#8DB8D8）。窓の中（canvas）はそのラボの形式。窓の中に入るアクセント色は CONTROL の札だけ。
 - 新しいラボに当てる手順：A1 の HTML の外枠部分を写す → 3 変数・文字・SPECIMEN・BIG・NOISE を差し替え → canvas の `layout()` と `pos()` を A1 と同じ「外枠の座標で描く」形にする → `PHShell.onScale(() => { layout(); draw(); })`。
-- 🆕 11-22 ホバーの動き（TRANSFER の帯が左から伸びる・ボタン・つまみ・CONTROL の札が明るい青に反応）。決まりは SPEC_02 §4.6。
+- 🆕 11-22 ホバーの動き（TRANSFER の帯が左から伸び、見出しの行は黒い下地・ボタン・つまみ・CONTROL の札が明るい青に反応）。決まりは SPEC_02 §4.6。
 - 地雷：外枠は CSS の transform で縮むので、canvas の `getBoundingClientRect()` は縮んだ大きさを返す。`clientWidth` で描き、ポインタは倍率で割る（A1 の `layout()`・`pos()`）。内蔵ブラウザは file:// を静止画で開くので、file:// の確認は Edge のヘッドレス撮影で行った。
 
 ## 🆕 A1 CLOUD BASE v0.1（2026-11-11・実装済み）
