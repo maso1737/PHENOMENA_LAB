@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>W1 ONE OCTAVE 光を音で聴く — PHENOMENA LAB</title>
+<link rel="stylesheet" href="../_shell/shell.css">
+<style>
+  /* W1 のアクセント＝白（光そのもの。スペクトルの色とぶつからない）。外枠で変えてよいのはこの 3 つだけ */
+  :root { --accent: #ECEAE3; --accent-ink: #0B0B0A; --accent-line: #ECEAE3; }
+  .ph-title, .ph-question { color: var(--accent-ink); }
+  .w1-sound { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="ph-viewport"><div class="ph-shell">
+  <div class="ph-grid"></div>
+
+  <!-- 18 BIG GRAPHIC（波・漢字 1 字・下端の数字） -->
+  <svg class="ph-big" width="1920" height="1080" viewBox="0 0 1920 1080" aria-hidden="true"><polyline points="1350,78 1355,84.2 1360,90.3 1365,95.9 1370,100.9 1375,105.1 1380,108.4 1385,110.7 1390,111.9 1395,111.9 1400,110.7 1405,108.4 1410,105.1 1415,100.9 1420,95.9 1425,90.3 1430,84.2 1435,78 1440,71.8 1445,65.7 1450,60.1 1455,55.1 1460,50.9 1465,47.6 1470,45.3 1475,44.1 1480,44.1 1485,45.3 1490,47.6 1495,50.9 1500,55.1 1505,60.1 1510,65.7 1515,71.8 1520,78 1525,84.2 1530,90.3 1535,95.9 1540,100.9 1545,105.1 1550,108.4 1555,110.7 1560,111.9 1565,111.9 1570,110.7 1575,108.4 1580,105.1 1585,100.9 1590,95.9 1595,90.3 1600,84.2 1605,78 1610,71.8 1615,65.7 1620,60.1 1625,55.1 1630,50.9 1635,47.6 1640,45.3 1645,44.1 1650,44.1 1655,45.3 1660,47.6 1665,50.9 1670,55.1 1675,60.1 1680,65.7 1685,71.8 1690,78" fill="none" stroke="var(--accent-line)" stroke-width="10"></polyline><polyline points="1350,78 1355,84.5 1360,90.1 1365,94.1 1370,95.9 1375,95.3 1380,92.4 1385,87.5 1390,81.3 1395,74.7 1400,68.5 1405,63.6 1410,60.7 1415,60.1 1420,61.9 1425,65.9 1430,71.5 1435,78 1440,84.5 1445,90.1 1450,94.1 1455,95.9 1460,95.3 1465,92.4 1470,87.5 1475,81.3 1480,74.7 1485,68.5 1490,63.6 1495,60.7 1500,60.1 1505,61.9 1510,65.9 1515,71.5 1520,78 1525,84.5 1530,90.1 1535,94.1 1540,95.9 1545,95.3 1550,92.4 1555,87.5 1560,81.3 1565,74.7 1570,68.5 1575,63.6 1580,60.7 1585,60.1 1590,61.9 1595,65.9 1600,71.5 1605,78 1610,84.5 1615,90.1 1620,94.1 1625,95.9 1630,95.3 1635,92.4 1640,87.5 1645,81.3 1650,74.7 1655,68.5 1660,63.6 1665,60.7 1670,60.1 1675,61.9 1680,65.9 1685,71.5 1690,78" fill="none" stroke="var(--accent-line)" stroke-width="4"></polyline><text x="-6" y="800" font-family="'IBM Plex Sans JP', sans-serif" font-size="300"  font-weight="500">音</text><text x="28" y="1104" font-family="Michroma, sans-serif" font-size="168" >×2 · 1 OCT</text></svg>
+
+  <!-- 16 NOISE LAYER（読ませない） -->
+  <svg class="ph-noise" viewBox="0 0 1920 1080" aria-hidden="true">
+    <text font-family="Jura, sans-serif" font-size="9" letter-spacing="2" transform="translate(13 1040) rotate(-90)">SECTOR 12-B · 35.6895N 139.6917E · OBS W-001-0412 · CAL 0.99820 · λ0 555.0 · 0x7F3A9C · ARCHIVE/EARTH/WAVE/W1 · CHK 0xA1F0</text>
+    <text font-family="Jura, sans-serif" font-size="9" letter-spacing="2" transform="translate(1909 40) rotate(90)">F/A 2^-40 · SWEEP 380-750 · 371 BINS · CMF CIE1931 2° (WYMAN 2013) · LMS HPE · CLASS NONE · RETENTION ∞ · NODE 07</text>
+    <g font-family="'JetBrains Mono', monospace" font-size="8.5">
+      <text x="1132" y="50">0412 &gt; SPECTRAL SWEEP 380-750 OK</text>
+      <text id="nz1" x="1132" y="61">LMS 0.00/0.00/0.00</text>
+      <text id="nz2" x="1132" y="72">W 0 nm  LINES 0</text>
+      <text x="1132" y="83">F-&gt;A 2^-40  ACK</text>
+      <text x="1290" y="332">REF 0x3FA2 · W1/CAUSE/CH3</text>
+      <text x="300" y="1066">ARCHIVE/EARTH/W1/0412 — CLASSIFICATION: NONE</text>
+      <text x="1560" y="1066">END OF RECORD</text>
+    </g>
+    <g><rect x="1132" y="100" width="1" height="12"/><rect x="1136" y="100" width="3" height="12"/><rect x="1142" y="100" width="1" height="12"/><rect x="1146" y="100" width="1" height="12"/><rect x="1150" y="100" width="3" height="12"/><rect x="1158" y="100" width="1" height="12"/><rect x="1164" y="100" width="3" height="12"/><rect x="1170" y="100" width="1" height="12"/><rect x="1176" y="100" width="1" height="12"/><rect x="1180" y="100" width="3" height="12"/><rect x="1188" y="100" width="1" height="12"/><rect x="1194" y="100" width="1" height="12"/><rect x="1198" y="100" width="3" height="12"/><rect x="1206" y="100" width="1" height="12"/><rect x="1212" y="100" width="3" height="12"/><rect x="1220" y="100" width="1" height="12"/><rect x="1226" y="100" width="1" height="12"/></g>
+  </svg>
+
+  <!-- 01 GRID / FRAME（shell.js が描く） -->
+  <svg class="ph-frame" viewBox="0 0 1920 1080" aria-hidden="true"></svg>
+
+  <!-- 02 HEADER IDS -->
+  <div class="ph-brand"><b>PHENOMENA LAB</b><span>EARTH SURVEY ARCHIVE · SHELL v0.1</span></div>
+  <dl class="ph-ids" style="left:392px"><dt>OBS.No</dt><dd>W-001-0412</dd><dt>COORD</dt><dd>35.68°N 139.77°E</dd><dt>TIMESTAMP</dt><dd>2125-07-14T18:27:36Z</dd></dl>
+  <dl class="ph-ids" style="left:760px"><dt>FIELD</dt><dd>WAVE</dd><dt>CARD</dt><dd>W1 / 22</dd><dt>REF</dt><dd>SPEC_02 §2.4</dd></dl>
+
+  <!-- 03 STAGE TAB -->
+  <div class="ph-stagetab"><span class="k">STAGE</span><span class="n">W1</span><span class="s">W · 01/07</span>
+    <svg width="14" height="22" viewBox="0 0 14 22" aria-hidden="true"><line x1="1" y1="21" x2="13" y2="1" stroke-width="1.5"/></svg></div>
+
+  <!-- 04 TITLE BAND・05 QUESTION -->
+  <div class="ph-title"><span class="field" id="titleField">W1 — WAVE · LIGHT AS SOUND</span><h1>ONE OCTAVE</h1><span class="ja">光を音で聴く</span></div>
+  <div class="ph-question"><span class="k">QUESTION</span><p>色とは、光の成分の配分。見える光は 1 オクターブに足りない。</p></div>
+
+  <!-- 06 SPECIMEN -->
+  <div class="ph-specimen"><svg style="position: absolute; left: 0px; top: 0px" width="310" height="174" viewBox="0 -11 310 174" aria-hidden="true"><rect x="0" y="-11" width="310" height="174" fill="#060606"></rect><defs><linearGradient id="w1sp" x1="0" y1="0" x2="1" y2="0"><stop offset="0.000" stop-color="#FF0000"></stop><stop offset="0.052" stop-color="#FF0000"></stop><stop offset="0.105" stop-color="#FF0000"></stop><stop offset="0.160" stop-color="#FF2100"></stop><stop offset="0.217" stop-color="#FF7700"></stop><stop offset="0.275" stop-color="#FFBE00"></stop><stop offset="0.336" stop-color="#FFFF00"></stop><stop offset="0.399" stop-color="#C3FF00"></stop><stop offset="0.464" stop-color="#81FF00"></stop><stop offset="0.531" stop-color="#36FF00"></stop><stop offset="0.601" stop-color="#00FF92"></stop><stop offset="0.674" stop-color="#00D5FF"></stop><stop offset="0.750" stop-color="#007BFF"></stop><stop offset="0.830" stop-color="#0000FF"></stop><stop offset="0.913" stop-color="#6A00FF"></stop><stop offset="1.000" stop-color="#8300B5"></stop></linearGradient></defs><line x1="14" y1="52" x2="14" y2="60" stroke="#6F6D67" stroke-width="1"></line><line x1="23.4" y1="52" x2="23.4" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="32.8" y1="52" x2="32.8" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="42.2" y1="52" x2="42.2" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="51.6" y1="52" x2="51.6" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="61" y1="52" x2="61" y2="60" stroke="#6F6D67" stroke-width="1"></line><line x1="70.4" y1="52" x2="70.4" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="79.8" y1="52" x2="79.8" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="89.2" y1="52" x2="89.2" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="98.6" y1="52" x2="98.6" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="108" y1="52" x2="108" y2="60" stroke="#6F6D67" stroke-width="1"></line><line x1="117.4" y1="52" x2="117.4" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="126.8" y1="52" x2="126.8" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="136.2" y1="52" x2="136.2" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="145.6" y1="52" x2="145.6" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="155" y1="52" x2="155" y2="60" stroke="#6F6D67" stroke-width="1"></line><line x1="164.4" y1="52" x2="164.4" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="173.8" y1="52" x2="173.8" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="183.2" y1="52" x2="183.2" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="192.6" y1="52" x2="192.6" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="202" y1="52" x2="202" y2="60" stroke="#6F6D67" stroke-width="1"></line><line x1="211.4" y1="52" x2="211.4" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="220.8" y1="52" x2="220.8" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="230.2" y1="52" x2="230.2" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="239.6" y1="52" x2="239.6" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="249" y1="52" x2="249" y2="60" stroke="#6F6D67" stroke-width="1"></line><line x1="258.4" y1="52" x2="258.4" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="267.8" y1="52" x2="267.8" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="277.2" y1="52" x2="277.2" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="286.6" y1="52" x2="286.6" y2="56" stroke="#6F6D67" stroke-width="1"></line><line x1="296" y1="52" x2="296" y2="60" stroke="#6F6D67" stroke-width="1"></line><rect x="14" y="66" width="282" height="8" fill="url(#w1sp)"></rect><rect x="99" y="84" width="4" height="44" fill="#E8E6DF"></rect><line x1="14" y1="128" x2="296" y2="128" stroke="rgba(232,230,223,0.5)" stroke-width="1"></line><text x="296" y="146" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#6F6D67" text-anchor="end">BLACK · 1 SPECTRAL BAND</text></svg><span class="tag">SPECIMEN · PAPER</span></div>
+
+  <!-- 07 FORMAT -->
+  <div class="ph-format"><span class="k">FORMAT</span><span class="ja">分光チャート
+＋ ピアノロール</span><span class="en">SPECTRAL CHART + PIANO ROLL</span></div>
+
+  <!-- 08 READOUT -->
+  <div class="ph-readout">
+    <div class="ph-h"><i class="sq"></i><b>READOUT</b><span class="id">RD-W1-01</span></div>
+    <span class="ph-lab" style="margin-top:14px">STATE</span>
+    <div class="ph-states" id="states">
+      <div><b>PURE</b><span>1 本・純音</span></div>
+      <div><b>MIXED</b><span>和音・山</span></div>
+      <div><b>WHITE</b><span>全部・ノイズ</span></div>
+    </div>
+    <div class="ph-vals">
+      <div class="ph-val"><span class="k">PEAK λ <i>いちばん強い成分</i></span><div class="v"><b id="o_peak">—</b><u>nm</u><em id="o_thz"></em></div></div>
+      <div class="ph-val"><span class="k">PITCH <i>÷ 2⁴⁰ の音</i></span><div class="v"><b id="o_hz">—</b><u>Hz</u><em id="o_note"></em></div>
+        <div class="w1-sound"><button class="ph-chip" id="bSound" aria-pressed="false">♪ 音を出す</button><input class="ph-range" type="range" id="vol" min="0" max="100" step="1" value="35" aria-label="音量"></div></div>
+      <div class="ph-val"><span class="k">SEEN AS <i>目にはこう見える</i></span><div class="v"><b id="o_seen">—</b><u id="o_seenU">nm</u><em id="o_seenName"></em></div></div>
+    </div>
+    <div class="ph-boundary"><span class="ph-lab">BOUNDARY</span><svg id="bound" role="img" aria-label="境界の目盛り：PURE・MIXED・WHITE"></svg></div>
+  </div>
+
+  <!-- 09 LOOK ⇄ CAUSE の窓 -->
+  <div class="ph-winhead"><i class="sq"></i><span class="t">LOOK ⇄ CAUSE</span><span class="s">SHARED X-AXIS = FREQUENCY（左が低い・右が高い）</span>
+    <div class="r"><b>PRESET</b><div class="ph-chips" id="presets">
+      <button class="ph-chip" data-p="SUN">太陽</button><button class="ph-chip" data-p="BULB">電球</button><button class="ph-chip" data-p="LED">LED</button><button class="ph-chip" data-p="LASER">レーザー 赤＋緑</button><button class="ph-chip" data-p="SODIUM">街灯 ナトリウム</button><button class="ph-chip" data-p="WHITE">白</button><button class="ph-chip" data-p="CLEAR">消す</button>
+    </div></div></div>
+  <div class="ph-window" id="win">
+    <canvas id="cv"></canvas>
+    <div class="ph-tag" style="left:16px;top:8px"><i></i><b>LOOK</b><span>— 実物の姿</span><small>VISUAL OBSERVATION</small></div>
+    <div class="ph-tag" id="tagCause" style="left:16px;top:226px"><i></i><b>CAUSE</b><span>— 原因の図</span></div>
+    <div class="ph-control" id="ctl" style="left:16px;top:288px"><span class="k">◆ CONTROL ▶</span><span class="d">成分の棒をなぞる</span></div>
+  </div>
+
+  <!-- 12 SCALE -->
+  <div class="ph-scale-k"><i></i><b>SCALE · λ nm ／ Hz</b></div>
+  <svg class="ph-scale" id="scale" width="960" height="56" viewBox="-1 0 962 56" aria-hidden="true"></svg>
+
+  <!-- 13 REALISM -->
+  <div class="ph-realism"><b>REALISM <span class="note">色の式 ◎ ／ 光源の形は目安</span></b>
+    <div class="marks"><div class="now"><span>◎</span>法則</div><div><span>○</span>近似</div><div><span>△</span>まね</div></div></div>
+
+  <!-- 14 PROOF / AUTO / BREAK -->
+  <div class="ph-pab">
+    <button id="bProof"><span>[ </span>PROOF<span> ]</span></button><button id="bAuto"><span>[ </span>AUTO<span> ]</span></button><button id="bBreak"><span>[ </span>BREAK<span> ]</span></button>
+    <div class="sub ph-off" id="r_brk"><span class="k">CONES <i>目の受け手の数・BREAK のときだけ</i></span><input class="ph-range" type="range" id="cones" min="2" max="4" step="1" value="4" disabled aria-label="目の受け手の数（BREAK のときだけ）"><b id="v_cones"></b></div>
+  </div>
+
+  <!-- 15 TRANSFER -->
+  <div class="ph-transfer-k"><i></i><b>TRANSFER</b><span>— NOTES FOR CG / ANIMATION · 表現に持ち出す</span></div>
+  <div class="ph-transfer">
+    <div tabindex="0"><h3><u>01 </u>LOOK RULES<i>絵の決まり</i></h3><p>物の色＝光源の成分 × 物が返す成分。光源が変われば物の色は変わる。同じ黄色に見える光でも、中身が 1 本とは限らない。</p></div>
+    <div tabindex="0"><h3><u>02 </u>CG</h3><p>ライトとマテリアルの色は「3 つの数字に畳んだ後」の世界。同じ黄色のライトでも 1 本か 2 本かで赤い物の見え方が変わる＝分光レンダーとの違い。</p></div>
+    <div tabindex="0"><h3><u>03 </u>GEN CHECK<i>嘘の見つけ方</i></h3><p>色の付いた光の下で、物の色が光源の色に寄っているか。寄らずに元の色のままなら嘘。<em>colored light / object color shift</em></p></div>
+    <div tabindex="0"><h3><u>04 </u>BREAK<i>わざと外す</i></h3><p>受け手を 4 つにすると、A と B の黄色は別の色になる。2 つにすると、赤と緑の区別が消える。</p></div>
+    <div tabindex="0"><h3><u>05 </u>FIELD NOTE<i>宿題</i></h3><p>オレンジの街灯の下で、赤い物と緑の物を見比べる。色が消えるか、LED の下と比べて記録する。</p></div>
+  </div>
+</div></div>
+
+<script src="../_shell/shell.js"></script>
+<script src="_law/ph_color.js"></script>
+<script src="_law/ph_w1_law.js"></script>
+<script>
+'use strict';
+const C = PH_COLOR, L = PH_W1, N = C.N, $ = id => document.getElementById(id);
+const K = { bg: '#060606', ink: '#E8E6DF', dim: '#9C9A93', faint: '#6F6D67', rule: 'rgba(232,230,223,.14)', rule2: 'rgba(232,230,223,.06)' };
+const PNAME = { SUN: '太陽（5778 K の黒体）', BULB: '電球（2700 K の黒体）', LED: '白色 LED（青＋蛍光体）', LASER: '赤＋緑のレーザー', SODIUM: '街灯（ナトリウム 589 nm）', WHITE: '白（全部同じ強さ）', CLEAR: '光なし', DRAW: '自分で描いた光', AUTO: 'AUTO（山が動く）' };
+const S = { spec: L.PRESETS.SODIUM(), preset: 'SODIUM', proof: false, proofAB: 0, auto: false, brk: false, cones: 4, sound: false, vol: 0.35, t: 0, drag: null, probe: null, saved: null };
+const cv = $('cv'), ctx = cv.getContext('2d');
+let W = 1, H = 1, G = {};
+
+/* 1 本ごとの色（スペクトルの帯・目の帯に使う。法則から計算） */
+const BIN_RGB = Array.from({ length: N }, (_, i) => { const s = L.empty(); s[i] = 1; return C.lightColor(C.xyzOf(s)).hex; });
+const HZ0 = L.toHz(C.L1), OCT = L.OCT_EYE;
+const QA = (s => L.qOf(s) / Math.max(...C.lmsOf(s)))(L.PRESETS.SODIUM()), QB = (s => L.qOf(s) / Math.max(...C.lmsOf(s)))(L.PRESETS.LASER());   // BREAK 4 の見どころ                         // 左端＝750 nm（低い音）
+
+const derive = () => {
+  const sp = S.spec, xyz = C.xyzOf(sp), lms = C.lmsOf(sp), mx = Math.max(...lms, 1e-12), sprd = L.spread(sp);
+  const view = S.brk && S.cones === 2 ? C.dropL : (v => v);                          // BREAK：受け手 2 つの見え方（目安）
+  const light = C.lightColor(view(xyz));
+  const wXYZ = C.xyzOf(L.lit(sp, L.WHITE_REFL)), rXYZ = C.xyzOf(L.lit(sp, L.RED_REFL)), wLin = wXYZ.Y > 0 ? Math.max(...C.clipNeg(C.toLin(view(wXYZ))).rgb) : 0, scale = wLin > 0 ? 0.85 / wLin : 0;   // 白い球のいちばん明るい成分を 0.85 にそろえる
+  const ball = C.surfaceColor(view(wXYZ), scale), red = C.surfaceColor(view(rXYZ), scale);
+  /* 赤い物の判定：白い球（＝光の色）と色度が違えば「赤が残る」、同じ色度で暗いだけなら「くすむ」、ほぼ黒なら「消える」 */
+  const cw = C.chroma(view(wXYZ)), cr = C.chroma(view(rXYZ)), dxy = Math.hypot(cw.x - cr.x, cw.y - cr.y), lum = wXYZ.Y > 0 ? rXYZ.Y / wXYZ.Y : 0;
+  const redSay = !(wXYZ.Y > 0) ? '—' : S.brk && S.cones === 2 ? '赤と緑の区別が消える（黄土色に見える・目安）' : dxy > 0.04 ? '赤が残る（光と違う色）' : lum > 0.12 ? '赤がくすむ（光と同じ色で暗いだけ）' : '赤が消える（黒っぽい）';
+  const dom = xyz.Y > 0 ? C.dominant(C.chroma(xyz)) : null, peak = sprd.peak, hz = peak ? L.toHz(peak) : null;
+  return { xyz, lms: lms.map(v => v / mx), q: L.qOf(sp) / mx, light, ball, red, redSay, redDxy: dxy, dom, sprd, state: sprd.state, peak, hz, note: hz ? L.note(hz) : null, peaks: L.peaks(sp), dark: xyz.Y <= 0 };
+};
+
+function layout() {
+  const r = cv.getBoundingClientRect(), k = r.width / Math.max(1, cv.clientWidth), dpr = Math.min((window.devicePixelRatio || 1) * k, 2);
+  W = Math.max(1, cv.clientWidth); H = Math.max(1, cv.clientHeight); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  G = { X0: 200, X1: W - 132, sep: 214, axisY: 246, bandY: 254, bandH: 9, barTop: 276, barBase: 350, coneTop: 362, coneBase: 398, keyTop: 408, keyBot: H - 10 };
+}
+const XofHz = hz => G.X0 + Math.log2(hz / HZ0) / OCT * (G.X1 - G.X0);
+const Xof = l => XofHz(L.toHz(l)), LofX = x => L.SPEED / (HZ0 * Math.pow(2, (x - G.X0) / (G.X1 - G.X0) * OCT) * L.DOWN) * 1e9;
+const mono = (px, w) => (w || 400) + ' ' + px + 'px "JetBrains Mono",ui-monospace,monospace', note = px => px + 'px "M PLUS 1 Code","IBM Plex Sans JP",monospace', jura = (px, w) => (w || 600) + ' ' + px + 'px Jura,sans-serif';
+const colorName = l => l < 450 ? '紫' : l < 485 ? '青' : l < 500 ? '青緑' : l < 560 ? '緑' : l < 575 ? '黄緑' : l < 590 ? '黄' : l < 620 ? '橙' : '赤';
+
+function draw() {
+  const d = derive(), { X0, X1 } = G;
+  ctx.fillStyle = K.bg; ctx.fillRect(0, 0, W, H);
+
+  /* ===== LOOK ===== */
+  ctx.strokeStyle = 'rgba(232,230,223,.35)'; ctx.lineWidth = 1; ctx.beginPath();                         // 四隅の角（BRACKET）
+  for (const [bx, by, sx, sy] of [[16, 44, 1, 1], [960, 44, -1, 1], [16, 200, 1, -1], [960, 200, -1, -1]]) { ctx.moveTo(bx + sx * 10, by + .5); ctx.lineTo(bx + .5, by + .5); ctx.lineTo(bx + .5, by + sy * 10); }
+  ctx.stroke();
+  // いまの光
+  const cx1 = 120, cy = 122, r1 = 50;
+  ctx.setLineDash([2, 3]); ctx.strokeStyle = 'rgba(232,230,223,.35)'; ctx.beginPath(); ctx.arc(cx1, cy, r1 + 8, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = d.dark ? K.bg : d.light.hex; ctx.beginPath(); ctx.arc(cx1, cy, r1, 0, 7); ctx.fill();
+  if (d.dark) { ctx.strokeStyle = K.faint; ctx.stroke(); }
+  label(cx1 + r1 + 22, 92, 'いまの光', S.proof ? (S.proofAB ? 'B 赤＋緑の 2 本' : 'A 黄色の 1 本') : PNAME[S.preset] || '', d.light.clipped > 0.02 ? '画面の外の純色（近い色で表示）' : '見える色は成分の配分で決まる');
+  // 白い球
+  const cx2 = 470;
+  const g = ctx.createRadialGradient(cx2 - 16, cy - 18, 4, cx2, cy, 50);
+  g.addColorStop(0, shade(d.ball.rgb, 1.08)); g.addColorStop(0.7, d.ball.hex); g.addColorStop(1, shade(d.ball.rgb, 0.45));
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx2, cy, 46, 0, 7); ctx.fill(); ctx.strokeStyle = 'rgba(232,230,223,.5)'; ctx.lineWidth = 1; ctx.stroke();
+  ctx.strokeStyle = 'rgba(232,230,223,.25)'; ctx.beginPath(); ctx.moveTo(cx2 - 60, cy + 52.5); ctx.lineTo(cx2 + 60, cy + 52.5); ctx.stroke();
+  label(cx2 + 66, 92, '白い球', 'どの成分もほぼ同じだけ返す', '＝光の色そのもの');
+  // 赤い物（立方体）
+  const bx = 690, by = 88, s = 64, dp = 18, rc = d.red.rgb;
+  face([[bx, by + dp], [bx + s, by + dp], [bx + s, by + dp + s], [bx, by + dp + s]], d.red.hex);
+  face([[bx, by + dp], [bx + dp, by], [bx + s + dp, by], [bx + s, by + dp]], shade(rc, 1.18));
+  face([[bx + s, by + dp], [bx + s + dp, by], [bx + s + dp, by + s], [bx + s, by + dp + s]], shade(rc, 0.62));
+  label(bx + s + dp + 18, 92, '赤い物', '600 nm から上だけをよく返す', d.redSay);
+  ctx.font = jura(9, 500); ctx.fillStyle = K.faint; ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic'; ctx.fillText('LOOK RENDER · 光 × 物が返す割合 → 目の 3 つの受け手 → 画面', 956, 196);
+
+  // 耳と目のオクターブ
+  const ex0 = 1000, ex1 = W - 40, ey = 74, ew = ex1 - ex0;
+  ctx.textAlign = 'left'; ctx.fillStyle = K.ink; ctx.font = '500 13px "IBM Plex Sans JP",sans-serif'; ctx.fillText('耳 10 オクターブ ／ 目 1 オクターブ弱', ex0, ey - 12);
+  ctx.strokeStyle = 'rgba(232,230,223,.55)'; ctx.lineWidth = 1;
+  for (let k = 0; k < 10; k++) ctx.strokeRect(ex0 + k * ew / 9.966 + .5, ey + .5, ew / 9.966, 14);
+  ctx.font = mono(10); ctx.fillStyle = K.dim; ctx.fillText('20 Hz', ex0, ey + 30); ctx.textAlign = 'right'; ctx.fillText('20 kHz　耳', ex1 + 20, ey + 30);
+  const eyeX = ex0 + Math.log2(L.toHz(750) / 20) / L.OCT_EAR * ew, eyeW = L.OCT_EYE / L.OCT_EAR * ew;
+  for (let i = 0; i < N; i++) { const x = ex0 + Math.log2(L.toHz(C.lam(i)) / 20) / L.OCT_EAR * ew; ctx.fillStyle = BIN_RGB[i]; ctx.fillRect(x, ey + 1, 1.2, 13); }
+  ctx.strokeStyle = K.ink; ctx.strokeRect(eyeX + .5, ey + .5, eyeW, 14);
+  if (d.hz) { const mx = ex0 + Math.log2(d.hz / 20) / L.OCT_EAR * ew; tri(mx, ey + 18, 1); }
+  ctx.textAlign = 'left'; ctx.fillStyle = K.dim; ctx.font = mono(10); ctx.fillText('目＝光を ÷2⁴⁰ した音の幅：380–750 nm = ' + L.OCT_EYE.toFixed(2) + ' oct（よく見える 400–700 nm は ' + L.OCT_EYE_CORE.toFixed(2) + '）', ex0, ey + 50);
+  ctx.fillText('耳 20 Hz–20 kHz = ' + L.OCT_EAR.toFixed(1) + ' oct。目の幅は耳の ' + Math.round(L.OCT_EYE / L.OCT_EAR * 100) + ' 分の 1 ではなく ' + (L.OCT_EAR / L.OCT_EYE).toFixed(0) + ' 分の 1', ex0, ey + 66);
+  ctx.fillStyle = K.ink; ctx.font = note(11); ctx.fillText(d.peaks.length > 1 ? '音にすると ' + d.peaks.length + ' つの音（目には 1 色）' : d.peaks.length === 1 ? (d.sprd.W > 12 ? '音にすると 山 1 つ＝にごった 1 音' : '音にすると 1 つの音') : '音なし', ex0, ey + 92);
+
+  ctx.setLineDash([2, 4]); ctx.strokeStyle = 'rgba(232,230,223,.18)'; ctx.beginPath(); ctx.moveTo(16, G.sep + .5); ctx.lineTo(W - 16, G.sep + .5); ctx.stroke(); ctx.setLineDash([]);
+
+  /* ===== CAUSE ===== */
+  // 波長の目盛り（上）
+  ctx.font = mono(10); ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  for (let l = 750; l >= 380; l -= 10) { const x = Math.round(Xof(l)) + .5, big = l % 50 === 0; ctx.strokeStyle = big ? 'rgba(232,230,223,.7)' : 'rgba(232,230,223,.3)'; ctx.beginPath(); ctx.moveTo(x, G.axisY - (big ? 10 : 4)); ctx.lineTo(x, G.axisY); ctx.stroke(); if (big) { ctx.fillStyle = K.dim; ctx.fillText(l, x, G.axisY - 13); } }
+  ctx.textAlign = 'left'; ctx.fillText('λ nm', X1 + 10, G.axisY - 13);
+  ctx.strokeStyle = 'rgba(232,230,223,.55)'; ctx.beginPath(); ctx.moveTo(X0, G.axisY + .5); ctx.lineTo(X1, G.axisY + .5); ctx.stroke();
+  // スペクトルの帯（1 本ずつの色を法則で計算）
+  for (let i = 0; i < N; i++) { const xa = Xof(C.lam(i) + 0.5), xb = Xof(C.lam(i) - 0.5); ctx.fillStyle = BIN_RGB[i]; ctx.fillRect(xa, G.bandY, xb - xa + .6, G.bandH); }
+  // 成分の棒
+  const bh = G.barBase - G.barTop;
+  ctx.strokeStyle = K.rule2; for (let k = 1; k <= 4; k++) { const y = G.barBase - bh * k / 4 + .5; ctx.beginPath(); ctx.moveTo(X0, y); ctx.lineTo(X1, y); ctx.stroke(); }
+  ctx.font = mono(9); ctx.fillStyle = K.faint; ctx.textAlign = 'right'; ctx.fillText('1.0', X0 - 6, G.barTop + 4); ctx.fillText('0', X0 - 6, G.barBase + 3);
+  if (!S.proof) {
+    ctx.fillStyle = K.ink;
+    for (let i = 0; i < N;) {                                       // 続いている所は 1 枚の面、ぽつんと 1 本は 4 px の棒
+      if (S.spec[i] <= 0.002) { i++; continue; } let j = i; while (j + 1 < N && S.spec[j + 1] > 0.002) j++;
+      if (j === i) { const x = Xof(C.lam(i)), h = S.spec[i] * bh; ctx.fillRect(x - 2, G.barBase - h, 4, h); }
+      else { ctx.beginPath(); ctx.moveTo(Xof(C.lam(i) + 0.5), G.barBase); for (let k = i; k <= j; k++) ctx.lineTo(Xof(C.lam(k)), G.barBase - S.spec[k] * bh); ctx.lineTo(Xof(C.lam(j) - 0.5), G.barBase); ctx.closePath(); ctx.fill(); }
+      i = j + 1; }
+    // 山の印（波長と音）
+    ctx.font = mono(10); ctx.textAlign = 'left';
+    d.peaks.slice(0, 3).forEach(p => { if (p.w > 12 && d.peaks.length === 1 && d.sprd.W > 60) return; const x = Xof(p.l), y = G.barBase - p.a * bh, n = L.note(L.toHz(p.l));
+      ctx.setLineDash([2, 3]); ctx.strokeStyle = 'rgba(232,230,223,.5)'; ctx.beginPath(); ctx.moveTo(x + .5, y); ctx.lineTo(x + .5, G.keyBot); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = K.ink; ctx.fillText(p.l + ' nm', x + 6, Math.max(G.barTop + 8, y + 9)); ctx.fillStyle = K.dim; ctx.fillText('→ ' + n.name + ' ' + (n.cents >= 0 ? '+' : '') + n.cents + '¢', x + 6, Math.max(G.barTop + 20, y + 21)); });
+  } else {
+    ctx.fillStyle = 'rgba(232,230,223,.06)'; ctx.fillRect(X0, G.barTop - 4, X1 - X0, bh + 4);
+    ctx.strokeStyle = 'rgba(232,230,223,.25)'; ctx.setLineDash([3, 3]); ctx.strokeRect(X0 + .5, G.barTop - 3.5, X1 - X0 - 1, bh + 3); ctx.setLineDash([]);
+    ctx.font = jura(26, 600); ctx.fillStyle = K.ink; ctx.textAlign = 'left'; ctx.fillText(S.proofAB ? 'B' : 'A', X0 + 14, G.barTop + 30);
+    ctx.font = note(12); ctx.fillText(S.proofAB ? '赤 ' + L.MET.lR + ' nm ＋ 緑 ' + L.MET.lG + ' nm の 2 本（成分は隠してある）' : '黄色 ' + L.MET.lA + ' nm の 1 本（成分は隠してある）', X0 + 44, G.barTop + 22);
+    ctx.fillStyle = K.dim; ctx.fillText('受け手 3 つの数字だけを見る → A でも B でも同じ。音にすると 1 音と 2 音で違う（♪ で聴ける）。', X0 + 44, G.barTop + 42);
+  }
+  ctx.strokeStyle = 'rgba(232,230,223,.55)'; ctx.beginPath(); ctx.moveTo(X0, G.barBase + .5); ctx.lineTo(X1, G.barBase + .5); ctx.stroke();
+
+  // 目の 3 つ（4 つ）の受け手：感度の線＋反応の箱
+  const ch = G.coneBase - G.coneTop, names = ['L', 'M', 'S'], col = ['rgba(232,230,223,.5)', 'rgba(232,230,223,.35)', 'rgba(232,230,223,.25)'];
+  const nC = S.brk ? S.cones : 3;
+  ctx.lineWidth = 1;
+  for (let k = 0; k < 3; k++) { if (nC === 2 && k === 0) continue; ctx.strokeStyle = col[k]; ctx.beginPath(); for (let i = 0; i < N; i += 2) { const x = Xof(C.lam(i)), y = G.coneBase - C.CONE[i][k] * ch; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke(); }
+  if (nC === 4) { ctx.setLineDash([3, 3]); ctx.strokeStyle = 'rgba(232,230,223,.6)'; ctx.beginPath(); for (let i = 0; i < N; i += 2) { const x = Xof(C.lam(i)), y = G.coneBase - L.Q[i] * ch; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke(); ctx.setLineDash([]); }
+  const boxes = [[0, C.CONE_PEAK[0], d.lms[0]], [1, C.CONE_PEAK[1], d.lms[1]], [2, C.CONE_PEAK[2], d.lms[2]]];
+  if (nC === 4) boxes.push([3, 618, d.q]);   // Q の山は 590 nm。箱は L と重ならないよう右へずらして置く
+  ctx.font = mono(10); ctx.textAlign = 'left';
+  for (const [k, pk, v] of boxes) {
+    if (nC === 2 && k === 0) { const x = Xof(pk); ctx.fillStyle = K.faint; ctx.fillText('L なし', x - 14, G.coneBase - 4); continue; }
+    const x = Xof(pk) - 14, hh = Math.max(1, Math.min(1.2, v) * ch);
+    ctx.fillStyle = S.proof ? 'rgba(232,230,223,.9)' : 'rgba(232,230,223,.16)'; ctx.fillRect(x, G.coneBase - hh, 28, hh);
+    ctx.strokeStyle = K.ink; ctx.strokeRect(x + .5, G.coneBase - hh + .5, 27, hh - 1);
+    ctx.fillStyle = K.ink; ctx.fillText((k === 3 ? 'Q' : names[k]) + ' ' + v.toFixed(2), x + 32, G.coneBase - hh + 10);
+  }
+  ctx.strokeStyle = 'rgba(232,230,223,.3)'; ctx.beginPath(); ctx.moveTo(X0, G.coneBase + .5); ctx.lineTo(X1, G.coneBase + .5); ctx.stroke();
+  ctx.font = note(10); ctx.fillStyle = K.dim; ctx.textAlign = 'left'; ctx.fillText(nC === 4 ? '受け手 L·M·S·Q（Q は仮の 4 つ目）' : nC === 2 ? '受け手 M·S（L が無い目）' : '受け手 L·M·S', 16, G.coneTop + 20);
+  if (nC === 4) { ctx.textAlign = 'left'; ctx.fillStyle = K.ink; ctx.font = mono(10, 600); ctx.fillText('Q（4 つ目）：A 黄 1 本 ' + QA.toFixed(2) + ' ／ B 赤＋緑 ' + QB.toFixed(2) + ' → A と B は別の色', Xof(500), G.coneTop + 14); ctx.font = note(10); }
+  ctx.textAlign = 'right'; ctx.fillStyle = K.faint; ctx.fillText('箱＝いちばん強い受け手を 1 にした反応（' + (nC === 4 ? '4 つ' : nC === 2 ? '2 つ' : '3 つ') + 'の数字に畳まれる）', X1, G.coneTop - 2);
+
+  // 鍵盤（平均律・横軸は振動数の対数）
+  const m0 = Math.ceil(69 + 12 * Math.log2(HZ0 / 440) - 0.5), m1 = Math.floor(69 + 12 * Math.log2(L.toHz(C.L0) / 440) + 0.5);
+  let smx = 0; for (const v of S.spec) smx = Math.max(smx, v);
+  const keyLit = (fa, fb) => { if (S.proof || smx <= 0) return false; const la = L.SPEED / (fb * L.DOWN) * 1e9, lb = L.SPEED / (fa * L.DOWN) * 1e9; let m = 0; for (let l = Math.ceil(la); l <= Math.floor(lb); l++) m = Math.max(m, S.spec[L.idx(l)]); return m >= 0.3 * smx; };   // その鍵盤の幅に強い成分があれば点ける
+  ctx.textAlign = 'center';
+  for (let m = m0; m <= m1; m++) {
+    const f = 440 * Math.pow(2, (m - 69) / 12), xa = Math.max(X0, XofHz(f * Math.pow(2, -1 / 24))), xb = Math.min(X1, XofHz(f * Math.pow(2, 1 / 24)));
+    if (xb - xa < 4) continue;
+    const blackKey = [1, 3, 6, 8, 10].includes(((m % 12) + 12) % 12), on = keyLit(f * Math.pow(2, -1 / 24), f * Math.pow(2, 1 / 24));
+    ctx.fillStyle = on ? 'rgba(232,230,223,.12)' : blackKey ? '#0d0d0c' : '#141413'; ctx.fillRect(xa, G.keyTop, xb - xa, G.keyBot - G.keyTop);
+    ctx.strokeStyle = on ? K.ink : 'rgba(232,230,223,.22)'; ctx.lineWidth = on ? 1.5 : 1; ctx.strokeRect(xa + .5, G.keyTop + .5, xb - xa - 1, G.keyBot - G.keyTop - 1);
+    const n = L.note(f); ctx.font = mono(9); ctx.fillStyle = K.faint; ctx.fillText(Math.round(f), (xa + xb) / 2, G.keyTop + 14);
+    ctx.font = mono(10, 600); ctx.fillStyle = on ? K.ink : K.dim; ctx.fillText(n.name, (xa + xb) / 2, G.keyBot - 8);
+  }
+  ctx.lineWidth = 1; ctx.font = note(10); ctx.fillStyle = K.dim; ctx.textAlign = 'left'; ctx.fillText('鍵盤', 16, G.keyTop + 18); ctx.font = mono(9); ctx.fillText('× 2⁻⁴⁰', 16, G.keyTop + 32);
+
+  // 右端：振動数 → 音
+  ctx.textAlign = 'left'; ctx.font = mono(11); ctx.fillStyle = K.ink;
+  if (d.peak) { ctx.fillText(L.THz(d.peak).toFixed(0) + ' THz', X1 + 14, G.barTop + 12); ctx.fillStyle = K.dim; ctx.fillText('÷ 2⁴⁰', X1 + 14, G.barTop + 30); ctx.fillStyle = K.ink; ctx.fillText(d.hz.toFixed(0) + ' Hz', X1 + 14, G.barTop + 48); }
+
+  // なぞる前の手がかり：指している波長
+  if (S.probe != null && !S.proof) {
+    const x = Xof(S.probe), n = L.note(L.toHz(S.probe)); ctx.strokeStyle = 'rgba(232,230,223,.4)'; ctx.beginPath(); ctx.moveTo(x + .5, G.axisY); ctx.lineTo(x + .5, G.barBase); ctx.stroke();
+    const t = Math.round(S.probe) + ' nm · ' + L.toHz(S.probe).toFixed(0) + ' Hz · ' + n.name, tw = (ctx.font = mono(10, 600), ctx.measureText(t).width);
+    const tx = Math.min(X1 - tw - 10, x + 6); ctx.fillStyle = K.ink; ctx.fillRect(tx, G.barTop - 18, tw + 8, 14); ctx.fillStyle = K.bg; ctx.textAlign = 'left'; ctx.fillText(t, tx + 4, G.barTop - 7);
+  }
+  if (S.brk) { const bt = 'BREAK　受け手 ' + S.cones + ' つの目' + (S.cones === 4 ? '：A と B の黄色は別の色' : S.cones === 2 ? '：赤と緑の区別が消える（見え方は目安）' : '：いつもの目'); ctx.font = mono(11, 600); const bw = ctx.measureText(bt).width; ctx.fillStyle = K.ink; ctx.fillRect(W - bw - 34, 8, bw + 14, 19); ctx.fillStyle = K.bg; ctx.textAlign = 'right'; ctx.fillText(bt, W - 27, 22); }
+}
+function label(x, y, t, a, b) { ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = K.ink; ctx.font = '500 13px "IBM Plex Sans JP",sans-serif'; ctx.fillText(t, x, y); ctx.fillStyle = K.dim; ctx.font = note(11); ctx.fillText(a, x, y + 20); ctx.fillText(b, x, y + 38); }
+function face(pts, fill) { ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = 'rgba(232,230,223,.55)'; ctx.lineWidth = 1; ctx.stroke(); }
+function shade(rgb, k) { return C.hex(rgb.map(v => Math.min(1, v * k))); }
+function tri(x, y, up) { ctx.fillStyle = K.ink; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 5, y + 8 * up); ctx.lineTo(x + 5, y + 8 * up); ctx.fill(); }
+
+/* ---- 外枠への書き出し ---- */
+const STATE_I = { PURE: 0, MIXED: 1, WHITE: 2, DARK: -1 };
+const setBound = PHShell.boundary($('bound'), { width: 212, zones: ['PURE', 'MIXED', 'WHITE'], cuts: [{ x: 60, label: '1 本' }, { x: 150, label: '広い' }] });
+const bxOf = (Wd, st) => { const lw = Math.log(Math.max(1, Wd)), a = Math.log(L.PURE_W), b = Math.log(L.WHITE_W), e = Math.log(371);
+  let x = lw <= a ? 8 + lw / a * 52 : lw <= b ? 60 + (lw - a) / (b - a) * 90 : 150 + Math.min(1, (lw - b) / (e - b)) * 56; if (st === 'MIXED') x = Math.max(66, Math.min(144, x)); return x; };
+const scaleSvg = $('scale'), NS = 'http://www.w3.org/2000/svg', sEl = (t, a) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); scaleSvg.appendChild(e); return e; };
+const sX = l => Math.log2(L.toHz(l) / HZ0) / OCT * 960;
+sEl('line', { x1: 0, y1: 26, x2: 960, y2: 26, stroke: 'rgba(232,230,223,0.55)' });
+for (let l = 750; l >= 380; l -= 10) { const x = sX(l), big = l % 50 === 0; sEl('line', { x1: x, y1: big ? 20 : 26, x2: x, y2: big ? 32 : 30, stroke: big ? '#E8E6DF' : '#6F6D67' });
+  if (big) { const t = sEl('text', { x, y: 14, 'font-family': "'JetBrains Mono', monospace", 'font-size': 11, fill: '#9C9A93', 'text-anchor': l === 750 ? 'start' : 'middle' }); t.textContent = l;
+    const h = sEl('text', { x, y: 46, 'font-family': "'JetBrains Mono', monospace", 'font-size': 10, fill: '#6F6D67', 'text-anchor': l === 750 ? 'start' : 'middle' }); h.textContent = L.toHz(l).toFixed(0) + ' Hz'; } }
+{ const t = sEl('text', { x: 960, y: 14, 'font-family': "'JetBrains Mono', monospace", 'font-size': 11, fill: '#9C9A93', 'text-anchor': 'end' }); t.textContent = '380'; }
+const scaleMk = sEl('polygon', { points: '0,29 -6,40 6,40', fill: '#ECEAE3' });
+
+function readout() {
+  const d = derive(), si = STATE_I[d.state];
+  PHShell.mark($('states'), si);
+  $('o_peak').textContent = d.peak ? d.peak : '—'; $('o_thz').textContent = d.peak ? L.THz(d.peak).toFixed(0) + ' THz' : '';
+  $('o_hz').textContent = d.hz ? d.hz.toFixed(0) : '—'; $('o_note').textContent = d.note ? d.note.name + ' ' + (d.note.cents >= 0 ? '+' : '') + d.note.cents + '¢' : '';
+  if (!d.dom) { $('o_seen').textContent = '—'; $('o_seenU').textContent = ''; $('o_seenName').textContent = '暗い'; }
+  else if (d.dom.kind === 'white') { $('o_seen').textContent = '白'; $('o_seenU').textContent = ''; $('o_seenName').textContent = '色みなし'; }
+  else if (d.dom.kind === 'purple') { $('o_seen').textContent = '赤紫'; $('o_seenU').textContent = ''; $('o_seenName').textContent = '虹に無い色（補色 ' + d.dom.l + ' nm）'; }
+  else { $('o_seen').textContent = d.dom.l; $('o_seenU').textContent = 'nm'; $('o_seenName').textContent = '相当の' + colorName(d.dom.l); }
+  $('bSound').classList.toggle('on', S.sound); $('bSound').setAttribute('aria-pressed', S.sound); $('bSound').textContent = S.sound ? '♪ 音を止める' : '♪ 音を出す';
+  $('bProof').classList.toggle('on', S.proof); $('bAuto').classList.toggle('on', S.auto); $('bBreak').classList.toggle('on', S.brk);
+  $('r_brk').classList.toggle('ph-off', !S.brk); $('cones').disabled = !S.brk; $('cones').value = S.cones; $('v_cones').textContent = S.cones + ' つ'; $('vol').value = Math.round(S.vol * 100);
+  $('win').classList.toggle('broken', S.brk);
+  document.querySelectorAll('#presets .ph-chip').forEach(b => b.classList.toggle('on', !S.proof && !S.auto && b.dataset.p === S.preset));
+  setBound(bxOf(d.sprd.W, d.state), si);
+  scaleMk.setAttribute('transform', 'translate(' + (d.peak ? sX(d.peak) : -999).toFixed(1) + ' 0)');
+  $('titleField').textContent = 'W1 — WAVE · LIGHT AS SOUND · STATE ' + (d.state === 'DARK' ? '—' : d.state);
+  $('nz1').textContent = 'LMS ' + d.lms.map(v => v.toFixed(2)).join('/'); $('nz2').textContent = 'W ' + d.sprd.W.toFixed(0) + ' nm  LINES ' + d.sprd.lines;
+}
+
+/* ---- 音：成分の 1 本ごとに正弦波（÷2⁴⁰）。1 秒の輪の音を作り、切り替えは重ねてつなぐ ---- */
+let AC = null, master = null, limiter = null, cur = null, dirty = true, lastBuild = 0;
+const PHASE = Array.from({ length: N }, (_, i) => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return (x - Math.floor(x)) * Math.PI * 2; });
+function buildBuffer() {
+  const sr = AC.sampleRate, n = sr, data = new Float32Array(n), sp = S.spec; let mx = 0; for (const v of sp) mx = Math.max(mx, v);
+  if (mx > 0) for (let i = 0; i < N; i++) {
+    const a = sp[i] / mx; if (a < 0.003) continue;
+    const f = Math.round(L.toHz(C.lam(i))), w = 2 * Math.PI * f / sr, c = Math.cos(w), s = Math.sin(w);   // 1 秒の輪で切れ目なく回る（Hz を整数に丸める・最大 ±0.5 Hz）
+    let re = Math.cos(PHASE[i]) * a, im = Math.sin(PHASE[i]) * a;
+    for (let k = 0; k < n; k++) { data[k] += im; const r2 = re * c - im * s; im = re * s + im * c; re = r2; }
+  }
+  let ss = 0; for (let k = 0; k < n; k++) ss += data[k] * data[k]; const rms = Math.sqrt(ss / n), g = rms > 0 ? 0.12 / rms : 0;     // 強さは一定（RMS 0.12）
+  const buf = AC.createBuffer(1, n, sr); const ch = buf.getChannelData(0); for (let k = 0; k < n; k++) ch[k] = data[k] * g; return buf;
+}
+function swapSound() {
+  if (!AC) return; const t = AC.currentTime;
+  if (cur) { const old = cur; old.g.gain.setTargetAtTime(0, t, 0.03); old.src.stop(t + 0.3); cur = null; }
+  if (!S.sound) return;
+  const src = AC.createBufferSource(), g = AC.createGain(); src.buffer = buildBuffer(); src.loop = true; g.gain.value = 0; src.connect(g).connect(master); src.start(); g.gain.setTargetAtTime(1, t, 0.03); cur = { src, g };
+}
+async function setSound(on) {
+  S.sound = !!on;
+  if (on && !AC) { const Ctx = window.AudioContext || window.webkitAudioContext; AC = new Ctx(); master = AC.createGain(); master.gain.value = 0; limiter = AC.createDynamicsCompressor();
+    limiter.threshold.value = -10; limiter.ratio.value = 20; limiter.attack.value = .003; limiter.release.value = .15; master.connect(limiter).connect(AC.destination); }
+  if (AC && AC.state === 'suspended') await AC.resume();
+  if (AC) master.gain.setTargetAtTime(S.sound ? S.vol * 0.8 : 0, AC.currentTime, .06);
+  dirty = true;
+}
+const markDirty = () => { dirty = true; };
+
+function step(dt) {
+  S.t += dt;
+  if (S.auto) {                                                                         // 山が 1 オクターブを往復し、細い ⇄ 広い をくり返す（PURE → MIXED → WHITE）
+    const c = 565 + 175 * Math.sin(S.t * 2 * Math.PI / 24), wd = 0.4 + 150 * (0.5 - 0.5 * Math.cos(S.t * 2 * Math.PI / 40));
+    const sp = L.empty(); for (let i = 0; i < N; i++) sp[i] = Math.exp(-0.5 * ((C.lam(i) - c) / wd) ** 2); S.spec = sp.map(v => v < 1e-3 ? 0 : v); S.preset = 'AUTO'; dirty = true;
+  }
+  if (S.proof) { const ab = Math.floor(S.t / 2.5) % 2; if (ab !== S.proofAB || !S.proofSet) { S.proofAB = ab; S.proofSet = true; S.spec = ab ? L.PRESETS.LASER() : L.PRESETS.SODIUM(); dirty = true; } }
+  const now = performance.now();
+  if (dirty && AC && (S.sound || cur) && now - lastBuild > (S.auto ? 250 : 120)) { dirty = false; lastBuild = now; swapSound(); }   // 止めたときも 1 回通して音源を止める
+  readout(); draw();
+}
+
+/* ---- 操作 ---- */
+function setPreset(p) { S.auto = false; if (S.proof) { S.proof = false; } S.spec = L.PRESETS[p](); S.preset = p; markDirty(); }
+document.querySelectorAll('#presets .ph-chip').forEach(b => b.addEventListener('click', () => setPreset(b.dataset.p)));
+$('bSound').addEventListener('click', () => setSound(!S.sound));
+$('vol').addEventListener('input', e => { S.vol = +e.target.value / 100; if (AC) master.gain.setTargetAtTime(S.sound ? S.vol * 0.8 : 0, AC.currentTime, .06); });
+$('cones').addEventListener('input', e => { S.cones = +e.target.value; });
+$('bProof').addEventListener('click', () => { S.proof = !S.proof; if (S.proof) { S.auto = false; S.saved = { spec: S.spec.slice(), preset: S.preset }; S.proofSet = false; S.t = 0; } else if (S.saved) { S.spec = S.saved.spec; S.preset = S.saved.preset; } markDirty(); });
+$('bAuto').addEventListener('click', () => { S.auto = !S.auto; if (S.auto) { S.proof = false; S.t = 0; } else { S.preset = 'DRAW'; } markDirty(); });
+$('bBreak').addEventListener('click', () => { S.brk = !S.brk; });
+
+const pos = e => { const r = cv.getBoundingClientRect(), k = r.width / Math.max(1, cv.clientWidth); return [(e.clientX - r.left) / k, (e.clientY - r.top) / k]; };
+const inBars = (x, y) => x >= G.X0 - 4 && x <= G.X1 + 4 && y >= G.barTop - 22 && y <= G.barBase + 8;
+let lastI = null;
+function paint(x, y) {
+  const i = L.idx(LofX(Math.max(G.X0, Math.min(G.X1, x)))), a = Math.max(0, Math.min(1, (G.barBase - y) / (G.barBase - G.barTop)));
+  if (lastI == null) S.spec[i] = a; else { const [i0, i1] = lastI.i < i ? [lastI.i, i] : [i, lastI.i]; for (let j = i0; j <= i1; j++) { const t = i1 === i0 ? 1 : (j - lastI.i) / (i - lastI.i); S.spec[j] = lastI.a + (a - lastI.a) * (isFinite(t) ? t : 1); } }
+  lastI = { i, a }; markDirty();
+}
+cv.addEventListener('pointerdown', e => { const [x, y] = pos(e); if (!inBars(x, y)) return; S.auto = false; S.proof = false; S.preset = 'DRAW'; S.drag = 'draw'; S.spec = S.spec.slice(); lastI = null; paint(x, y); try { cv.setPointerCapture(e.pointerId); } catch (_) {} });
+cv.addEventListener('pointermove', e => { const [x, y] = pos(e); const near = inBars(x, y); $('ctl').classList.toggle('hot', near || S.drag === 'draw');
+  S.probe = near ? LofX(Math.max(G.X0, Math.min(G.X1, x))) : null; cv.style.cursor = near ? 'crosshair' : 'default'; if (S.drag === 'draw') paint(x, y); });
+const up = () => { S.drag = null; lastI = null; }; cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+cv.addEventListener('pointerleave', () => { if (!S.drag) { S.probe = null; $('ctl').classList.remove('hot'); } });
+new ResizeObserver(() => { layout(); draw(); }).observe(cv);
+PHShell.onScale(() => { layout(); draw(); });
+if (document.fonts) ["11px 'JetBrains Mono'", "11px 'M PLUS 1 Code'", "13px 'IBM Plex Sans JP'", "12px Jura"].forEach(f => document.fonts.load(f));
+
+/* 直リンク：#p=LASER（プリセット）&brk=2〜4（BREAK と受け手の数）&proof=1&auto=1 */
+{ const h = new URLSearchParams(location.hash.slice(1)); if (L.PRESETS[h.get('p')]) setPreset(h.get('p')); if (h.get('brk')) { S.brk = true; S.cones = Math.max(2, Math.min(4, +h.get('brk') || 4)); }
+  if (h.get('proof') === '1') $('bProof').click(); if (h.get('auto') === '1') $('bAuto').click(); }
+window.__PH = { S, C, L, get G() { return G; }, derive, step, draw, layout, Xof, LofX, setPreset, setSound, buffer: () => AC && buildBuffer(), audio: () => AC && { state: AC.state, master: master.gain.value, playing: !!cur, gain: cur && cur.g.gain.value } };   // 検証用
+layout(); let last = performance.now();
+(function loop(now) { step(Math.min(0.05, (now - last) / 1000)); last = now; requestAnimationFrame(loop); })(last);
+</script>
+</body>
+</html>

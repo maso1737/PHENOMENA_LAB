@@ -238,4 +238,15 @@ button { cursor: pointer; }
 .ph-control.hot .k { background: var(--accent-line); color: var(--ground); }
 .ph-control.hot .d { color: #fff; }
 
+/* ---- 小さな切り替えボタン（プリセット・音など）：PROOF／AUTO／BREAK と同じ反応 ---- */
+.ph-chips { display: flex; align-items: center; gap: 4px; }
+.ph-chip { position: relative; overflow: hidden; isolation: isolate; height: 24px; padding: 0 10px; background: transparent; color: var(--ink-2);
+  border: 1px solid var(--line-main); font: 400 12px/1 var(--f-jp); white-space: nowrap; transition: color .15s, border-color .15s; }
+.ph-chip::before { content: ''; position: absolute; inset: 0; background: color-mix(in srgb, var(--accent) 45%, transparent); transform: scaleX(0); transform-origin: 0 50%; transition: transform .28s cubic-bezier(.2, .8, .2, 1); z-index: -1; }
+.ph-chip:hover::before, .ph-chip:focus-visible::before { transform: scaleX(1); }
+.ph-chip:hover, .ph-chip:focus-visible { color: #fff; border-color: var(--accent-line); outline: none; }
+.ph-chip:active { transform: translateY(1px); }
+.ph-chip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.ph-chip.on::before { display: none; }
+
 @media (prefers-reduced-motion: reduce) { .ph-shell *, .ph-shell *::before, .ph-shell *::after { transition: none !important; } }
