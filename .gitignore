@@ -1,0 +1,8 @@
+# 書き出し（Obsidian 除外と同じ規約）
+/_out/
+# 元の書体置き場：OFL でない書体（Bank Gothic・Bauhaus 93・Square 721）を含むので入れない。外枠の書体は _shell/fonts/（OFL）
+/fonts/
+# Claude Design の書き出しの zip（中身は wave/styleframe/ に展開済み）
+*.zip
+# 中身を移した後の空フォルダ（ユーザーが消す）
+/wave2/

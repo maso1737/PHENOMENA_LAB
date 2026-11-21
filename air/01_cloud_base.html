@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A1 CLOUD BASE 雲の底 — PHENOMENA LAB</title>
+<link rel="stylesheet" href="../_shell/shell.css">
+<style>
+  /* A1 のアクセント＝空の青（SHELL_TOKENS）。外枠で変えてよいのはこの 3 つだけ */
+  :root { --accent: #3A74A0; --accent-ink: #FFFFFF; --accent-line: #8DB8D8; }
+</style>
+</head>
+<body>
+<div class="ph-viewport"><div class="ph-shell">
+  <div class="ph-grid"></div>
+
+  <!-- 18 BIG GRAPHIC（漢字 1 字＝READOUT の列・数字＝下端・略号＝ヘッダの右） -->
+  <svg class="ph-big" viewBox="0 0 1920 1080" aria-hidden="true">
+    <rect x="0" y="682" width="1920" height="12"></rect>
+    <text x="-6" y="646" font-family="'IBM Plex Sans JP', sans-serif" font-size="300" font-weight="500">底</text>
+    <text id="bigBase" x="28" y="1104" font-family="Michroma, sans-serif" font-size="168">1,250 M</text>
+    <text x="1690" y="112" font-family="Michroma, sans-serif" font-size="96" text-anchor="end">LCL</text>
+  </svg>
+
+  <!-- 16 NOISE LAYER（読ませない） -->
+  <svg class="ph-noise" viewBox="0 0 1920 1080" aria-hidden="true">
+    <text font-family="Jura, sans-serif" font-size="9" letter-spacing="2" transform="translate(13 1040) rotate(-90)">SECTOR 09-F · 35.3606N 138.7274E · OBS A-001-0731 · SFC 1013 HPA · 0x5D20E1 · ARCHIVE/EARTH/AIR/A1 · CHK 0x7E44</text>
+    <text font-family="Jura, sans-serif" font-size="9" letter-spacing="2" transform="translate(1909 40) rotate(90)">DALR 9.8 · MALR 6.0 · DEW 1.8 · LCL (T−TD)×125 · CLASS NONE · RETENTION ∞ · NODE 05</text>
+    <g font-family="'JetBrains Mono', monospace" font-size="8.5">
+      <text x="1132" y="50">0731 &gt; SOUNDING 0-4 KM OK</text>
+      <text id="nz1" x="1132" y="61">T 28.0  TD 18.0  RH 54%</text>
+      <text id="nz2" x="1132" y="72">LCL 1250 m  (T-TD)x125</text>
+      <text x="1132" y="83">DALR 9.8  MALR 6.0  ACK</text>
+      <text x="1290" y="332">REF 0x88E2 · A1/CAUSE/CH1</text>
+      <text x="300" y="1066">ARCHIVE/EARTH/A1/0731 — CLASSIFICATION: NONE</text>
+      <text x="1560" y="1066">END OF RECORD</text>
+    </g>
+    <g><rect x="1132" y="100" width="1" height="12"/><rect x="1140" y="100" width="3" height="12"/><rect x="1144" y="100" width="1" height="12"/><rect x="1148" y="100" width="1" height="12"/><rect x="1152" y="100" width="3" height="12"/><rect x="1160" y="100" width="1" height="12"/><rect x="1164" y="100" width="1" height="12"/><rect x="1172" y="100" width="3" height="12"/><rect x="1176" y="100" width="1" height="12"/><rect x="1180" y="100" width="1" height="12"/><rect x="1184" y="100" width="3" height="12"/><rect x="1192" y="100" width="1" height="12"/><rect x="1196" y="100" width="1" height="12"/><rect x="1204" y="100" width="3" height="12"/><rect x="1208" y="100" width="1" height="12"/><rect x="1212" y="100" width="1" height="12"/><rect x="1216" y="100" width="3" height="12"/><rect x="1224" y="100" width="1" height="12"/><rect x="1228" y="100" width="1" height="12"/></g>
+  </svg>
+
+  <!-- 01 GRID / FRAME（shell.js が描く） -->
+  <svg class="ph-frame" viewBox="0 0 1920 1080" aria-hidden="true"></svg>
+
+  <!-- 02 HEADER IDS -->
+  <div class="ph-brand"><b>PHENOMENA LAB</b><span>EARTH SURVEY ARCHIVE · SHELL v0.1</span></div>
+  <dl class="ph-ids" style="left:392px"><dt>OBS.No</dt><dd>A-001-0731</dd><dt>COORD</dt><dd>35.36°N 138.73°E</dd><dt>TIMESTAMP</dt><dd>2125-07-31T13:42:05Z</dd></dl>
+  <dl class="ph-ids" style="left:760px"><dt>FIELD</dt><dd>AIR</dd><dt>CARD</dt><dd>A1 / 22</dd><dt>REF</dt><dd>SPEC_02 §2.2</dd></dl>
+
+  <!-- 03 STAGE TAB -->
+  <div class="ph-stagetab"><span class="k">STAGE</span><span class="n">A1</span><span class="s">A · 01/05</span>
+    <svg width="14" height="22" viewBox="0 0 14 22" aria-hidden="true"><line x1="1" y1="21" x2="13" y2="1" stroke-width="1.5"/></svg></div>
+
+  <!-- 04 TITLE BAND・05 QUESTION -->
+  <div class="ph-title"><span class="field">A1 — AIR · LIFTING CONDENSATION LEVEL</span><h1>CLOUD BASE</h1><span class="ja">雲の底</span></div>
+  <div class="ph-question"><span class="k">QUESTION</span><p>雲はなぜそこに出来て、なぜ底が平らなのか。</p></div>
+
+  <!-- 06 SPECIMEN（窓の紙の小さな見本） -->
+  <div class="ph-specimen">
+    <svg width="310" height="174" viewBox="0 -11 310 174" aria-hidden="true"><rect x="0" y="-11" width="310" height="174" fill="#E4EEF2"/><g stroke="#5E7F8E" stroke-width="0.7" stroke-opacity="0.5"><line x1="-132" y1="140" x2="-62" y2="30"/><line x1="-110" y1="140" x2="-40" y2="30"/><line x1="-88" y1="140" x2="-18" y2="30"/><line x1="-66" y1="140" x2="4" y2="30"/><line x1="-44" y1="140" x2="26" y2="30"/><line x1="-22" y1="140" x2="48" y2="30"/><line x1="0" y1="140" x2="70" y2="30"/><line x1="22" y1="140" x2="92" y2="30"/><line x1="44" y1="140" x2="114" y2="30"/><line x1="66" y1="140" x2="136" y2="30"/><line x1="88" y1="140" x2="158" y2="30"/><line x1="110" y1="140" x2="180" y2="30"/><line x1="132" y1="140" x2="202" y2="30"/><line x1="154" y1="140" x2="224" y2="30"/><line x1="176" y1="140" x2="246" y2="30"/><line x1="198" y1="140" x2="268" y2="30"/><line x1="220" y1="140" x2="290" y2="30"/><line x1="242" y1="140" x2="312" y2="30"/><line x1="264" y1="140" x2="334" y2="30"/><line x1="286" y1="140" x2="356" y2="30"/><line x1="308" y1="140" x2="378" y2="30"/></g><g stroke="#5E7F8E" stroke-width="0.5" stroke-opacity="0.35"><line x1="0" y1="30" x2="310" y2="30"/><line x1="0" y1="52" x2="310" y2="52"/><line x1="0" y1="74" x2="310" y2="74"/><line x1="0" y1="96" x2="310" y2="96"/><line x1="0" y1="118" x2="310" y2="118"/><line x1="0" y1="140" x2="310" y2="140"/></g><polyline points="250,140 170,92 120,40" fill="none" stroke="#9A4A2A" stroke-width="2.2"/><polyline points="184,140 170,92" fill="none" stroke="#2C7A76" stroke-width="2.2"/><line x1="14" y1="92" x2="170" y2="92" stroke="#22323A" stroke-width="1" stroke-dasharray="4 3"/><text x="296" y="146" font-family="'JetBrains Mono', monospace" font-size="8.5" fill="#22323A" text-anchor="end">PALE SKY · 2 LINES · MONO</text></svg>
+    <span class="tag">SPECIMEN · PAPER</span>
+  </div>
+
+  <!-- 07 FORMAT -->
+  <div class="ph-format"><span class="k">FORMAT</span><span class="ja">高層気象図
+（高さ × 温度）</span><span class="en">UPPER-AIR DIAGRAM · HEIGHT × TEMP.</span></div>
+
+  <!-- 08 READOUT（主役の操作つき） -->
+  <div class="ph-readout">
+    <div class="ph-h"><i class="sq"></i><b>READOUT</b><span class="id">RD-A1-03</span></div>
+    <span class="ph-lab" style="margin-top:14px">STATE</span>
+    <div class="ph-states" id="states">
+      <div><b>FOG</b><span>霧・地面の雲</span></div>
+      <div><b>CLOUD</b><span>雲の底あり</span></div>
+      <div><b>CLEAR</b><span>底は枠の上</span></div>
+    </div>
+    <div class="ph-vals">
+      <div class="ph-val"><span class="k">CLOUD BASE <i>雲の底</i></span><div class="v"><b id="o_base">—</b><u>m</u><em id="o_gap"></em></div></div>
+      <div class="ph-val"><span class="k">AIR TEMP. <i>地上の気温</i></span><div class="v"><b id="o_temp">—</b><u>℃</u></div>
+        <input class="ph-range" type="range" id="temp" min="0" max="40" step="0.5" value="28" aria-label="地上の気温（図の下の赤茶の点を引いても同じ）"></div>
+      <div class="ph-val"><span class="k">DEW POINT <i>露点 ← 湿り気</i></span><div class="v"><b id="o_dew">—</b><u>℃</u><em id="v_humid"></em></div>
+        <input class="ph-range lead" type="range" id="humid" min="10" max="100" step="1" value="50" aria-label="地上の湿り気（主役。図の下の緑の点を引いても同じ）"></div>
+    </div>
+    <div class="ph-boundary"><span class="ph-lab">BOUNDARY</span><svg id="bound" role="img" aria-label="境界の目盛り：FOG・CLOUD・CLEAR"></svg></div>
+  </div>
+
+  <!-- 09 LOOK ⇄ CAUSE の窓 -->
+  <div class="ph-winhead"><i class="sq"></i><span class="t">LOOK ⇄ CAUSE</span><span class="s">SIDE BY SIDE · SHARED Y-AXIS = 0–4 km</span><span class="read">読み方：左＝空を横から／右＝同じ高さで、上がる空気の気温と露点。2 本が出会う高さ＝雲の底。空をなぞると値が読める。</span>
+    <div class="r"><b>SOUNDING</b><span id="sfc"></span></div></div>
+  <div class="ph-window" id="win">
+    <canvas id="cv"></canvas>
+    <div class="ph-tag" id="tagLook" style="left:82px;top:8px"><i></i><b>LOOK</b><span>— 実物の姿 · 横 約 10 km</span><small>VISUAL OBSERVATION</small></div>
+    <div class="ph-tag" id="tagCause" style="left:806px;top:8px"><i></i><b>CAUSE</b><span>— 原因の図 · 高さ × 温度</span><small>PHYSICAL PRINCIPLE</small></div>
+    <div class="ph-control" id="ctl"><span class="k">◆ CONTROL ▶</span><span class="d">露点の点を左右に引く</span></div>
+  </div>
+
+  <!-- 12 SCALE -->
+  <div class="ph-scale-k"><i></i><b>SCALE · ALT km</b></div>
+  <svg class="ph-scale" id="scale" aria-hidden="true"></svg>
+
+  <!-- 13 REALISM（◎○△。パーセントは使わない） -->
+  <div class="ph-realism"><b>REALISM <span class="note">底の高さ ◎ ／ 雲の形だけ △</span></b>
+    <div class="marks" id="realism"><div class="now"><span>◎</span>法則</div><div><span>○</span>近似</div><div><span>△</span>まね</div></div></div>
+
+  <!-- 14 PROOF / AUTO / BREAK -->
+  <div class="ph-pab">
+    <button id="bProof"><span>[ </span>PROOF<span> ]</span></button><button id="bAuto"><span>[ </span>AUTO<span> ]</span></button><button id="bBreak"><span>[ </span>BREAK<span> ]</span></button>
+    <div class="sub ph-off" id="r_brk"><span class="k">SPREAD <i>底のばらつき・BREAK のときだけ</i></span><input class="ph-range" type="range" id="brkAmt" min="0" max="1" step="0.05" value="0.6" disabled aria-label="BREAK 底のばらつき（BREAK のときだけ）"><b id="v_brkAmt"></b></div>
+  </div>
+
+  <!-- 15 TRANSFER -->
+  <div class="ph-transfer-k"><i></i><b>TRANSFER</b><span>— NOTES FOR CG / ANIMATION · 表現に持ち出す</span></div>
+  <div class="ph-transfer">
+    <div tabindex="0"><h3><u>01 </u>LOOK RULES<i>絵の決まり</i></h3><p>同じ空の積雲は、底の高さがそろう。底は平らで暗く、上はもこもこで明るい。湿った日ほど底が低い。</p></div>
+    <div tabindex="0"><h3><u>02 </u>CG</h3><p>ボリュームの密度の下端を 1 つの高さで切り、上だけノイズで崩す。高さは「気温 − 露点」から決める。</p></div>
+    <div tabindex="0"><h3><u>03 </u>GEN CHECK<i>嘘の見つけ方</i></h3><p>雲ごとに底の高さがばらばらなら嘘。<em>flat cloud base / cumulus at uniform altitude</em></p></div>
+    <div tabindex="0"><h3><u>04 </u>BREAK<i>わざと外す</i></h3><p>底を地面すれすれに＝霧の海。底を波打たせる＝不穏、作り物の空。</p></div>
+    <div tabindex="0"><h3><u>05 </u>FIELD NOTE<i>宿題</i></h3><p>晴れた昼に空を見上げ、雲の底が 1 枚の見えない床に乗っているのを確かめる。</p></div>
+  </div>
+</div></div>
+
+<script src="../_shell/shell.js"></script>
+<script src="_law/ph_a1_law.js"></script>
+<script>
+'use strict';
+const L = PH_A1, TOP = 4000, TMIN = -30, TMAX = 40;
+const C = { paper: '#E4EEF2', sky: '#EDF3F6', ink: '#22323A', dim: '#5E7F8E', rule: 'rgba(94,127,142,.55)', par: '#9A4A2A', dew: '#2C7A76', cloud: '#F7FAFB', brk: '#22323A' };   // 窓の色＝SHELL_TOKENS「A1 窓」
+const S = { T: 28, rh: 0.5, proof: false, auto: false, brk: false, brkAmt: 0.6, t: 0, probe: null, drag: null };
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d'), $ = id => document.getElementById(id);
+let W = 1, H = 1, G = {};
+
+/* 雲 5 つ（形は見た目のまね。底の高さだけが法則） */
+const rnd = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const CLOUDS = [0.11, 0.3, 0.5, 0.7, 0.89].map((u, i) => {
+  const puffs = [];
+  for (let j = 0; j < 7; j++) { const x = j / 6 * 2 - 1; puffs.push({ x: x * 0.86, v: 0.16 * (1 - x * x * 0.6), r: 0.26 + 0.08 * rnd(i * 57 + j) }); }                 // 底の列
+  for (let j = 0; j < 5; j++) { const x = (rnd(i * 31 + j) * 2 - 1) * 0.55; puffs.push({ x, v: (0.34 + 0.3 * rnd(i * 13 + j + 5)) * (1 - x * x), r: 0.3 + 0.12 * rnd(i * 91 + j) }); }  // 上のもこもこ（底の列に重なる）
+  puffs.push({ x: (rnd(i * 5) - 0.5) * 0.3, v: 0.8, r: 0.3 });
+  return { u, w: [0.1, 0.075, 0.12, 0.085, 0.095][i], depth: [520, 400, 680, 450, 560][i], off: rnd(i * 7 + 3) * 2 - 1, puffs };
+});
+
+const derive = () => { const Td = L.dewPoint(S.T, S.rh), base = L.lcl(S.T, Td); return { Td, base, gap: S.T - Td, state: base < 60 ? 'FOG' : base <= TOP ? 'CLOUD' : 'DRY' }; };
+
+function layout() {
+  const r = cv.getBoundingClientRect(), k = r.width / Math.max(1, cv.clientWidth), dpr = Math.min((window.devicePixelRatio || 1) * k, 2);   // 外枠ごと拡大縮小されるので、絵は外枠の座標（1920 基準）で描く
+  W = Math.max(1, cv.clientWidth); H = Math.max(1, cv.clientHeight); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const x0 = 60, x3 = W - 38, gap = 74, x1 = x0 + (x3 - x0 - gap) * 0.47;
+  G = { yT: 46, yG: H - 52, x0, x1, c0: x1 + gap, c1: x3 };
+}
+const Y = z => G.yG - (z / TOP) * (G.yG - G.yT), Zof = y => (G.yG - y) / (G.yG - G.yT) * TOP;
+const X = T => G.c0 + (T - TMIN) / (TMAX - TMIN) * (G.c1 - G.c0), Tof = x => TMIN + (x - G.c0) / (G.c1 - G.c0) * (TMAX - TMIN);
+const mono = (px, w) => (w || 400) + ' ' + px + 'px "JetBrains Mono",ui-monospace,monospace', serif = px => px + 'px "M PLUS 1 Code","IBM Plex Sans JP",monospace';   // 数値＝JetBrains Mono・注記＝M PLUS 1 Code
+const num = v => Math.round(v).toLocaleString('en-US');
+
+function draw() {
+  const d = derive(), { yT, yG, x0, x1, c0, c1 } = G;
+  ctx.fillStyle = C.paper; ctx.fillRect(0, 0, W, H);
+
+  /* ---- 高さの物差し（左右で共有） ---- */
+  ctx.font = mono(10); ctx.textBaseline = 'middle'; ctx.textAlign = 'right';
+  for (let z = 0; z <= TOP; z += 500) {
+    const y = Math.round(Y(z)) + .5, big = z % 1000 === 0;
+    ctx.strokeStyle = C.rule; ctx.lineWidth = big ? 0.8 : 0.4; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.moveTo(c0, y); ctx.lineTo(c1, y); ctx.stroke();
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0 - (big ? 14 : 6), y); ctx.lineTo(x0, y); ctx.stroke();
+    if (big) { ctx.fillStyle = C.ink; ctx.font = mono(11); ctx.fillText(z / 1000, x0 - 20, y); }
+  }
+  ctx.font = mono(10); ctx.fillText('km', x0 - 20, yT - 16);   // LOOK・CAUSE の名前は外枠の札（.ph-tag）
+
+  /* ---- LOOK ---- */
+  ctx.save(); ctx.beginPath(); ctx.rect(x0, yT, x1 - x0, yG - yT); ctx.clip();
+  ctx.fillStyle = C.sky; ctx.fillRect(x0, yT, x1 - x0, yG - yT);
+  ctx.strokeStyle = C.rule; ctx.lineWidth = 0.4; for (let z = 500; z < TOP; z += 500) { const y = Math.round(Y(z)) + .5; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke(); }
+  const lw = x1 - x0;
+  // 上がる空気の泡（透明な空気。数字はその高さでの気温）
+  ctx.font = mono(9); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  CLOUDS.forEach((c, i) => {
+    for (let k = 0; k < 2; k++) {
+      const ph = (S.t / 11 + i * 0.37 + k * 0.5) % 1, z = ph * Math.min(d.base, TOP + 300); if (d.base < 60) return;
+      const x = x0 + c.u * lw + Math.sin(ph * 5 + i) * 4, y = Y(z), a = Math.min(1, ph * 6) * Math.min(1, (1 - ph) * 5);
+      ctx.globalAlpha = a; ctx.strokeStyle = C.par; ctx.lineWidth = 0.9; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(x, y, 10, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = C.par; ctx.fillText(Math.round(L.parcel(S.T, d.Td, z).T) + '°', x, y + .5); ctx.globalAlpha = 1;
+    }
+  });
+  // 雲
+  CLOUDS.forEach(c => {
+    const base = d.base + (S.brk ? c.off * S.brkAmt * 900 : 0), by = Y(Math.max(0, base)), cx = x0 + c.u * lw, hw = c.w * lw, dp = Math.min((c.depth / TOP) * (yG - yT), hw * 1.25);
+    if (by < yT - 4) return;
+    ctx.save(); ctx.beginPath(); ctx.rect(x0, yT, lw, by - yT); ctx.clip();
+    for (const pass of [1.4, 0]) { ctx.fillStyle = pass ? C.ink : C.cloud; for (const p of c.puffs) { ctx.beginPath(); ctx.arc(cx + p.x * hw, by - p.v * dp, p.r * hw * 1.25 + pass, 0, 7); ctx.fill(); } }
+    const g = ctx.createLinearGradient(0, by - dp * 0.45, 0, by); g.addColorStop(0, 'rgba(94,127,142,0)'); g.addColorStop(1, 'rgba(94,127,142,.5)');   // 底は暗い
+    const shape = new Path2D(); for (const p of c.puffs) { shape.moveTo(cx + p.x * hw + p.r * hw * 1.25, by - p.v * dp); shape.arc(cx + p.x * hw, by - p.v * dp, p.r * hw * 1.25, 0, 7); }
+    ctx.clip(shape); ctx.fillStyle = g; ctx.fillRect(cx - hw * 1.8, by - dp * 0.45, hw * 3.6, dp * 0.45);
+    ctx.restore();
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(cx - hw * 1.12, by); ctx.lineTo(cx + hw * 1.12, by); ctx.stroke();
+  });
+  if (d.base < 250) { ctx.fillStyle = 'rgba(255,255,255,' + (0.55 * (1 - d.base / 250)).toFixed(3) + ')'; ctx.fillRect(x0, Y(300), lw, yG - Y(300)); }   // 霧
+  ctx.restore();
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0 + .5, yT); ctx.lineTo(x0 + .5, yG); ctx.stroke();   // 高さの軸
+  ctx.strokeStyle = 'rgba(34,50,58,.45)'; ctx.beginPath();   // LOOK の枠は四隅の角だけ（BRACKET）
+  for (const [bx, by, sx, sy] of [[x0 + 16, yT - 6, 1, 1], [x1, yT - 6, -1, 1], [x0 + 16, yG + 22, 1, -1], [x1, yG + 22, -1, -1]]) { ctx.moveTo(bx + sx * 10, by + .5); ctx.lineTo(bx + .5, by + .5); ctx.lineTo(bx + .5, by + sy * 10); }
+  ctx.stroke();
+  ctx.lineWidth = 0.6; ctx.beginPath(); for (let x = x0 - 8; x < x1; x += 7) { ctx.moveTo(x + 8, yG + 1); ctx.lineTo(x, yG + 8); } ctx.stroke();   // 地面
+
+  /* ---- CAUSE ---- */
+  ctx.save(); ctx.beginPath(); ctx.rect(c0, yT, c1 - c0, yG - yT); ctx.clip();
+  ctx.fillStyle = C.sky; ctx.fillRect(c0, yT, c1 - c0, yG - yT);
+  ctx.strokeStyle = C.rule; ctx.lineWidth = 0.4;
+  for (let T = TMIN; T <= TMAX; T += 10) { const x = Math.round(X(T)) + .5; ctx.beginPath(); ctx.moveTo(x, yT); ctx.lineTo(x, yG); ctx.stroke(); }
+  for (let z = 500; z < TOP; z += 500) { const y = Math.round(Y(z)) + .5; ctx.beginPath(); ctx.moveTo(c0, y); ctx.lineTo(c1, y); ctx.stroke(); }
+  ctx.strokeStyle = 'rgba(154,74,42,.30)'; ctx.lineWidth = 0.7;                                   // 斜めの補助線＝乾いた空気の冷え方（1 km で 9.8 ℃）
+  for (let T = TMIN; T <= TMAX + 40; T += 5) { ctx.beginPath(); ctx.moveTo(X(T), yG); ctx.lineTo(X(T - L.DRY * TOP / 1000), yT); ctx.stroke(); }
+  const zc = Math.min(d.base, TOP);
+  ctx.lineWidth = 3; ctx.lineJoin = 'round';   // 主役の 2 本だけ 3 px
+  ctx.strokeStyle = C.dew; ctx.beginPath(); ctx.moveTo(X(d.Td), yG); ctx.lineTo(X(d.Td - L.DEW * zc / 1000), Y(zc)); ctx.stroke();
+  ctx.strokeStyle = C.par; ctx.beginPath(); for (let z = 0; z <= TOP; z += 100) { const p = L.parcel(S.T, d.Td, z); z ? ctx.lineTo(X(p.T), Y(z)) : ctx.moveTo(X(p.T), Y(z)); if (z < d.base && z + 100 > d.base) { const q = L.parcel(S.T, d.Td, d.base); ctx.lineTo(X(q.T), Y(d.base)); } } ctx.stroke();
+  if (d.base < TOP) { ctx.strokeStyle = C.dew; ctx.setLineDash([5, 5]); ctx.beginPath(); for (let z = d.base; z <= TOP + 50; z += 100) { const p = L.parcel(S.T, d.Td, Math.min(z, TOP)); z === d.base ? ctx.moveTo(X(p.T), Y(z)) : ctx.lineTo(X(p.T), Y(Math.min(z, TOP))); } ctx.stroke(); ctx.setLineDash([]); }
+  ctx.restore();
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.strokeRect(c0 + .5, yT + .5, c1 - c0, yG - yT);
+  ctx.font = mono(10); ctx.fillStyle = C.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (let T = TMIN; T <= TMAX; T += 10) ctx.fillText(T + '℃', X(T), yG + 26);
+
+  /* 雲の底の線（右の交点から、左の空へ） */
+  if (d.base <= TOP) {
+    const y = Y(d.base), xi = X(S.T - L.DRY * d.base / 1000);
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(xi, y); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(xi, y, 4.5, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x0 - 10, y - 6); ctx.lineTo(x0 - 10, y + 6); ctx.fill(); ctx.font = mono(9); ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText('BASE', 8, y - 6);   // 物差しの上の雲の底の印
+    ctx.font = mono(11, 600); ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+    const lab = '雲の底 ' + num(d.base) + ' m'; ctx.fillStyle = C.paper; ctx.fillRect(x1 + 3, y - 15, ctx.measureText(lab).width + 4, 13); ctx.fillStyle = C.ink; ctx.fillText(lab, x1 + 5, y - 3);
+    ctx.font = serif(11); ctx.fillStyle = C.dim; ctx.textBaseline = 'top'; if (y + 18 < yG - 30) ctx.fillText('ここで気温が露点に届く', Math.min(xi + 9, c1 - 130), y + 5);
+  } else { ctx.font = serif(12); ctx.fillStyle = C.dim; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText('2 本は枠の上（' + num(d.base) + ' m）で出会う', c0 + 8, yT + 8); }
+
+  /* 地上の 2 つの点（引ける）と、差の物差し */
+  const xa = X(S.T), xd = X(d.Td), yb = yG;
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(xd, yb + 13); ctx.lineTo(xd, yb + 18); ctx.lineTo(xa, yb + 18); ctx.lineTo(xa, yb + 13); ctx.stroke();
+  ctx.font = mono(10, 600); ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillStyle = C.ink;
+  const gl = '差 ' + d.gap.toFixed(1) + '℃ × 125 m', gx = Math.max(c0 + 60, Math.min(c1 - 60, (xa + xd) / 2)); ctx.fillStyle = C.paper; ctx.fillRect(gx - 62, yb + 37, 124, 13); ctx.fillStyle = C.ink; ctx.fillText(gl, gx, yb + 38);
+  for (const [x, col, on] of [[xd, C.dew, S.drag === 'dew'], [xa, C.par, S.drag === 'temp']]) { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, yb, on ? 8 : 6.5, 0, 7); ctx.fill(); ctx.strokeStyle = C.paper; ctx.lineWidth = 1.5; ctx.stroke(); }
+  ctx.font = mono(10); ctx.textBaseline = 'bottom'; ctx.textAlign = 'right'; ctx.fillStyle = C.dew; ctx.fillText('露点 ' + d.Td.toFixed(1), xd - 9, yb - 4);
+  ctx.textAlign = 'left'; ctx.fillStyle = C.par; ctx.fillText('気温 ' + S.T.toFixed(1), xa + 9, yb - 4);
+
+  /* なぞった高さの値 */
+  if (S.probe != null && !S.proof) {
+    const z = S.probe, p = L.parcel(S.T, d.Td, z), y = Math.round(Y(z)) + .5;
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(c1, y); ctx.stroke();
+    for (const [T, col] of [[p.T, C.par], [p.Td, C.dew]]) { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(X(T), y, 3.5, 0, 7); ctx.fill(); }
+    const txt = num(z) + ' m　空気 ' + p.T.toFixed(1) + '℃ ／ 露点 ' + p.Td.toFixed(1) + '℃　→ ' + (p.cloud ? 'CLOUD ここまで上がった空気は水の粒に' : 'CLEAR 上がってきた空気はまだ透明');
+    ctx.font = mono(10, 600); ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; const tw = ctx.measureText(txt).width; ctx.fillStyle = C.ink; ctx.fillRect(x0 + 6, y - 17, tw + 10, 15); ctx.fillStyle = C.paper; ctx.fillText(txt, x0 + 11, y - 4);
+  }
+
+  /* PROOF：泡 1 つを追いかける */
+  if (S.proof) {
+    const zmax = Math.min(d.base + 900, TOP), z = ((S.t / 16) % 1) * zmax, p = L.parcel(S.T, d.Td, z), y = Y(z), x = x0 + lw * 0.5;
+    const vol = (p.T + 273.15) / (S.T + 273.15) * L.pressure(0) / L.pressure(z), r0 = 22, r = r0 * Math.cbrt(vol);
+    ctx.fillStyle = 'rgba(237,243,246,.84)'; ctx.fillRect(x0 + 1, yT + 1, lw - 1, yG - yT - 1);
+    ctx.strokeStyle = C.rule; ctx.lineWidth = 1; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.arc(x, y, r0, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = p.cloud ? C.cloud : 'rgba(154,74,42,.10)'; ctx.strokeStyle = p.cloud ? C.ink : C.par; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.stroke();
+    if (d.base <= TOP) { ctx.strokeStyle = C.ink; ctx.setLineDash([6, 4]); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0, Y(d.base)); ctx.lineTo(x1, Y(d.base)); ctx.stroke(); ctx.setLineDash([]); }
+    ctx.font = mono(11, 600); ctx.fillStyle = C.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    const rh = Math.min(1, L.humidity(p.T, p.Td));
+    [['高さ', num(z) + ' m'], ['気温', p.T.toFixed(1) + ' ℃'], ['露点', p.Td.toFixed(1) + ' ℃'], ['湿り気', Math.round(rh * 100) + ' %'], ['体積', '× ' + vol.toFixed(2)]].forEach((a, i) => ctx.fillText(a[0] + '　' + a[1], x + r0 + 22, y - 28 + i * 14));
+    for (const [T, col] of [[p.T, C.par], [p.Td, C.dew]]) { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(X(T), y, 5, 0, 7); ctx.fill(); }
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(x + r, y); ctx.lineTo(c1, y); ctx.stroke();
+    const cap = p.cloud ? '③ 粒になるとき熱が出る → 冷え方がゆるむ（赤茶の線が折れる）。ここから上が雲。'
+      : (d.base - z < 120 ? '② 気温が露点に届く：抱えきれなくなった水が粒になる ＝ 雲の底' : '① 上がる → まわりの気圧が下がる → 膨らむ → 冷える（1 km で 9.8 ℃）。まだ透明。');
+    ctx.font = serif(13); ctx.textBaseline = 'top'; ctx.fillStyle = C.ink; ctx.fillText(cap, x0 + 10, yT + 10, lw - 20);
+    S.proofZ = z;
+  }
+  if (S.brk) { ctx.font = mono(11, 600); ctx.textAlign = 'right'; ctx.textBaseline = 'top'; const bt = 'BREAK　現実の外：底がそろっていない', bw = ctx.measureText(bt).width; ctx.fillStyle = '#0B0B0A'; ctx.fillRect(x1 - bw - 18, yT + 4, bw + 14, 19); ctx.fillStyle = C.paper; ctx.fillText(bt, x1 - 11, yT + 8); }   // BREAK の札（外枠の札と同じ黒）
+}
+
+/* ---- 外枠への書き出し（READOUT・境界・尺度・札。法則は derive() の値を読むだけ） ---- */
+const STATE_I = { FOG: 0, CLOUD: 1, DRY: 2 };
+const setScale = PHShell.ruler($('scale'), { width: 960, min: 0, max: 4, major: 1, minor: 0.25, unit: 'km', note: '縦 0–4 km（窓の左端の目盛りと同じ）・いまの雲の底を ▲' });
+const setBound = PHShell.boundary($('bound'), { width: 212, zones: ['FOG', 'CLOUD', 'CLEAR'], cuts: [{ x: 63.6, label: '60 m' }, { x: 148.4, label: '4 km' }] });
+const bx = b => b < 60 ? 10 + b / 60 * 53.6 : b <= TOP ? 63.6 + (b - 60) / (TOP - 60) * 84.8 : 148.4 + Math.min(1, (b - TOP) / 1000) * 53.6;
+function readout() {
+  const d = derive(), si = STATE_I[d.state];
+  PHShell.mark($('states'), si);
+  $('o_base').textContent = num(d.base); $('o_gap').textContent = '差 ' + d.gap.toFixed(1) + '℃ × 125'; $('o_temp').textContent = S.T.toFixed(1); $('o_dew').textContent = d.Td.toFixed(1);
+  $('v_humid').textContent = 'RH ' + Math.round(S.rh * 100) + ' %'; $('v_brkAmt').textContent = S.brkAmt.toFixed(2);
+  $('humid').value = Math.round(S.rh * 100); $('temp').value = S.T;
+  $('bProof').classList.toggle('on', S.proof); $('bAuto').classList.toggle('on', S.auto); $('bBreak').classList.toggle('on', S.brk);
+  $('r_brk').classList.toggle('ph-off', !S.brk); $('brkAmt').disabled = !S.brk; $('win').classList.toggle('broken', S.brk);
+  setScale(Math.min(d.base, TOP) / 1000); setBound(bx(d.base), si);
+  $('bigBase').textContent = num(d.base) + ' M';
+  $('sfc').textContent = 'SFC ' + S.T.toFixed(1) + ' / ' + d.Td.toFixed(1) + ' ℃ · 125 m/℃';
+  $('nz1').textContent = 'T ' + S.T.toFixed(1) + '  TD ' + d.Td.toFixed(1) + '  RH ' + Math.round(S.rh * 100) + '%'; $('nz2').textContent = 'LCL ' + Math.round(d.base) + ' m  (T-TD)x125';
+  $('tagLook').style.left = (G.x0 + 22) + 'px'; $('tagCause').style.left = (G.c0 + 6) + 'px';
+  const ctl = $('ctl'); ctl.style.left = Math.max(G.c0 + 6, X(d.Td) - 224) + 'px'; ctl.style.top = (G.yG - 54) + 'px';
+}
+function step(dt) {
+  S.t += dt;
+  if (S.auto) S.rh = Math.max(0.1, Math.min(1, 0.62 + 0.4 * Math.sin(S.t * 2 * Math.PI / 60)));   // 60 秒で 霧 ⇄ 乾いた日 を往復
+  readout(); draw();
+}
+
+/* ---- 操作 ---- */
+$('humid').addEventListener('input', e => { S.auto = false; S.rh = +e.target.value / 100; });
+$('temp').addEventListener('input', e => { S.T = +e.target.value; });
+$('brkAmt').addEventListener('input', e => { S.brkAmt = +e.target.value; });
+$('bProof').addEventListener('click', () => { S.proof = !S.proof; });
+$('bAuto').addEventListener('click', () => { S.auto = !S.auto; });
+$('bBreak').addEventListener('click', () => { S.brk = !S.brk; });
+const pos = e => { const r = cv.getBoundingClientRect(), k = r.width / Math.max(1, cv.clientWidth); return [(e.clientX - r.left) / k, (e.clientY - r.top) / k]; };   // 画面の px → 外枠の座標
+cv.addEventListener('pointerdown', e => {
+  const [x, y] = pos(e), d = derive(); if (Math.abs(y - G.yG) > 22) return;
+  const dd = Math.abs(x - X(d.Td)), dt = Math.abs(x - X(S.T)); if (Math.min(dd, dt) > 26) return;
+  S.drag = dd <= dt ? 'dew' : 'temp'; S.auto = false; try { cv.setPointerCapture(e.pointerId); } catch (_) {}
+});
+cv.addEventListener('pointermove', e => {
+  const [x, y] = pos(e);
+  if (S.drag === 'dew') { const Td = Math.min(S.T, Tof(x)); S.rh = Math.max(0.1, Math.min(1, L.humidity(S.T, Td))); }
+  else if (S.drag === 'temp') { const d = derive(); S.T = Math.max(0, Math.min(40, Math.round(Tof(x) * 2) / 2)); S.rh = Math.max(0.1, Math.min(1, L.humidity(S.T, Math.min(d.Td, S.T)))); }   // 露点はそのまま（空気の中の水の量は変わらない）
+  else { S.probe = (x >= G.x0 && x <= G.c1 && y >= G.yT && y <= G.yG) ? Zof(y) : null; }
+  cv.style.cursor = S.drag || (Math.abs(y - G.yG) < 22 && x > G.c0) ? 'ew-resize' : 'crosshair';
+});
+const up = () => { S.drag = null; }; cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+cv.addEventListener('pointerleave', () => { if (!S.drag) S.probe = null; });
+new ResizeObserver(() => { layout(); draw(); }).observe(cv);
+PHShell.onScale(() => { layout(); draw(); });
+cv.addEventListener('pointermove', e => { const [x, y] = pos(e), d = derive(), near = S.drag || (Math.abs(y - G.yG) < 22 && Math.min(Math.abs(x - X(d.Td)), Math.abs(x - X(S.T))) < 26); $('ctl').classList.toggle('hot', !!near); });   // 外枠の反応：操作の点に近いと CONTROL の札が光る
+cv.addEventListener('pointerleave', () => $('ctl').classList.remove('hot'));   // 外枠の拡大率が変わったら絵の解像度を合わせる
+if (document.fonts) ["11px 'JetBrains Mono'", "11px 'M PLUS 1 Code'", "13px 'IBM Plex Sans JP'"].forEach(f => document.fonts.load(f));
+
+window.__PH = { S, L, get G() { return G; }, derive, step, draw, layout, X, Y, Tof, Zof };   // 検証用
+layout(); let last = performance.now();
+(function loop(now) { step(Math.min(0.05, (now - last) / 1000)); last = now; requestAnimationFrame(loop); })(last);
+</script>
+</body>
+</html>

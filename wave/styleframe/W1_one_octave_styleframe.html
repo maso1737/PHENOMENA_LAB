@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>W1 ONE OCTAVE — styleframe v0.1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=M+PLUS+1+Code:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ground:#050505;   /* 地 */
+    --ink:#EDEDEA;      /* 文字・主線 */
+    --ink-2:#9A9A95;    /* 副の文字 */
+    --ink-3:#7A7A74;    /* 注記・目盛りの数字（小） */
+    --hair:rgba(237,237,234,.34); /* 極細の目盛り */
+    --ghost:rgba(237,237,234,.10);/* 描ける升の下書き */
+    --mono:"IBM Plex Mono","M PLUS 1 Code",ui-monospace,Consolas,monospace;
+    --jp:"M PLUS 1 Code","IBM Plex Mono",ui-monospace,monospace;
+  }
+  html,body{margin:0;background:#000;color:var(--ink);font-family:var(--mono)}
+  .frame{display:block;width:100%;max-width:1920px;margin:0 auto 28px;aspect-ratio:16/9;background:var(--ground)}
+  .cap{max-width:1920px;margin:28px auto 8px;padding:0 4px;font:500 12px/1.4 var(--mono);letter-spacing:.14em;color:var(--ink-2)}
+  svg text{font-family:var(--mono)}
+  .fo{font-family:var(--jp);color:var(--ink);}
+  /* spec sheet */
+  #spec{max-width:1920px;margin:0 auto 60px;padding:40px 4px;border-top:1px solid var(--hair);display:grid;grid-template-columns:repeat(3,1fr);gap:40px;font-size:13px}
+  #spec h2{font:600 12px/1 var(--mono);letter-spacing:.2em;margin:0 0 16px;color:var(--ink)}
+  #spec h2 span{color:var(--ink-3);font-weight:400}
+  #spec table{width:100%;border-collapse:collapse}
+  #spec td{padding:7px 0;border-bottom:1px solid rgba(237,237,234,.12);vertical-align:middle;font-family:var(--jp);color:var(--ink-2)}
+  #spec td:first-child{width:46px}
+  #spec td.k{color:var(--ink);font-family:var(--mono);white-space:nowrap;padding-right:14px}
+  .sw{width:30px;height:18px;border:1px solid rgba(237,237,234,.25)}
+  .ln{width:30px;height:0;border-top-style:solid}
+  #spec .band{height:14px;margin:4px 0 6px;background:linear-gradient(90deg,#000 0,#000 100%)}
+  #spec p{font-family:var(--jp);color:var(--ink-2);line-height:1.7;margin:0 0 10px}
+</style>
+</head>
+<body>
+
+<div class="cap">W1 ONE OCTAVE — STYLEFRAME v0.1 — STATE A ／ 黄色 1 本</div>
+<svg class="frame" id="fA" viewBox="0 0 1920 1080"></svg>
+<div class="cap">W1 ONE OCTAVE — STYLEFRAME v0.1 — STATE B ／ 赤＋緑の 2 本（見える色は A と同じ）</div>
+<svg class="frame" id="fB" viewBox="0 0 1920 1080"></svg>
+
+<section id="spec"></section>
+
+<script>
+/* ============================================================
+   色と音の計算（スタイルフレーム用。本体では wave/_law/ph_color.js に移す）
+   - 等色関数：CIE 1931 の式による近似（Wyman, Sloan, Shirley 2013 の多ローブ近似）
+   - 目の 3 つの受け手：XYZ → LMS（Hunt-Pointer-Estevez 行列）
+   - 純色が sRGB の外に出たとき：負の分だけ白を足し（明るさを保って白へ寄せる）、最大値で割る
+   - 音：振動数を 2^40 で割る（40 オクターブ下げる）
+   ============================================================ */
+const C = 299792458, K40 = Math.pow(2, 40);
+const g = (x, m, s1, s2) => { const s = x < m ? s1 : s2, t = (x - m) / s; return Math.exp(-0.5 * t * t); };
+function cmf(l){
+  return [
+    1.056*g(l,599.8,37.9,31.0) + 0.362*g(l,442.0,16.0,26.7) - 0.065*g(l,501.1,20.4,26.2),
+    0.821*g(l,568.8,46.9,40.5) + 0.286*g(l,530.9,16.3,31.1),
+    1.217*g(l,437.0,11.8,36.0) + 0.681*g(l,459.0,26.0,13.8)
+  ];
+}
+const xyz2lms = ([X,Y,Z]) => [0.4002*X+0.7076*Y-0.0808*Z, -0.2263*X+1.1653*Y+0.0457*Z, 0.9182*Z];
+const xyz2lin = ([X,Y,Z]) => [3.2406*X-1.5372*Y-0.4986*Z, -0.9689*X+1.8758*Y+0.0415*Z, 0.0557*X-0.2040*Y+1.0570*Z];
+const gam = v => { v = Math.max(0, Math.min(1, v)); return v <= 0.0031308 ? 12.92*v : 1.055*Math.pow(v,1/2.4)-0.055; };
+const hex = rgb => '#' + rgb.map(v => Math.round(gam(v)*255).toString(16).padStart(2,'0')).join('').toUpperCase();
+function spectrumXYZ(spec, refl){ /* spec: [[nm, amount],...] */
+  let s=[0,0,0]; for (const [l,a] of spec){ const r = refl ? refl(l) : 1, c = cmf(l); s[0]+=a*r*c[0]; s[1]+=a*r*c[1]; s[2]+=a*r*c[2]; } return s;
+}
+function intoGamut(lin){ const m = Math.min(0, ...lin); return lin.map(v => v - m); }
+const freq = l => C / (l*1e-9) / K40;
+const midiOf = f => 69 + 12*Math.log2(f/440);
+const NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+function noteOf(f){ const m = midiOf(f), n = Math.round(m), c = Math.round((m-n)*100);
+  return { name: NAMES[(n%12+12)%12] + (Math.floor(n/12)-1), cents: c, midi: n }; }
+const cents = c => (c>=0?'+':'−') + Math.abs(c) + '¢';
+
+/* 物の返し方（反射率） */
+const R_WHITE = () => 0.90;
+const R_RED   = l => 0.04 + 0.86/(1+Math.exp(-(l-605)/12));
+
+/* ---- 2 つの状態：A 黄色 1 本 ／ B 赤＋緑（A と同じ X・Y になる配合を解く） ---- */
+const LY = 575, LR = 630, LG = 540;
+const tY = cmf(LY), cR = cmf(LR), cG = cmf(LG);
+const det = cR[0]*cG[1] - cG[0]*cR[1];
+const aR = (tY[0]*cG[1] - cG[0]*tY[1]) / det;
+const aG = (cR[0]*tY[1] - tY[0]*cR[1]) / det;
+const STATES = {
+  A: { id:'A', title:'黄色 1 本', spec:[[LY,1]], mode:'PURE', preset:'DRAWN' },
+  B: { id:'B', title:'赤＋緑の 2 本', spec:[[LR,aR],[LG,aG]], mode:'MIXED', preset:'DRAWN' }
+};
+/* 共通の明るさの物差し：A の光の色の最大値＝1 */
+const lightLinA = intoGamut(xyz2lin(spectrumXYZ(STATES.A.spec)));
+const SCALE = 1 / Math.max(...lightLinA);
+for (const k in STATES){
+  const S = STATES[k];
+  const xyz = spectrumXYZ(S.spec);
+  S.xyz = xyz;
+  S.lms = xyz2lms(xyz);
+  S.light = intoGamut(xyz2lin(xyz)).map(v => v*SCALE);
+  S.sphere = intoGamut(xyz2lin(spectrumXYZ(S.spec, R_WHITE))).map(v => v*SCALE);
+  S.red    = xyz2lin(spectrumXYZ(S.spec, R_RED)).map(v => Math.max(0, v*SCALE));
+  S.peak = S.spec.reduce((a,b) => b[1] > a[1] ? b : a);
+}
+/* 受け手の数字は A の L を 1.000 とする */
+const LMS_N = STATES.A.lms[0];
+/* 白色光（等エネルギー 380–750nm）の下での赤い物（参照の色） */
+const flat = []; for (let l=380; l<=750; l+=5) flat.push([l,1]);
+const flatW = intoGamut(xyz2lin(spectrumXYZ(flat, R_WHITE))); const fs = 1/Math.max(...flatW);
+const RED_UNDER_WHITE = xyz2lin(spectrumXYZ(flat, R_RED)).map(v => Math.max(0, v*fs));
+
+/* 表示用のスペクトル色（帯と棒。Bruton の近似・計算用ではない） */
+function specRGB(l){
+  let r=0,g2=0,b=0;
+  if (l<440){ r=-(l-440)/60; b=1; } else if (l<490){ g2=(l-440)/50; b=1; }
+  else if (l<510){ g2=1; b=-(l-510)/20; } else if (l<580){ r=(l-510)/70; g2=1; }
+  else if (l<645){ r=1; g2=-(l-645)/65; } else { r=1; }
+  let f = l<420 ? 0.3+0.7*(l-380)/40 : l>700 ? 0.3+0.7*(750-l)/50 : 1;
+  const c = v => Math.round(255*Math.pow(v*f, 0.8));
+  return `rgb(${c(r)},${c(g2)},${c(b)})`;
+}
+
+/* ============================================================
+   画面（1920×1080）
+   ============================================================ */
+const NS = 'http://www.w3.org/2000/svg';
+const X0 = 100, X1 = 1440, M0 = 63.5, M1 = 80.5, SEMI = (X1-X0)/(M1-M0);
+const xm = m => X0 + (m - M0)*SEMI;
+const xl = l => xm(midiOf(freq(l)));
+const COL = { ink:'#EDEDEA', ink2:'#9A9A95', ink3:'#7A7A74', hair:'rgba(237,237,234,.34)', ghost:'rgba(237,237,234,.10)', ground:'#050505' };
+
+function build(svg, S){
+  let o = '';
+  const T = (x,y,s,{size=13,fill=COL.ink,w=400,anchor='start',ls=0.06,fam=''}={}) =>
+    o += `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" font-weight="${w}" text-anchor="${anchor}" letter-spacing="${ls}em"${fam?` font-family='${fam}'`:''}>${s}</text>`;
+  const L = (x1,y1,x2,y2,st=COL.hair,w=1,extra='') => o += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${st}" stroke-width="${w}" ${extra}/>`;
+  const R = (x,y,w,h,{fill='none',st='none',sw=1,extra=''}={}) => o += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" stroke="${st}" stroke-width="${sw}" ${extra}/>`;
+  const corners = (x,y,w,h,s=14,c=COL.ink2) => {
+    o += `<path d="M${x} ${y+s}V${y}H${x+s} M${x+w-s} ${y}H${x+w}V${y+s} M${x+w} ${y+h-s}V${y+h}H${x+w-s} M${x+s} ${y+h}H${x}V${y+h-s}" fill="none" stroke="${c}" stroke-width="1"/>`;
+  };
+  const plus = (x,y,s=6,c=COL.ink) => { L(x-s,y,x+s,y,c,1); L(x,y-s,x,y+s,c,1); };
+  const JP = "'M PLUS 1 Code','IBM Plex Mono',monospace";
+  const FO = (x,y,w,h,html,size=13,color=COL.ink2) => o += `<foreignObject x="${x}" y="${y}" width="${w}" height="${h}"><div xmlns="http://www.w3.org/1999/xhtml" style="font:300 ${size}px/1.55 ${JP};color:${color}">${html}</div></foreignObject>`;
+
+  o += `<defs>
+    <pattern id="hatch${S.id}" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="${COL.ink}" stroke-width="1.4" opacity=".55"/></pattern>
+    <pattern id="hatchD${S.id}" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="9" stroke="${COL.ink}" stroke-width="1" opacity=".12"/></pattern>
+    <radialGradient id="sph${S.id}" cx=".36" cy=".32" r=".75"><stop offset="0" stop-color="${hex(S.sphere)}"/><stop offset=".55" stop-color="${hex(S.sphere.map(v=>v*.42))}"/><stop offset="1" stop-color="${hex(S.sphere.map(v=>v*.05))}"/></radialGradient>
+  </defs>`;
+  R(0,0,1920,1080,{fill:COL.ground});
+
+  /* ---------- 見出し ---------- */
+  R(X0, 34, 330, 5, {fill:COL.ink});
+  T(X0, 80, 'W1', {size:30, w:600, ls:.02});
+  T(X0+62, 80, 'ONE OCTAVE', {size:30, w:500, ls:.08});
+  T(X0+300, 79, '光を音で聴く', {size:20, w:400, fam:JP, ls:.1});
+  T(X0, 104, '色とは、光の成分の配分。 見える光は 1 オクターブに足りない。', {size:13, fill:COL.ink2, fam:JP, ls:.06});
+  T(760, 52, `[ STATE ${S.id} / 2 ]`, {size:12, fill:COL.ink2, ls:.12});
+  T(760, 74, S.title, {size:15, fam:JP, ls:.08});
+  R(760, 86, 210, 8, {fill:`url(#hatch${S.id})`});
+  T(1100, 52, 'PH-W1 — SF v0.1', {size:11, fill:COL.ink3, ls:.14});
+  T(1100, 70, '[ 380 — 750 NM ] ÷ 2^40', {size:11, fill:COL.ink3, ls:.14});
+  plus(1440, 48);
+  /* PROOF / AUTO / BREAK・リアル度 */
+  const btn = ['PROOF','AUTO','BREAK'];
+  btn.forEach((b,i) => { const x = 1490 + i*96; R(x, 40, 86, 30, {st:COL.ink2}); T(x+43, 60, b, {size:12, anchor:'middle', ls:.14}); });
+  T(1790, 60, '◎', {size:18, anchor:'middle'});
+  T(1790, 84, 'REAL', {size:10, fill:COL.ink3, anchor:'middle', ls:.14});
+  L(X0, 122, 1840, 122, COL.hair, 1);
+
+  /* ---------- STAGE 上：LOOK ---------- */
+  const LY0 = 140, LY1 = 380;
+  corners(X0, LY0, X1-X0, LY1-LY0);
+  R(X0+14, LY0+14, 22, 8, {fill:COL.ink});
+  T(X0+46, LY0+22, 'STAGE / LOOK', {size:12, ls:.16});
+  T(X0+170, LY0+22, '見え方', {size:12, fill:COL.ink2, fam:JP});
+  /* 光の色の大きな円 */
+  const cx = 290, cy = 266;
+  o += `<circle cx="${cx}" cy="${cy}" r="94" fill="${hex(S.light)}"/>`;
+  o += `<circle cx="${cx}" cy="${cy}" r="106" fill="none" stroke="${COL.hair}" stroke-dasharray="2 5"/>`;
+  plus(cx, cy, 7, COL.ground);
+  T(cx+132, LY0+64, 'LIGHT', {size:11, fill:COL.ink3, ls:.16});
+  T(cx+132, LY0+84, '光の色', {size:13, fam:JP});
+  T(cx+132, LY0+104, hex(S.light), {size:13, fill:COL.ink2});
+  L(cx+104, cy-34, cx+128, LY0+110, COL.hair, 1);
+  /* 床の線 */
+  const FL = 350;
+  L(590, FL, 1040, FL, COL.hair, 1);
+  for (let x=590; x<=1040; x+=30) L(x, FL, x, FL+5, COL.hair, 1);
+  /* 白い球 */
+  o += `<ellipse cx="690" cy="${FL}" rx="78" ry="9" fill="#000" opacity=".9"/>`;
+  o += `<circle cx="690" cy="${FL-74}" r="72" fill="url(#sph${S.id})"/>`;
+  T(690, LY0+40, 'WHITE SPHERE', {size:11, fill:COL.ink3, anchor:'middle', ls:.16});
+  T(690, LY0+58, '白い球 R 0.90', {size:12, fill:COL.ink2, anchor:'middle', fam:JP});
+  /* 赤い物（立方体・面ごとに明るさを変える） */
+  const bx = 900, by = FL, s = 64;
+  const top = S.red.map(v=>v*1.0), lft = S.red.map(v=>v*0.62), rgt = S.red.map(v=>v*0.34);
+  o += `<ellipse cx="${bx}" cy="${FL}" rx="86" ry="9" fill="#000" opacity=".9"/>`;
+  o += `<path d="M${bx} ${by} L${bx-s} ${by-s*0.5} L${bx-s} ${by-s*1.65} L${bx} ${by-s*1.15} Z" fill="${hex(lft)}"/>`;
+  o += `<path d="M${bx} ${by} L${bx+s} ${by-s*0.5} L${bx+s} ${by-s*1.65} L${bx} ${by-s*1.15} Z" fill="${hex(rgt)}"/>`;
+  o += `<path d="M${bx} ${by-s*1.15} L${bx-s} ${by-s*1.65} L${bx} ${by-s*2.15} L${bx+s} ${by-s*1.65} Z" fill="${hex(top)}"/>`;
+  T(bx, LY0+40, 'RED OBJECT', {size:11, fill:COL.ink3, anchor:'middle', ls:.16});
+  T(bx, LY0+58, '赤い物', {size:12, fill:COL.ink2, anchor:'middle', fam:JP});
+  /* 白色光の下の参照 */
+  R(bx+92, FL-22, 16, 16, {fill:hex(RED_UNDER_WHITE)});
+  T(bx+114, FL-9, '白色光の下', {size:10, fill:COL.ink3, fam:JP});
+  T(bx+92, FL+22, `この光の下 ${hex(S.red)}`, {size:10, fill:COL.ink3, fam:JP});
+  /* 余白の 1 行：耳と目 */
+  const EX = 1110;
+  T(EX, LY0+64, 'RANGE', {size:11, fill:COL.ink3, ls:.16});
+  T(EX, LY0+84, '耳 10 オクターブ ／ 目 1 オクターブ弱', {size:13, fam:JP, ls:.04});
+  const OCT = 30; /* 1 オクターブ＝30px */
+  const earOct = Math.log2(20000/20), eyeOct = Math.log2(freq(380)/freq(750));
+  R(EX, LY0+104, earOct*OCT, 10, {fill:`url(#hatch${S.id})`, st:COL.ink2});
+  T(EX, LY0+134, '耳', {size:11, fill:COL.ink2, fam:JP}); T(EX+earOct*OCT, LY0+134, `20 Hz — 20 kHz  ${earOct.toFixed(1)} OCT`, {size:11, fill:COL.ink3, anchor:'end'});
+  /* 目の帯はスペクトル */
+  const eg = `eyeg${S.id}`;
+  o += `<defs><linearGradient id="${eg}" x1="0" x2="1">${[750,700,650,600,550,500,450,400,380].map((l,i,a)=>`<stop offset="${(midiOf(freq(l))-midiOf(freq(750)))/(midiOf(freq(380))-midiOf(freq(750)))}" stop-color="${specRGB(l)}"/>`).join('')}</linearGradient></defs>`;
+  R(EX, LY0+152, eyeOct*OCT, 10, {fill:`url(#${eg})`});
+  R(EX+eyeOct*OCT, LY0+152, OCT*(1-eyeOct), 10, {st:COL.ink3, extra:'stroke-dasharray="2 2"'});
+  T(EX, LY0+182, '目', {size:11, fill:COL.ink2, fam:JP}); T(EX+48, LY0+182, `380 — 750 nm  ${eyeOct.toFixed(2)} OCT`, {size:11, fill:COL.ink3});
+  for (let i=0;i<=10;i++) L(EX+i*OCT, LY0+196, EX+i*OCT, LY0+200 + (i%5?0:4), COL.hair, 1);
+  T(EX+300, LY0+218, '1 OCT = 30', {size:10, fill:COL.ink3, anchor:'end', ls:.1});
+
+  /* ---------- STAGE 下：CAUSE ---------- */
+  const CY0 = 400;
+  R(X0, CY0+2, 22, 8, {fill:COL.ink});
+  T(X0+32, CY0+10, 'STAGE / CAUSE', {size:12, ls:.16});
+  T(X0+160, CY0+10, '成分の棒 — なぞって描く ／ 下の鍵盤＝40 オクターブ下げた音名', {size:12, fill:COL.ink2, fam:JP});
+  /* プリセット */
+  const pres = ['太陽','電球','LED','レーザー','街灯'];
+  T(730, CY0+10, 'PRESET', {size:11, fill:COL.ink3, ls:.16});
+  let px = 800;
+  pres.forEach(p => { const w = 18 + p.length*14; R(px, CY0-6, w, 22, {st:COL.ink3}); T(px+w/2, CY0+10, p, {size:12, fill:COL.ink2, anchor:'middle', fam:JP}); px += w + 8; });
+  R(px+10, CY0-6, 74, 22, {fill:COL.ink}); T(px+47, CY0+10, 'DRAWN', {size:11, fill:COL.ground, anchor:'middle', w:600, ls:.12});
+
+  /* 波長の目盛り（上） */
+  const AY = 448;
+  L(X0, AY, X1, AY, COL.ink2, 1);
+  for (let l=330; l<=850; l+=10){ const x = xl(l); if (x<X0||x>X1) continue; L(x, AY, x, AY-(l%50?4:9), l%50?COL.hair:COL.ink2, 1); if (l%50===0 && x>X0+20) T(x, AY-15, l, {size:11, fill:COL.ink2, anchor:'middle'}); }
+  T(X0-14, AY-15, 'nm', {size:11, fill:COL.ink3, anchor:'end'});
+  /* スペクトルの帯（見える範囲だけ） */
+  for (let l=380; l<750; l+=1){ const xa = xl(l+1), xb = xl(l); R(xa, AY+4, xb-xa+0.6, 9, {fill:specRGB(l+0.5)}); }
+  /* 見えない所 */
+  R(X0, AY+4, xl(750)-X0, 9, {fill:`url(#hatch${S.id})`});
+  R(xl(380), AY+4, X1-xl(380), 9, {fill:`url(#hatch${S.id})`});
+  T(X0+6, AY+32, '← IR 赤外 見えない', {size:11, fill:COL.ink3, fam:JP});
+  T(X1-6, AY+32, '見えない 紫外 UV →', {size:11, fill:COL.ink3, anchor:'end', fam:JP});
+
+  /* 成分の棒の升 */
+  const BY0 = AY+42, BY1 = 676, BH = BY1-BY0, VMAX = 1.3;
+  R(X0, BY0, X1-X0, BH, {fill:`url(#hatchD${S.id})`});
+  R(xl(750), BY0, xl(380)-xl(750), BH, {fill:COL.ground});
+  for (let v=0.25; v<=1.25; v+=0.25){ const y = BY1 - v/VMAX*BH; L(xl(750), y, xl(380), y, 'rgba(237,237,234,.07)', 1); T(X0+6, y+4, v.toFixed(2), {size:10, fill:COL.ink3}); }
+  const amt = new Map(S.spec.map(([l,a]) => [l,a]));
+  for (let l=380; l<=750; l+=5){
+    const xa = xl(l+2.5)+1.5, xb = xl(l-2.5)-1.5;
+    R(xa, BY0, xb-xa, BH, {st:COL.ghost});
+  }
+  /* 受け手の感度の曲線（S・M・L、細線） */
+  const curves = [[],[],[]], peaks=[0,0,0];
+  for (let l=380; l<=750; l+=2){ const v = xyz2lms(cmf(l)); v.forEach((q,i)=>{ curves[i].push([l,q]); peaks[i]=Math.max(peaks[i],q); }); }
+  const cname = ['L','M','S'], dash = ['','5 3','1 3'], lo = [-22,8,8], ldx = [44,-44,0];
+  curves.forEach((c,i) => {
+    const d = c.map(([l,q],j) => `${j?'L':'M'}${xl(l).toFixed(1)} ${(BY1 - q/peaks[i]*BH*0.62).toFixed(1)}`).join(' ');
+    o += `<path d="${d}" fill="none" stroke="${COL.ink2}" stroke-width="1" stroke-dasharray="${dash[i]}" opacity=".7"/>`;
+    const pk = c.reduce((a,b)=>b[1]>a[1]?b:a);
+    T(xl(pk[0])+ldx[i], BY1 - BH*0.62 + lo[i], cname[i], {size:11, fill:COL.ink2, anchor:'middle'});
+  });
+  T(xl(445)+14, BY1 - BH*0.62 + 24, '受け手の感度 S・M・L', {size:10, fill:COL.ink3, fam:JP});
+  /* 成分の棒（塗り） */
+  S.spec.forEach(([l,a]) => {
+    const xa = xl(l+2.5)+1.5, xb = xl(l-2.5)-1.5, h = a/VMAX*BH, xc = (xa+xb)/2;
+    R(xa, BY1-h, xb-xa, h, {fill:specRGB(l)});
+    R(xa-3, BY1-h-3, xb-xa+6, 2, {fill:COL.ink});
+    const f = freq(l), n = noteOf(f);
+    T(xc, BY1-h-30, `${l} nm`, {size:12, anchor:'middle'});
+    T(xc, BY1-h-14, a.toFixed(2), {size:11, fill:COL.ink2, anchor:'middle'});
+    L(xc, BY1, xc, 688, COL.ink, 1, 'stroke-dasharray="2 3"');
+  });
+  /* なぞる指の跡（主役の操作） */
+  {
+    const l0 = S.id==='A' ? 600 : 560, l1 = S.id==='A' ? 570 : 535;
+    const xa = xl(l0), xb = xl(l1), y = S.id==='A' ? BY1 - 1/VMAX*BH - 2 : BY1 - aG/VMAX*BH - 2;
+    o += `<path d="M${xa} ${y+40} C ${xa+20} ${y+10}, ${xb-30} ${y-4}, ${xb} ${y}" fill="none" stroke="${COL.ink}" stroke-width="1" stroke-dasharray="1 4"/>`;
+    o += `<circle cx="${xb}" cy="${y}" r="9" fill="none" stroke="${COL.ink}" stroke-width="1.2"/>`;
+    o += `<circle cx="${xb}" cy="${y}" r="2" fill="${COL.ink}"/>`;
+    T(xa+6, y+58, 'DRAW ↔', {size:10, fill:COL.ink2, ls:.14});
+  }
+  /* 見える範囲の境 */
+  [380,750].forEach(l => L(xl(l), AY+2, xl(l), 752, COL.ink2, 1, 'stroke-dasharray="3 4"'));
+
+  /* 鍵盤（40 オクターブ下げた音名） */
+  const KY0 = 688, KY1 = 742;
+  for (let m=64; m<=80; m++){
+    const xa = xm(m-0.5), xb = xm(m+0.5), black = [1,3,6,8,10].includes(m%12);
+    if (black) R(xa+1, KY0, xb-xa-2, (KY1-KY0)*0.62, {fill:`url(#hatch${S.id})`, st:COL.ink3});
+    else R(xa+1, KY0, xb-xa-2, KY1-KY0, {st:COL.ink2});
+    const nm = NAMES[m%12] + (Math.floor(m/12)-1);
+    T((xa+xb)/2, black ? KY1-6 : KY1+20, nm, {size:black?10:12, fill: black?COL.ink3:COL.ink2, anchor:'middle'});
+  }
+  /* 鳴っている鍵 */
+  S.spec.forEach(([l]) => { const n = noteOf(freq(l)); const xa = xm(n.midi-0.5), xb = xm(n.midi+0.5);
+    R(xa+1, KY1-6, xb-xa-2, 6, {fill:specRGB(l)}); });
+  T(X0-14, KY1+20, '♪', {size:13, fill:COL.ink3, anchor:'end'});
+  T(X0-14, KY0+20, '÷2^40', {size:10, fill:COL.ink3, anchor:'end'});
+  /* 1 オクターブの括弧 */
+  const o0 = xl(750), o1 = xm(midiOf(freq(750))+12);
+  L(o0, KY1+38, o1, KY1+38, COL.ink2, 1); L(o0, KY1+32, o0, KY1+44, COL.ink2,1); L(o1, KY1+32, o1, KY1+44, COL.ink2,1);
+  T(o1+8, KY1+42, `1 OCT ／ 見える範囲は ${eyeOct.toFixed(2)}`, {size:11, fill:COL.ink2, fam:JP});
+
+  /* ---------- 受け手 3 つ ---------- */
+  const RY = 812;
+  L(X0, RY-14, X1, RY-14, COL.hair, 1);
+  R(X0, RY+2, 22, 8, {fill:COL.ink});
+  T(X0+32, RY+10, 'RECEPTORS', {size:12, ls:.16});
+  T(X0+150, RY+10, '目の 3 つの受け手の反応', {size:12, fill:COL.ink2, fam:JP});
+  const rec = [['L','長',S.lms[0]],['M','中',S.lms[1]],['S','短',S.lms[2]]];
+  rec.forEach(([k,j,v],i) => {
+    const y = RY + 26 + i*22, val = v/LMS_N;
+    T(X0, y+10, k, {size:13, w:600}); T(X0+20, y+10, j, {size:11, fill:COL.ink3, fam:JP});
+    R(X0+60, y, 520, 12, {st:COL.ink3});
+    R(X0+60, y, Math.max(1.5, 520*Math.min(1,val)), 12, {fill:COL.ink});
+    T(X0+596, y+11, val.toFixed(3), {size:13});
+  });
+  FO(760, RY+22, 660, 80, `成分の並び（上の棒）は、目に入ると <b style="color:${COL.ink};font-weight:500">3 つの数字</b> に畳まれる。<br>3 つが同じなら、棒が違っても同じ色に見える。音にすると${S.id==='A'?' <b style="color:'+COL.ink+';font-weight:500">1 音</b>（純音）':' <b style="color:'+COL.ink+';font-weight:500">2 音</b>（和音）'}。`, 13);
+
+  /* ---------- READOUT ---------- */
+  const RX = 1490, RW = 350;
+  corners(RX, LY0, RW, 896-LY0, 14, COL.ink2);
+  R(RX+14, LY0+14, 22, 8, {fill:COL.ink});
+  T(RX+46, LY0+22, 'READOUT', {size:12, ls:.16});
+  ['PURE','MIXED','WHITE'].forEach((m,i) => {
+    const x = RX+14 + i*110, on = m===S.mode;
+    R(x, LY0+42, 100, 30, on ? {fill:COL.ink} : {st:COL.ink3});
+    T(x+50, LY0+62, m, {size:12, anchor:'middle', fill: on?COL.ground:COL.ink3, w: on?600:400, ls:.14});
+  });
+  T(RX+14, LY0+92, S.id==='A' ? '1 本だけ＝純色' : '山が 2 つ＝まぜた色', {size:11, fill:COL.ink3, fam:JP});
+  const pl = S.peak[0], pf = freq(pl), pn = noteOf(pf);
+  T(RX+14, LY0+132, 'PEAK λ — いちばん強い成分', {size:11, fill:COL.ink3, fam:JP});
+  T(RX+14, LY0+196, `${S.peak[0]}`, {size:68, w:300, ls:-.02});
+  T(RX+150, LY0+196, 'nm', {size:16, fill:COL.ink2});
+  R(RX+200, LY0+170, 26, 26, {fill:specRGB(pl)});
+  L(RX+14, LY0+218, RX+RW-14, LY0+218, COL.hair, 1);
+  T(RX+14, LY0+246, 'PITCH ÷ 2^40 — 音にしたとき', {size:11, fill:COL.ink3, fam:JP});
+  T(RX+14, LY0+310, pf.toFixed(1), {size:68, w:300, ls:-.02});
+  T(RX+236, LY0+310, 'Hz', {size:16, fill:COL.ink2});
+  T(RX+14, LY0+346, pn.name, {size:28, w:500});
+  T(RX+90, LY0+346, cents(pn.cents), {size:16, fill:COL.ink2});
+  L(RX+14, LY0+372, RX+RW-14, LY0+372, COL.hair, 1);
+  T(RX+14, LY0+398, `COMPONENTS — ${S.spec.length}`, {size:11, fill:COL.ink3, ls:.1});
+  S.spec.forEach(([l,a],i) => {
+    const f = freq(l), n = noteOf(f), y = LY0+424 + i*24;
+    R(RX+14, y-10, 10, 10, {fill:specRGB(l)});
+    T(RX+34, y, `${l}nm`, {size:12}); T(RX+110, y, a.toFixed(2), {size:12, fill:COL.ink2});
+    T(RX+170, y, `${f.toFixed(1)}Hz`, {size:12, fill:COL.ink2}); T(RX+RW-14, y, `${n.name} ${cents(n.cents)}`, {size:12, anchor:'end'});
+  });
+  const yS = LY0+490;
+  L(RX+14, yS, RX+RW-14, yS, COL.hair, 1);
+  T(RX+14, yS+26, 'SEEN — 見える色', {size:11, fill:COL.ink3, fam:JP});
+  R(RX+14, yS+40, 60, 30, {fill:hex(S.light)});
+  T(RX+88, yS+61, hex(S.light), {size:15});
+  T(RX+14, yS+94, S.id==='B' ? `STATE A と同じ（差 ${Math.max(...STATES.A.light.map((v,i)=>Math.abs(gam(v)-gam(S.light[i])))).toFixed(3)}）` : '黄色', {size:11, fill:COL.ink2, fam:JP});
+  L(RX+14, yS+116, RX+RW-14, yS+116, COL.hair, 1);
+  T(RX+14, yS+142, 'SCALE', {size:11, fill:COL.ink3, ls:.14});
+  T(RX+14, yS+162, '横軸 1 本：nm（上）＝♪（下）', {size:11, fill:COL.ink2, fam:JP});
+  T(RX+14, yS+180, 'log 目盛り・1 半音 = 一定の幅', {size:11, fill:COL.ink2, fam:JP});
+  /* 右端の目盛りの飾り */
+  for (let i=0;i<14;i++){ const y = 160 + i*56; L(1868, y, 1886, y, i%4===0?COL.ink:COL.ink3, i%4===0?3:1.5); if (i%4===0) T(1858, y+4, ['W1','LK','CS','TR'][i/4], {size:9, fill:COL.ink3, anchor:'end'}); }
+
+  /* ---------- TRANSFER ---------- */
+  const TY = 924;
+  L(X0, TY, 1840, TY, COL.ink2, 1);
+  R(X0, TY-3, 120, 6, {fill:COL.ink});
+  const TR = [
+    ['LOOK RULES','物の色＝光源の成分 × 物が返す成分。光源が変われば物の色は変わる。'],
+    ['CG','ライトとマテリアルの色は「3 つの数字に畳んだ後」の世界。分光レンダーとの違い。'],
+    ['GEN CHECK','色付きの光の下で、物の色が光源の色に寄っているか。元の色のままは嘘。'],
+    ['BREAK','受け手を 1 つ減らす／4 つにする。1 本だけの光で照らすと色が消える。'],
+    ['FIELD NOTE','オレンジの街灯の下で、赤と緑の物を見比べる。']
+  ];
+  const TW = (1840 - X0)/5;
+  T(X0+130, TY+4, 'TRANSFER', {size:11, fill:COL.ink2, ls:.2});
+  TR.forEach(([h,t],i) => {
+    const x = X0 + i*TW;
+    if (i) L(x, TY+18, x, 1050, COL.hair, 1);
+    T(x + (i?16:0), TY+40, `${String(i+1).padStart(2,'0')}  ${h}`, {size:12, w:500, ls:.12});
+    FO(x + (i?16:0), TY+52, TW-32, 80, t, 13);
+  });
+  T(1840, 1070, 'PHENOMENA LAB ／ W1 ONE OCTAVE ／ STYLEFRAME 2026-11-18', {size:10, fill:COL.ink3, anchor:'end', ls:.14});
+  plus(X0, 1066, 5, COL.ink3);
+
+  svg.innerHTML = o;
+}
+build(document.getElementById('fA'), STATES.A);
+build(document.getElementById('fB'), STATES.B);
+
+/* ============================================================
+   色・線・書体の一覧
+   ============================================================ */
+(function spec(){
+  const colors = [
+    ['#050505','ground','地。黒（ごくわずかに浮かせる）'],
+    ['#EDEDEA','ink','主の文字・主線・選択中の塗り'],
+    ['#9A9A95','ink-2','副の文字・目盛りの大目盛り・枠'],
+    ['#7A7A74','ink-3','注記・目盛りの数字（小）・休んでいる部品'],
+    ['rgba(237,237,234,.34)','hair','極細の目盛り・区切り線'],
+    ['rgba(237,237,234,.10)','ghost','描ける升の下書き'],
+  ];
+  const lines = [
+    ['1px','ink-2','大目盛り（50 nm ごと 9px）・枠・鍵盤の白鍵'],
+    ['1px','hair','小目盛り（10 nm ごと 4px）・区切り'],
+    ['1px 破線 3/4','ink-2','見える範囲の境（380 / 750 nm）'],
+    ['1px 破線 / 点線','ink-2','受け手の感度の曲線 L 実線・M 破線・S 点線'],
+    ['5px 塗り','ink','見出しの太い棒・成分の棒の頭（2px）'],
+    ['45° 斜線 7px','ink 55%','見えない所・黒鍵・状態の印'],
+    ['角の鉤 14px','ink-2','STAGE と READOUT の枠（四角で囲まない）'],
+  ];
+  const type = [
+    ['IBM Plex Mono 300','68px','READOUT の大きな数字（nm・Hz）'],
+    ['IBM Plex Mono 500–600','30px','題名 W1 ONE OCTAVE'],
+    ['IBM Plex Mono 500','28px','音名（A#4）'],
+    ['IBM Plex Mono 400–500','12px / 字間 .16em','部品の名前（STAGE / LOOK・READOUT）'],
+    ['IBM Plex Mono 400','10–11px','目盛りの数字・コード'],
+    ['M PLUS 1 Code 300–400','13px','日本語の注記・TRANSFER 本文'],
+    ['M PLUS 1 Code 400','20px','副題「光を音で聴く」'],
+  ];
+  const a = STATES.A, b = STATES.B;
+  let h = '<div><h2>COLOR <span>— 色</span></h2><table>';
+  colors.forEach(([c,k,u]) => h += `<tr><td><div class="sw" style="background:${c}"></div></td><td class="k">${k}<br><span style="color:#7A7A74">${c}</span></td><td>${u}</td></tr>`);
+  h += `</table><h2 style="margin-top:28px">SPECTRUM <span>— 有彩色はここだけ（左＝赤・低い音）</span></h2><div class="band" id="bandsw"></div><p>750 → 380 nm の帯（表示用の近似色。画面と同じく左が赤）。成分の棒・鳴っている鍵・目の帯にだけ使う。LOOK の光の色と物の色は計算で出す（CIE 1931 の近似 → sRGB、はみ出しは白へ寄せる）。</p>`;
+  h += `<p>計算した光の色：A ${hex(a.light)} ／ B ${hex(b.light)}　赤い物：A ${hex(a.red)} ／ B ${hex(b.red)}</p></div>`;
+  h += '<div><h2>LINE <span>— 線</span></h2><table>';
+  lines.forEach(([w,c,u]) => h += `<tr><td class="k">${w}</td><td class="k" style="color:#9A9A95">${c}</td><td>${u}</td></tr>`);
+  h += '</table><p style="margin-top:18px">使わないもの：角丸・影・グラデーションのボタン・有彩色の飾り。区切りは線と余白だけ。</p></div>';
+  h += '<div><h2>TYPE <span>— 書体（すべて等幅）</span></h2><table>';
+  type.forEach(([f,s,u]) => h += `<tr><td class="k">${f}</td><td class="k" style="color:#9A9A95">${s}</td><td>${u}</td></tr>`);
+  h += `</table><h2 style="margin-top:28px">NUMBERS <span>— この見本の数値</span></h2>
+  <p>A：${LY} nm × 1.00 → ${freq(LY).toFixed(1)} Hz（${noteOf(freq(LY)).name} ${cents(noteOf(freq(LY)).cents)}）<br>
+  B：${LR} nm × ${aR.toFixed(2)} ＋ ${LG} nm × ${aG.toFixed(2)}（A と X・Y が一致するよう解いた配合）<br>
+  受け手 L/M/S：A ${a.lms.map(v=>(v/LMS_N).toFixed(3)).join(' / ')} ／ B ${b.lms.map(v=>(v/LMS_N).toFixed(3)).join(' / ')}<br>
+  見える範囲：${freq(750).toFixed(1)}–${freq(380).toFixed(1)} Hz ＝ ${Math.log2(freq(380)/freq(750)).toFixed(2)} オクターブ</p>
+  <p style="color:#7A7A74">表示の棒は 5 nm 幅の升（中心の波長で音を計算）。</p></div>`;
+  const el = document.getElementById('spec'); el.innerHTML = h;
+  document.getElementById('bandsw').style.background = 'linear-gradient(90deg,' + [750,700,660,630,600,580,550,520,500,480,450,420,380].map((l,i,arr)=>`${specRGB(l)} ${(i/(arr.length-1)*100).toFixed(1)}%`).join(',') + ')';
+  window.__SF = { STATES, aR, aG, LMS_N };
+})();
+</script>
+</body>
+</html>

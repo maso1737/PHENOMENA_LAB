@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>ZOOM CORE — PHENOMENA LAB</title>
+<style>
+  :root{--ink:#f2efe6;--dim:#8a877f;--line:#3a3935;--acc:#ffd400;--bg:#0b0b0a}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:12px/1.5 ui-monospace,"Cascadia Mono",Consolas,monospace;overflow:hidden}
+  #wrap{display:grid;grid-template-columns:1fr 280px;height:100%}
+  #stage{position:relative;min-width:0}
+  canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair;display:block}
+  #panel{border-left:1px solid var(--line);padding:14px 14px 20px;overflow:auto}
+  h1{font-size:13px;letter-spacing:.18em;margin:0 0 2px}
+  .sub{color:var(--dim);margin:0 0 14px}
+  .row{margin:0 0 12px}
+  .row label{display:flex;justify-content:space-between;gap:8px}
+  .row label b{font-weight:400;color:var(--acc)}
+  .row small{color:var(--dim);display:block}
+  input[type=range]{width:100%;accent-color:var(--acc);margin:2px 0 0}
+  select,button{width:100%;background:transparent;color:var(--ink);border:1px solid var(--line);padding:6px 8px;font:inherit;cursor:pointer}
+  select option{background:#111}
+  button.on{border-color:var(--acc);color:var(--acc)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .off{opacity:.35}
+  .off input,.off button{pointer-events:none}
+  hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+  .help{color:var(--dim)}
+  @media (max-width:760px){#wrap{grid-template-columns:1fr;grid-template-rows:1fr 240px}#panel{border-left:0;border-top:1px solid var(--line)}}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="stage"><canvas id="cv"></canvas></div>
+  <div id="panel">
+    <h1>ZOOM CORE</h1>
+    <p class="sub">止まる場所のないズーム v0.1</p>
+
+    <div class="row"><label>WORLD 題材</label>
+      <select id="world">
+        <option value="nest">NEST 四角の入れ子（輪）</option>
+        <option value="tri">TRIANGLE 三角の中の三角（輪・子が 3 つ）</option>
+        <option value="chain">CHAIN 点 → 線 → 面 → 世界（連なり）</option>
+        <option value="golden">GOLDEN 黄金のらせん（輪・回りながら寄る）</option>
+        <option value="koch">KOCH 海岸線の曲線（輪・子が 4 つ）</option>
+        <option value="fern">FERN シダ（輪・大きさの違う子）</option>
+      </select></div>
+
+    <div class="row" id="r_twist"><label>TWIST 子の回転 <b id="v_twist"></b></label>
+      <input type="range" id="twist" min="0" max="90" step="1" value="45"><small>NEST のときだけ</small></div>
+    <div class="row" id="r_shrink"><label>SHRINK 子の縮み <b id="v_shrink"></b></label>
+      <input type="range" id="shrink" min="0.5" max="0.95" step="0.001" value="0.707"><small>NEST のときだけ</small></div>
+
+    <hr>
+    <div class="row"><label>SENS ホイール 1 刻みの倍率 <b id="v_sens"></b></label>
+      <input type="range" id="sens" min="1.05" max="1.5" step="0.01" value="1.15"></div>
+    <div class="row"><label>INERTIA 余韻（秒） <b id="v_inertia"></b></label>
+      <input type="range" id="inertia" min="0" max="0.6" step="0.01" value="0.18"></div>
+    <div class="row"><label>MAGNET 奥へ引き寄せる <b id="v_magnet"></b></label>
+      <input type="range" id="magnet" min="0" max="1" step="0.05" value="1"><small>0 だと、何もない所へも寄れる</small></div>
+    <div class="row"><label>DETAIL 細部が現れる大きさ（px） <b id="v_minPx"></b></label>
+      <input type="range" id="minPx" min="2" max="40" step="1" value="6"></div>
+
+    <hr>
+    <div class="row"><button id="auto">AUTO 自動で進む</button></div>
+    <div class="row" id="r_dir"><div class="two"><button id="dirIn" class="on">IN 寄る</button><button id="dirOut">OUT 引く</button></div><small>AUTO のときだけ</small></div>
+    <div class="row" id="r_sec"><label>SPEED 10 倍にかかる秒 <b id="v_autoSec"></b></label>
+      <input type="range" id="autoSec" min="1" max="30" step="0.5" value="6"><small>AUTO のときだけ</small></div>
+
+    <hr>
+    <div class="row"><button id="home">HOME 入口へ戻る</button></div>
+    <p class="help">ホイール／ピンチ＝寄る・引く<br>ドラッグ＝動かす<br>↑ ↓＝寄る・引く　Home＝入口</p>
+  </div>
+</div>
+
+<script src="zoom_core.js"></script>
+<script>
+'use strict';
+const INK = '#f2efe6', ACC = '#ffd400', TAU = Math.PI * 2;
+const P = { twist: 45, shrink: 0.707 };
+
+/* ---------- 題材 ---------- */
+const NEST = { name: 'NEST', root: 'sq', scenes: { sq: {
+  name: 'SQUARE', parent: { id: 'sq', slot: 0 },
+  children: () => [{ x: 0, y: 0, s: P.shrink, rot: P.twist, to: 'sq' }],
+  draw(c, i) {
+    c.lineWidth = 1.4 * i.px; c.strokeStyle = INK; c.strokeRect(-0.5, -0.5, 1, 1);
+    c.lineWidth = 1 * i.px; c.beginPath();
+    for (const [x, y, dx, dy] of [[0, -0.5, 0, 1], [0.5, 0, -1, 0], [0, 0.5, 0, -1], [-0.5, 0, 1, 0]]) { c.moveTo(x, y); c.lineTo(x + dx * 0.035, y + dy * 0.035); }
+    c.stroke();
+    c.fillStyle = ACC; c.beginPath(); c.arc(-0.5, -0.5, Math.min(0.02, 3.5 * i.px), 0, TAU); c.fill();   // 向きがわかる印
+  } } } };
+
+const V = [0, 1, 2].map(j => { const a = -Math.PI / 2 + j * TAU / 3; return [0.5 * Math.cos(a), 0.5 * Math.sin(a)]; });
+const TRI = { name: 'TRIANGLE', root: 'tri', scenes: { tri: {
+  name: 'TRIANGLE', parent: { id: 'tri', slot: 0 },
+  children: () => V.map(v => ({ x: v[0] / 2, y: v[1] / 2, s: 0.5, rot: 0, to: 'tri' })),
+  draw(c, i) {
+    c.lineWidth = 1.2 * i.px; c.strokeStyle = INK; c.beginPath();
+    c.moveTo(V[0][0], V[0][1]); c.lineTo(V[1][0], V[1][1]); c.lineTo(V[2][0], V[2][1]); c.closePath(); c.stroke();
+    c.fillStyle = ACC; c.beginPath(); c.arc(V[0][0], V[0][1], Math.min(0.016, 3 * i.px), 0, TAU); c.fill();
+  } } } };
+
+const GA = 137.50776 * Math.PI / 180, DOTS = 90, PICK = 37;
+const dot = k => { const r = 0.47 * Math.sqrt((k + 0.5) / DOTS), a = k * GA; return [r * Math.cos(a), r * Math.sin(a)]; };
+const CHAIN = { name: 'CHAIN', root: 'point', scenes: {
+  point: { name: 'POINT 点', parent: { id: 'world', slot: 0 },
+    children: () => { const d = dot(PICK); return [{ x: d[0], y: d[1], s: 0.03, rot: 0, to: 'line' }]; },
+    draw(c, i) { c.fillStyle = INK; const r = Math.min(0.011, 8 * i.px);
+      for (let k = 0; k < DOTS; k++) { if (k === PICK) continue; const d = dot(k); c.beginPath(); c.arc(d[0], d[1], r, 0, TAU); c.fill(); } } },
+  line: { name: 'LINE 線', parent: { id: 'point', slot: 0 },
+    children: () => [{ x: 0.12, y: 0.045, s: 0.03, rot: 30, to: 'plane' }],
+    draw(c, i) { c.strokeStyle = INK; c.lineWidth = 1.2 * i.px; c.beginPath();
+      for (let k = -7; k <= 7; k++) { const y = k * 0.06, x = Math.sqrt(Math.max(0, 0.25 - y * y)); c.moveTo(-x, y); c.lineTo(x, y); }
+      c.stroke(); } },
+  plane: { name: 'PLANE 面', parent: { id: 'line', slot: 0 },
+    children: () => [{ x: 1 / 12, y: -1 / 12, s: 0.13, rot: 0, to: 'world' }],
+    draw(c, i) { const n = 6, s = 1 / n; c.fillStyle = INK;
+      for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) { if ((x + y) % 2) continue; if (x === 3 && y === 2) continue; c.fillRect(-0.5 + x * s, -0.5 + y * s, s, s); }
+      c.strokeStyle = INK; c.lineWidth = 1.2 * i.px; c.strokeRect(-0.5, -0.5, 1, 1); } },
+  world: { name: 'WORLD 世界', parent: { id: 'plane', slot: 0 },
+    children: () => [{ x: 0.17, y: -0.12, s: 0.035, rot: -20, to: 'point' }],
+    draw(c, i) { c.strokeStyle = INK; c.lineWidth = 1.2 * i.px;
+      c.beginPath(); c.arc(0, 0, 0.5, 0, TAU); c.stroke();
+      c.lineWidth = 0.8 * i.px; c.beginPath();
+      for (const k of [0.17, 0.34, 0.5]) { c.moveTo(k, 0); c.ellipse(0, 0, k, 0.5, 0, 0, TAU); }
+      for (const y of [-0.3, 0, 0.3]) { const x = Math.sqrt(0.25 - y * y); c.moveTo(-x, y); c.lineTo(x, y); }
+      c.stroke(); } }
+} };
+
+/* らせん：黄金長方形。正方形を 1 つ切り取ると、残りが 90° 回った同じ形 */
+const PHI = (1 + Math.sqrt(5)) / 2, G1 = 1 / PHI, GH = G1 / 2, GX = -0.5 + G1;   // GX = 正方形の右端
+const GOLDEN = { name: 'GOLDEN', root: 'g', bg: '#0b0b0a', scenes: { g: {
+  name: 'GOLDEN らせん', parent: { id: 'g', slot: 0 },
+  children: () => [{ x: (GX + 0.5) / 2, y: 0, s: G1, rot: 90, to: 'g' }],
+  draw(c, i) {
+    c.strokeStyle = INK; c.lineWidth = 1 * i.px; c.globalAlpha = i.alpha * 0.45;
+    c.strokeRect(-0.5, -GH, 1, G1); c.beginPath(); c.moveTo(GX, -GH); c.lineTo(GX, GH); c.stroke();
+    c.globalAlpha = i.alpha; c.strokeStyle = ACC; c.lineWidth = 2 * i.px;
+    c.beginPath(); c.arc(GX, GH, G1, Math.PI, Math.PI * 1.5); c.stroke();
+  } } } };
+
+/* コッホ曲線：1 本の線を「山のある 4 本」に置きかえる、をくり返す */
+const K3 = Math.sqrt(3) / 12;
+const KOCH = { name: 'KOCH', root: 'k', scenes: { k: {
+  name: 'KOCH 海岸線', parent: { id: 'k', slot: 1 },
+  children: () => [{ x: -1 / 3, y: 0, s: 1 / 3, rot: 0, to: 'k' }, { x: -1 / 12, y: -K3, s: 1 / 3, rot: -60, to: 'k' },
+                   { x: 1 / 12, y: -K3, s: 1 / 3, rot: 60, to: 'k' }, { x: 1 / 3, y: 0, s: 1 / 3, rot: 0, to: 'k' }],
+  draw(c, i) {                                   // 子が出るまでの間だけ、自分の 4 本を描く
+    const a = i.alpha * (1 - i.childAlpha); if (a <= 0) return;
+    c.globalAlpha = a; c.strokeStyle = INK; c.lineWidth = 1.3 * i.px; c.lineJoin = 'round';
+    c.beginPath(); c.moveTo(-0.5, 0); c.lineTo(-1 / 6, 0); c.lineTo(0, -2 * K3); c.lineTo(1 / 6, 0); c.lineTo(0.5, 0); c.stroke();
+  } } } };
+
+/* シダ：茎が 1 節のびるたびに、小さな自分を左右に出す */
+const FA = 55 * Math.PI / 180, FS = 0.32, FM = 0.85, FR = 4 * Math.PI / 180;
+const FERN = { name: 'FERN', root: 'f', scenes: { f: {
+  name: 'FERN シダ', parent: { id: 'f', slot: 0 }, detail: 5,   // 子が多いので、細部が現れる大きさを 5 倍に（軽くする）
+  children: () => [
+    { x: FM * 0.5 * Math.sin(FR), y: 0.34 - FM * 0.5 * Math.cos(FR), s: FM, rot: 4, to: 'f' },              // 先へ続く本体
+    { x: FS * 0.5 * Math.sin(FA), y: 0.36 - FS * 0.5 * Math.cos(FA), s: FS, rot: 55, to: 'f' },             // 右の小葉
+    { x: -FS * 0.5 * Math.sin(FA), y: 0.43 - FS * 0.5 * Math.cos(FA), s: FS, rot: -55, to: 'f' }],          // 左の小葉
+  draw(c, i) {
+    c.strokeStyle = INK; c.lineWidth = 1.2 * i.px; c.beginPath(); c.moveTo(0, 0.5); c.lineTo(0, 0.34); c.stroke();
+    const a = i.alpha * (1 - i.childAlpha); if (a <= 0) return;   // 細部が出るまでは、葉 1 枚の形で代わりをする
+    c.globalAlpha = a * 0.8; c.fillStyle = INK; c.beginPath(); c.ellipse(0, 0, 0.13, 0.5, 0, 0, TAU); c.fill();
+  } } } };
+const WORLDS = { nest: NEST, tri: TRI, chain: CHAIN, golden: GOLDEN, koch: KOCH, fern: FERN };
+
+/* ---------- 芯を起こす ---------- */
+const cv = document.getElementById('cv');
+const core = new ZoomCore(cv, NEST);
+
+/* 枠と「いまの大きさ」（Powers of Ten の画面の決まり） */
+core.onHud = (c, w, h, z) => {
+  const S = z.S, x0 = w / 2 - S / 2, y0 = h / 2 - S / 2;
+  c.strokeStyle = 'rgba(255,212,0,.55)'; c.lineWidth = 1; c.strokeRect(Math.round(x0) + .5, Math.round(y0) + .5, S, S);
+  c.fillStyle = 'rgba(0,0,0,.72)'; c.fillRect(x0 - 4, y0 - 36, 190, 30); c.fillRect(x0 - 4, y0 + S + 4, 200, 20);   // 文字の下敷き（明るい絵の上でも読める）
+  c.fillStyle = ACC; c.font = '11px ui-monospace,Consolas,monospace'; c.textBaseline = 'top';
+  c.fillText(z.world.scenes[z.cur].name + '   LEVEL ' + z.level, x0, y0 + S + 8);
+  const d = z.depth, e = Math.floor(d), mant = Math.pow(10, d - e);
+  c.font = '600 22px ui-monospace,Consolas,monospace'; c.textBaseline = 'bottom';
+  c.fillText('× ' + mant.toFixed(2) + ' · 10', x0, y0 - 8);
+  const tw = c.measureText('× ' + mant.toFixed(2) + ' · 10').width;
+  c.font = '600 13px ui-monospace,Consolas,monospace'; c.fillText(String(e), x0 + tw + 2, y0 - 20);
+  // 深さの物差し（10 倍ごとに 1 目盛り流れる）
+  const rx = x0 + S + 14, pitch = S / 6; c.textBaseline = 'middle'; c.font = '10px ui-monospace,Consolas,monospace';
+  c.strokeStyle = 'rgba(242,239,230,.5)'; c.fillStyle = 'rgba(242,239,230,.6)';
+  for (let k = Math.ceil(d - 3); k <= Math.floor(d + 3); k++) {
+    const y = h / 2 + (k - d) * pitch; c.beginPath(); c.moveTo(rx, y + .5); c.lineTo(rx + 10, y + .5); c.stroke();
+    if (rx + 60 < w) c.fillText('10^' + k, rx + 14, y);
+  }
+  c.strokeStyle = ACC; c.beginPath(); c.moveTo(rx - 4, h / 2 + .5); c.lineTo(rx + 16, h / 2 + .5); c.stroke();
+};
+
+/* ---------- つまみ ---------- */
+const $ = id => document.getElementById(id);
+const fmt = { sens: v => '× ' + (+v).toFixed(2), inertia: v => (+v).toFixed(2), magnet: v => (+v).toFixed(2), minPx: v => v + ' px', autoSec: v => (+v).toFixed(1) + ' 秒', twist: v => v + '°', shrink: v => (+v).toFixed(3) };
+for (const k of ['sens', 'inertia', 'magnet', 'minPx', 'autoSec']) {
+  const el = $(k), up = () => { core.p[k] = +el.value; $('v_' + k).textContent = fmt[k](el.value); };
+  el.addEventListener('input', up); up();
+}
+for (const k of ['twist', 'shrink']) {
+  const el = $(k), up = () => { P[k] = +el.value; $('v_' + k).textContent = fmt[k](el.value); core.normalize(); };
+  el.addEventListener('input', up); up();
+}
+function gate() {
+  const nest = $('world').value === 'nest';
+  for (const id of ['r_twist', 'r_shrink']) { $(id).classList.toggle('off', !nest); $(id).querySelector('input').disabled = !nest; }
+  for (const id of ['r_dir', 'r_sec']) $(id).classList.toggle('off', !core.p.auto);
+  $('autoSec').disabled = !core.p.auto; $('dirIn').disabled = $('dirOut').disabled = !core.p.auto;
+  $('auto').classList.toggle('on', core.p.auto);
+  $('dirIn').classList.toggle('on', core.p.autoDir > 0); $('dirOut').classList.toggle('on', core.p.autoDir < 0);
+}
+$('world').addEventListener('change', e => { core.setWorld(WORLDS[e.target.value]); core.m = [core.S, 0]; gate(); });
+$('auto').addEventListener('click', () => { core.p.auto = !core.p.auto; gate(); });
+$('dirIn').addEventListener('click', () => { core.p.autoDir = 1; gate(); });
+$('dirOut').addEventListener('click', () => { core.p.autoDir = -1; gate(); });
+$('home').addEventListener('click', () => { core.home(); core.m = [core.S, 0]; });
+gate();
+
+window.__ZOOM = { core, P, WORLDS };   // 検証用
+core.start();
+</script>
+</body>
+</html>

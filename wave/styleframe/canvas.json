@@ -1,0 +1,75 @@
+{
+  "artboards": [
+    {
+      "file": "W1_ONE_OCTAVE.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "W1 ONE OCTAVE — A 黄色 1 本"
+    },
+    {
+      "file": "W1_ONE_OCTAVE_B.dc.html",
+      "x": 2000,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "W1 ONE OCTAVE — B 赤＋緑の 2 本"
+    },
+    {
+      "file": "E1_PUSH_AND_CARVE.dc.html",
+      "x": 4000,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "E1 PUSH & CARVE — 隆起と侵食"
+    },
+    {
+      "file": "A1_CLOUD_BASE.dc.html",
+      "x": 6000,
+      "y": 0,
+      "w": 1920,
+      "h": 1080,
+      "title": "A1 CLOUD BASE — 雲の底"
+    },
+    {
+      "file": "SHELL_PARTS.dc.html",
+      "x": 0,
+      "y": 1480,
+      "w": 1920,
+      "h": 1080,
+      "title": "ARCHIVE SHELL — 外枠の要素"
+    },
+    {
+      "file": "SHELL_TOKENS.dc.html",
+      "x": 2000,
+      "y": 1480,
+      "w": 1920,
+      "h": 1080,
+      "title": "ARCHIVE SHELL — 色・線・書体"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "t1",
+      "x": 0,
+      "y": -300,
+      "w": 240,
+      "maxW": 7920,
+      "text": "ARCHIVE SHELL — 見本（外枠は共通・アクセント色と窓はラボごと）",
+      "kind": "title1"
+    },
+    {
+      "id": "t2",
+      "x": 0,
+      "y": 1180,
+      "w": 240,
+      "maxW": 3920,
+      "text": "外枠の要素 ／ 色・線・書体",
+      "kind": "title1"
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}
