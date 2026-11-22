@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RELIGHT POSTER 解説 LP — PHENOMENA LAB</title>
+<link rel="stylesheet" href="../../_shell/shell.css">
+<style>
+  /* RELIGHT のアクセント＝橙（アプリと同じ）。骨格は earth/scroll/SCROLL_PUSHCARVE_LP.html（10 駅の型）を 11 駅にしたもの */
+  :root { --accent: #E8A23A; --accent-ink: #0B0B0A; --accent-line: #F2C27A; }
+  html, body { height: auto; overflow-x: hidden; overflow-y: auto; }
+  #track { position: relative; width: 1px; pointer-events: none; }
+  .ph-viewport { z-index: 1; }
+  #cv { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; }
+  .ab { position: absolute; }
+  .lay { position: absolute; inset: 0; pointer-events: none; transition: opacity .25s; opacity: 0; }
+  .lay.on { opacity: 1; }
+  .lay.on .hit { pointer-events: auto; }
+
+  .brand b { display: block; width: 300px; font: 400 22px/1.35 var(--f-wide); letter-spacing: .24em; color: var(--ink); }
+  .brand span { display: block; margin-top: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .2em; color: var(--accent-line); }
+  .ids { display: grid; grid-template-columns: 96px 1fr; row-gap: 6px; width: 340px; font-size: 11px; }
+  .ids dt { font-family: var(--f-thin); letter-spacing: .18em; color: var(--ink-2); }
+  .ids dd { margin: 0; font-family: var(--f-num); color: var(--ink); }
+  .tab { left: 1704px; top: 24px; width: 176px; height: 152px; background: var(--accent); color: var(--accent-ink); padding: 18px 18px 0; }
+  .tab .k { display: flex; justify-content: space-between; font: 600 13px/1 var(--f-thin); letter-spacing: .24em; }
+  .tab .n { font: 400 62px/1 var(--f-wide); margin-top: 12px; }
+  .tab .s { font: 400 12px/1 var(--f-num); margin-top: 10px; }
+  .noise { left: 1130px; top: 44px; font: 400 8.5px/13px var(--f-num); color: var(--ink); opacity: .2; white-space: pre; }
+  #bigTop { left: 1100px; top: 36px; width: 590px; text-align: right; font: 400 72px/1 var(--f-wide); color: var(--accent); opacity: .16; white-space: nowrap; }
+  #kanji { font: 500 300px/1 var(--f-jp); color: var(--accent); opacity: .12; white-space: nowrap; }
+
+  .band { left: 32px; top: 136px; width: 1316px; height: 330px; background: var(--accent); color: var(--accent-ink); padding: 34px 48px; }
+  .band .f { font: 600 13px/1 var(--f-thin); letter-spacing: .42em; }
+  .band h1 { margin: 26px 0 0; font: 400 128px/118px var(--f-wide); letter-spacing: -.01em; }
+  .q { left: 1376px; top: 176px; width: 480px; }
+  .q .k { font: 600 12px/1 var(--f-thin); letter-spacing: .3em; color: var(--accent-line); }
+  .q p { margin: 22px 0 0; font: 500 28px/1.55 var(--f-jp); color: var(--ink); }
+  .howto { left: 40px; top: 486px; width: 212px; }
+  .howto h3, .stl h3 { margin: 0; display: flex; align-items: center; gap: 10px; font: 400 15px/1 var(--f-wide); letter-spacing: .16em; color: var(--ink); }
+  .howto h3 i, .stl h3 i, .railk i { width: 10px; height: 10px; background: var(--accent); }
+  .howto .st { border-bottom: 1px solid var(--line-sub); padding: 18px 0 14px; }
+  .howto .st span { display: block; font: 600 10px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .howto .st b { font: 400 28px/1 var(--f-num); color: var(--ink); margin-right: 10px; }
+  .howto .st small { font: 400 12px/1 var(--f-jp); color: var(--ink-2); }
+  .hint { font: 600 11px/1 var(--f-thin); letter-spacing: .24em; color: var(--accent-line); }
+  .hint em, .nextk em { font-style: normal; display: inline-block; animation: bob 1.2s ease-in-out infinite; }
+  @keyframes bob { 0%, 100% { transform: translateY(-2px); } 50% { transform: translateY(3px); } }
+
+  .stl { left: 40px; top: 140px; width: 212px; }
+  .stl ol { list-style: none; margin: 16px 0 0; padding: 0; }
+  .stl li { display: flex; align-items: center; height: 42px; padding: 0 10px; border-bottom: 1px solid var(--line-sub); cursor: pointer; color: var(--ink-3); }
+  .stl li u { text-decoration: none; font: 400 12px/1 var(--f-num); width: 32px; }
+  .stl li b { font: 400 14px/1 var(--f-jp); flex: 1; }
+  .stl li s { text-decoration: none; font: 600 9px/1 var(--f-thin); letter-spacing: .14em; }
+  .stl li.done { color: var(--ink); }
+  .stl li.done s::before { content: '✓'; font-size: 11px; color: var(--ink-2); }
+  .stl li.done s { font-size: 0; }
+  .stl li.now { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .stl li.now b { font-weight: 500; }
+  .stl li.now s { font-size: 0; }
+  .stl li.now s::after { content: '◀ NOW'; font-size: 9px; }
+  .stl li:hover:not(.now) { color: var(--ink); background: rgba(232,230,223,.04); }
+  .read { margin-top: 22px; display: flex; justify-content: space-between; font: 600 10px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .read b { font: 400 12px/1 var(--f-num); color: var(--ink); }
+  .bar { margin-top: 8px; height: 5px; background: rgba(232,230,223,.1); }
+  .bar i { display: block; height: 100%; background: var(--accent); width: 0; }
+  #calc { margin-top: 14px; font: 400 10px/1.5 var(--f-num); color: var(--ink-2); }
+
+  .figtag { left: 302px; top: 168px; height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: #0B0B0A; color: var(--ink); }
+  .figtag i { width: 10px; height: 10px; background: var(--accent); }
+  .figtag b { font: 400 15px/1 var(--f-wide); letter-spacing: .1em; }
+  .figtag span { font: 500 12px/1 var(--f-jp); }
+
+  .rc { left: 1360px; top: 158px; width: 520px; display: flex; flex-direction: column; }
+  .rc .hd { display: flex; align-items: baseline; gap: 22px; }
+  .rc .num { font: 400 82px/1 var(--f-wide); color: var(--accent-line); }
+  .rc .en { font: 600 12px/1 var(--f-thin); letter-spacing: .24em; color: var(--ink-2); }
+  .rc h2 { margin: 18px 0 0; font: 500 38px/1.38 var(--f-jp); color: var(--ink); letter-spacing: .02em; }
+  .rc .body { margin: 18px 0 0; font: 400 15.5px/1.78 var(--f-jp); color: var(--ink); padding-bottom: 18px; border-bottom: 1px solid var(--line-main); }
+  .rc .kl { margin-top: 18px; font: 600 10px/1 var(--f-thin); letter-spacing: .22em; color: var(--ink-2); }
+  .rc .kv { margin-top: 10px; display: flex; align-items: baseline; gap: 12px; }
+  .rc .kv b { font: 400 60px/1 var(--f-num); color: var(--accent-line); }
+  .rc .kv span { font: 400 18px/1 var(--f-num); color: var(--ink-2); }
+  .rc .kn { margin-top: 12px; font: 400 13px/1.6 var(--f-jp); color: var(--ink-2); }
+  .rc .wow { margin-top: 16px; display: flex; gap: 12px; font: 400 14px/1.65 var(--f-jp); color: var(--ink); }
+  .rc .wow i { flex: none; font: 600 10px/1 var(--f-jp); background: var(--ink); color: #0B0B0A; padding: 5px 8px; height: 20px; margin-top: 2px; font-style: normal; }
+  .nextk { left: 1360px; top: 838px; width: 520px; display: flex; align-items: center; gap: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .24em; color: var(--ink-2); }
+  .nextk hr { flex: 1; border: 0; border-top: 1px solid var(--line-sub); margin: 0; }
+  .nextk span { font: 500 13px/1 var(--f-jp); letter-spacing: 0; color: var(--ink); }
+  .nextk span small { font-size: 12px; color: var(--ink-2); margin-right: 10px; }
+
+  .in { clip-path: inset(0 100% 0 0); }
+  .go .in { animation: wipe .32s cubic-bezier(.2,.8,.2,1) forwards; animation-delay: calc(var(--d, 0) * 60ms); }
+  @keyframes wipe { from { clip-path: inset(0 100% 0 0); transform: translateX(-10px); } to { clip-path: inset(0 0 0 0); transform: none; } }
+
+  .endh { left: 284px; top: 160px; display: flex; align-items: baseline; gap: 26px; }
+  .endh b { font: 400 96px/1 var(--f-wide); color: var(--accent-line); }
+  .endh span { font: 400 32px/1 var(--f-wide); letter-spacing: .08em; color: var(--ink); }
+  .endh em { font: 500 22px/1 var(--f-jp); font-style: normal; color: var(--ink); }
+  .endn { left: 1300px; top: 230px; width: 580px; text-align: right; font: 600 11px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .cards { left: 280px; top: 272px; width: 1600px; height: 332px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .cards > div { border-left: 2px solid var(--accent); padding: 16px 16px; color: var(--ink); }
+  .cards > div:hover { background: var(--accent); color: var(--accent-ink); }
+  .cards h4 { margin: 0; font: 400 15px/1 var(--f-wide); letter-spacing: .08em; }
+  .cards h4 u { text-decoration: none; font: 400 12px/1 var(--f-num); color: var(--accent-line); margin-right: 8px; }
+  .cards h4 small { font: 400 11px/1 var(--f-jp); color: var(--ink-2); margin-left: 8px; letter-spacing: 0; }
+  .cards > div:hover h4 u, .cards > div:hover h4 small { color: var(--accent-ink); }
+  .cards p { margin: 22px 0 0; font: 400 14.5px/1.8 var(--f-jp); }
+  .cards p em { display: block; margin-top: 12px; font: 400 11px/1.5 var(--f-num); font-style: normal; color: var(--ink-2); }
+  .cards > div:hover p em { color: var(--accent-ink); }
+  .cards > div { transform: translateY(16px); opacity: 0; transition: transform .4s cubic-bezier(.2,.8,.2,1), opacity .4s, background .2s, color .2s; }
+  .go .cards > div { transform: none; opacity: 1; }
+  .cta { left: 280px; top: 628px; width: 1254px; height: 200px; background: var(--accent); color: var(--accent-ink); padding: 44px 36px; display: block; text-decoration: none; }
+  .cta .k { font: 600 12px/1 var(--f-thin); letter-spacing: .32em; }
+  .cta b { display: block; margin-top: 18px; font: 400 58px/1 var(--f-wide); }
+  .cta b em { font-style: normal; display: inline-block; transition: transform .2s; }
+  .cta:hover b em { transform: translateX(10px); }
+  .cta span { display: block; margin-top: 16px; font: 500 16px/1 var(--f-jp); }
+  .ctaf { left: 1198px; top: 812px; font: 400 10px/1 var(--f-num); color: var(--accent-ink); }
+  .nextc { left: 1550px; top: 628px; width: 330px; height: 200px; border: 1px solid var(--line-main); padding: 26px; display: block; text-decoration: none; }
+  .nextc .k { font: 600 11px/1 var(--f-thin); letter-spacing: .26em; color: var(--ink-2); }
+  .nextc b { display: block; margin-top: 16px; font: 400 28px/1 var(--f-wide); color: var(--ink); }
+  .nextc p { margin: 14px 0 0; font: 400 14px/1.6 var(--f-jp); color: var(--ink); }
+  .nextc small { display: block; margin-top: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .14em; color: var(--ink-2); }
+
+  .railk { left: 40px; top: 882px; display: flex; align-items: center; gap: 12px; }
+  .railk i { width: 24px; height: 8px; }
+  .railk b { font: 400 15px/1 var(--f-wide); letter-spacing: .16em; color: var(--ink); }
+  .railk span { font: 400 12px/1 var(--f-jp); color: var(--ink-2); }
+  .rail { left: 40px; top: 912px; width: 1840px; height: 120px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+  .rb { border: 1px solid var(--line-sub); padding: 14px 14px; position: relative; color: var(--ink-3); transition: background .3s, color .3s, border-color .3s; overflow: hidden; }
+  .rb .rt { display: flex; justify-content: space-between; font: 600 11px/1 var(--f-thin); letter-spacing: .14em; }
+  .rb .rt b { font: 500 11px/1 var(--f-jp); letter-spacing: 0; margin-left: 4px; }
+  .rb .rt i { font-style: normal; }
+  .rb .rf { margin-top: 18px; font: 400 22px/1 var(--f-num); white-space: nowrap; }
+  .rb .rf sup { font-size: 12px; }
+  .rb .rd { margin-top: 14px; font: 400 12px/1.35 var(--f-jp); }
+  .rb .dots { display: none; margin-top: 18px; font: 400 18px/1 var(--f-num); letter-spacing: .9em; }
+  .rb.fut .rf { display: none; }
+  .rb.fut .dots { display: block; }
+  .rb.done { border-color: var(--line-main); color: var(--ink); }
+  .rb.done .rd { color: var(--ink-2); }
+  .rb.ref { border-color: var(--accent-line); color: var(--ink); }
+  .rb.ref .rt i, .rb.ref .rf { color: var(--accent-line); }
+  .rb.now { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); animation: grow .3s cubic-bezier(.2,.8,.2,1); transform-origin: left; }
+  @keyframes grow { from { transform: scaleX(.3); } to { transform: none; } }
+  .rb.lab { border: 1px dashed var(--accent-line); color: var(--accent-line); text-decoration: none; display: block; }
+  .rb.lab .rf { font: 400 22px/1 var(--f-wide); }
+  .rb.lab .rd { color: var(--ink); }
+  .rb.lab:hover, .rb.lab.now { background: var(--accent); color: var(--accent-ink); border-style: solid; }
+  .rb.lab:hover .rd, .rb.lab.now .rd { color: var(--accent-ink); }
+  .foot { left: 300px; top: 1050px; font: 400 9px/1 var(--f-num); letter-spacing: .14em; color: var(--ink-3); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .in, .go .in { clip-path: none; animation: none; }
+    .hint em, .nextk em { animation: none; }
+    .cards > div { transform: none; opacity: 1; transition: none; }
+    .rb.now { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div class="ph-viewport"><div class="ph-shell" id="shell">
+  <div class="ph-grid"></div>
+  <div class="ab" id="kanji"></div>
+  <div class="ab" id="bigTop"></div>
+  <div class="ab noise" id="noise"></div>
+  <svg class="ab" id="frame" width="1920" height="1080" viewBox="0 0 1920 1080" aria-hidden="true" style="left:0;top:0;pointer-events:none"></svg>
+  <canvas id="cv"></canvas>
+
+  <div class="ab brand" style="left:48px;top:46px"><b>PHENOMENA LAB</b><span>WAVE SURVEY ARCHIVE · EXPLAINER</span></div>
+  <dl class="ab ids" style="left:392px;top:62px;margin:0"><dt>OBS.No</dt><dd>W-RL1-1122</dd><dt>DOC</dt><dd>SCROLL-RELIGHT-LP</dd><dt>TIMESTAMP</dt><dd>2126-11-22T18:40:00Z</dd></dl>
+  <dl class="ab ids" style="left:760px;top:62px;margin:0"><dt>FIELD</dt><dd>WAVE × PAINT</dd><dt>CARD</dt><dd>W1 × POSTER BG</dd><dt>STATION</dt><dd id="o_stn">00 / 10</dd></dl>
+  <div class="ab tab"><div class="k"><span>SCROLL</span><span>/</span></div><div class="n">RL</div><div class="s" id="o_tab">LP · 00 / 10</div></div>
+
+  <!-- 00 問い -->
+  <div class="lay" id="L0">
+    <div class="ab band"><div class="f in">RELIGHT POSTER — PAINT × LIGHT · SCROLL EXPLAINER</div><h1 class="in" style="--d:1">RELIGHT<br>POSTER</h1></div>
+    <div class="ab q"><div class="k in" style="--d:2">QUESTION</div><p class="in" style="--d:3">昼に塗った絵は、<br>街灯の下で、<br>なぜ別の絵になるのか。</p></div>
+    <div class="ab howto"><h3><i></i>HOW TO READ</h3>
+      <div class="st"><span>STATIONS</span><b>10</b><small>の駅</small></div>
+      <div class="st"><span>READING</span><b>≈ 7</b><small>分</small></div>
+      <div class="st"><span>FORMULAS</span><b>5</b><small>本の式</small></div></div>
+    <div class="ab figtag" style="left:302px;top:452px"><i></i><b>LOOK</b><span id="o_look">— 同じ 1 枚の絵を、7 つの光で</span></div>
+    <div class="ab hint" style="left:40px;top:842px">SCROLL <em>▼</em>　01 光</div>
+  </div>
+
+  <!-- 01〜10 共通：駅の一覧 -->
+  <div class="lay" id="LS">
+    <div class="ab stl hit"><h3><i></i>STATIONS <small style="font:400 12px var(--f-jp);color:var(--ink-2)">駅</small></h3><ol id="stl"></ol>
+      <div class="read"><span>READ</span><b id="o_read">01 / 10</b></div><div class="bar"><i id="o_bar"></i></div><div id="calc"></div></div>
+  </div>
+
+  <!-- 01〜09：図と本文 -->
+  <div class="lay" id="L1">
+    <div class="ab figtag in" id="figtag"><i></i><b id="o_fig">FIG. 01</b><span id="o_figt"></span></div>
+    <div class="ab rc" id="rc">
+      <div class="hd"><span class="num in" id="r_num">01</span><span class="en in" style="--d:1" id="r_en"></span></div>
+      <h2 class="in" style="--d:2" id="r_h"></h2>
+      <p class="body in" style="--d:3" id="r_body"></p>
+      <div class="kl in" style="--d:4" id="r_kl"></div>
+      <div class="kv in" style="--d:5"><b id="r_kv"></b><span id="r_ku"></span></div>
+      <div class="kn in" style="--d:6" id="r_kn"></div>
+      <div class="wow in" style="--d:7"><i>驚き</i><span id="r_wow"></span></div>
+    </div>
+    <div class="ab nextk">SCROLL <em>▼</em><hr><span><small>次の駅</small><b id="r_next"></b></span></div>
+  </div>
+
+  <!-- 10 持ち出す -->
+  <div class="lay" id="L10">
+    <div class="ab endh"><b class="in">10</b><span class="in" style="--d:1">TRANSFER</span><em class="in" style="--d:2">表現に持ち出す</em></div>
+    <div class="ab endn in" style="--d:3">NOTES FOR PAINTING / CG · カードに触れると橙になる</div>
+    <div class="ab cards hit">
+      <div style="transition-delay:0ms"><h4><u>01</u>LOOK RULES<small>絵の決まり</small></h4><p>街灯の下の場面は、色の差より明るさの差で組む。ナトリウム灯なら彩度は 0＝明暗だけの絵。水銀灯なら赤は茶に沈み、緑と青が残る。</p></div>
+      <div style="transition-delay:60ms"><h4><u>02</u>CG</h4><p>光の色を RGB で掛けるだけだと、線の光（水銀・ナトリウム）の下で赤が残りすぎる。夜の色は、波長で計算するか、赤を手で殺す。</p></div>
+      <div style="transition-delay:120ms"><h4><u>03</u>GEN CHECK<small>嘘の見つけ方</small></h4><p>街灯の下で、赤い物が鮮やかなまま残っていないか。白い紙が灯りの色に染まりすぎていないか（人の目は慣れる）。<em>metamerism / von Kries adaptation</em></p></div>
+      <div style="transition-delay:180ms"><h4><u>04</u>BREAK<small>わざと外す</small></h4><p>目の慣れ 0＝カメラの白のまま。夕景や電球の部屋を、わざと橙に染めたままにする。RGB× でわざと「CG の夜」にする。</p></div>
+      <div style="transition-delay:240ms"><h4><u>05</u>FIELD NOTE<small>宿題</small></h4><p>同じポスターカラーの色見本を、昼の窓辺・電球・スマホのライトの下で並べて撮る。いちばん変わる色はどれか、アプリの予想と比べる。</p></div>
+    </div>
+    <a class="ab cta hit in" style="--d:4" href="../relight_poster.html"><span class="k" style="margin:0">END OF SCROLL · 終点</span><b>OPEN THE LAB <em>→</em></b><span>光を替えて、塗った絵の見え方を確かめる</span></a>
+    <canvas class="ab" id="tc" width="600" height="300" style="left:1198px;top:652px;width:300px;height:150px"></canvas>
+    <div class="ab ctaf">relight_poster.html</div>
+    <a class="ab nextc hit in" style="--d:5" href="../01_one_octave.html"><div class="k">NEXT CARD</div><b>W1 ONE OCTAVE</b><p>光を 1 オクターブの音に。黄色 1 本と、赤＋緑 2 本の違いを聴く。</p><small>OPEN · 実装済み</small></a>
+  </div>
+
+  <div class="ab railk"><i></i><b>FORMULA RAIL</b><span>— 式の線路 · 駅を通るたびに式が入線する · アプリと同じ式（ph_pigment.js・ph_mix_solve.js）</span></div>
+  <div class="ab rail hit" id="rail" style="pointer-events:auto"></div>
+  <div class="ab foot" id="foot">ARCHIVE/WAVE/RELIGHT/1122/LP — CLASSIFICATION: NONE · STATION 00</div>
+</div></div>
+<div id="track"></div>
+
+<script src="../../_shell/shell.js"></script>
+<script src="../_law/ph_color.js"></script>
+<script src="../_law/ph_pigment.js"></script>
+<script src="../_law/ph_mix_solve.js"></script>
+<script>
+'use strict';
+const PG = PH_PIGMENT, PC = PH_COLOR, MS = PH_MIXSOLVE, $ = id => document.getElementById(id);
+const C = { paper: '#ECE5D1', ink: '#2A251F', dim: '#6B6357', red: '#B0392B', acc: '#E8A23A' };
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const NST = 11, LAST = NST - 1, LAB = '../relight_poster.html';
+const NP = PG.NP, NB = PG.NB, N = PC.N;
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v)), ease = v => { v = clamp(v); return v * v * (3 - 2 * v); }, eo = v => 1 - Math.pow(1 - clamp(v), 3);
+const num = (v, d) => v == null ? '—' : (+v).toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 });
+
+/* ================= 法則から作る素（アプリと同じ式） ================= */
+const LT = {}; for (const k of PG.LIGHT_ORDER) LT[k] = PG.LIGHTS[k].make();
+const one = id => { const w = new Array(NP).fill(0); w[PG.PID[id]] = 1; return w; };
+const linLab = lin => PG.labOfLin(lin.map(v => Math.max(0, v)));
+const labOf = (R, E, ad) => linLab(PG.render(R, E, ad).lin);
+const REFL_M = PG.REFL.map(r => Float32Array.from(r));      // 実測の顔料から組んだ形
+PG.setSource('shape'); const REFL_S = PG.REFL.map(r => Float32Array.from(r)); PG.setSource('measured');   // 目安の形（比べる用）
+const R_PAPER = PG.mixRefl(new Array(NP).fill(0)), R_ONE = new Float32Array(N).fill(1);
+const VSTEP = (() => { const V = REFL_M[PG.PID.VERMILION]; let b = 0, bi = 0; for (let i = 1; i < N; i++) { const d = V[i] - V[i - 1]; if (d > b) { b = d; bi = i; } } return PC.lam(bi); })();
+const chromaUnder = (id, k, ad) => PG.chromaOf(labOf(PG.mixRefl(one(id)), LT[k], ad));
+const chromaRgbx = (id, k, ad) => PG.chromaOf(linLab(PG.rgbMultiply(PG.mixRefl(one(id)), LT[k], ad).lin));
+const paperDE = ad => PG.dE(labOf(R_PAPER, PG.E_DAY, 0), labOf(R_PAPER, LT.BULB, ad));
+const kmChroma = t => { const w = new Array(NP).fill(0); w[PG.PID.CERULEAN] = 1 - t; w[PG.PID.LEMON] = t; return PG.chromaOf(labOf(PG.mixRefl(w), PG.E_DAY, 0)); };
+const avgLin = t => { const a = PG.render(PG.mixRefl(one('CERULEAN')), PG.E_DAY, 0).lin, b = PG.render(PG.mixRefl(one('LEMON')), PG.E_DAY, 0).lin; return a.map((v, k) => v * (1 - t) + b[k] * t); };
+const N_MEAS = new Set(Object.values(PG.MEASURED).flatMap(m => Object.keys(m.from))).size;
+const SPEC = Array.from({ length: N }, (_, i) => { const c = PC.CMF[i], lin = PC.toLin({ X: c.x, Y: c.y, Z: c.z }).map(v => Math.max(0, v)), m = Math.max(...lin, 1e-9); return 'rgb(' + lin.map(v => Math.round(PC.gamma(v / m) * 255)).join(',') + ')'; });
+
+/* ================= 画像 → 12 色の配合 → 7 つの光（開くとすぐ、少しずつ計算） =================
+   画像：../_assets/ref/totoro001.jpg（スタジオジブリ公式の場面写真・リポジトリには入れない）。読めないとき（file:// など）は自前の絵。
+   1. 配合 2 万通りの昼光での Lab　2. RGB 11³ の格子の各点を solveNear で解く　3. 画素は格子の 3 次元補間（配合どうし）
+   4. 光ごとに画素の XYZ（32 帯・クベルカ–ムンク）を記録　5. 目の慣れは行列だけなので、表示のたびに掛ける
+   6. 逆算（駅 09）：4 つの光で、赤と緑の目標を K=8 で解く */
+const IM = { W: 480, H: 260, G: 11, px: null, orig: null, name: '', wts: null, xyz: {}, view: new Map(), err: null };
+const D = { done: 0, total: 20 + 1331 + 26 + 7 * 26 + 4 * 21, stage: '画像を読み込み中', bank: null, tg: {} };
+const XYZ_ORDER = ['DAY', 'SODIUM', 'MERCURY', 'BULB', 'LED', 'TRI', 'SUNSET'];
+const TGL = ['DAY', 'BULB', 'MERCURY', 'SODIUM'], TGH = [['#C8402E', '赤'], ['#7A9A50', '緑']];
+const srgbLin = v => v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+function verdict(T, nowLin, f) {
+  if (f <= 6) return '作れる';
+  if (f <= 12) return 'ほぼ作れる';
+  const Ln = linLab(nowLin), dc = PG.chromaOf(T) - PG.chromaOf(Ln), dl = T[0] - Ln[0];
+  return '作れない — ' + (dc > 8 ? '彩度が足りない（その色を返す波長が光に無い）' : dl > 8 ? '明るくできない' : dl < -8 ? '暗くできない（黒の絵具が無い）' : '色相がずれる');
+}
+function* xyzFor(k) {
+  const B = PG.bands(LT[k]), BW = B.W, { W, H } = IM, wts = IM.wts, out = new Float32Array(W * H * 3), ksb = new Float32Array(NP * NB);
+  for (let j = 0; j < NP; j++) for (let b = 0; b < NB; b++) ksb[j * NB + b] = B.KS[j][b];
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const p = y * W + x, o = p * NP; let X = 0, Y = 0, Z = 0;
+      for (let b = 0; b < NB; b++) { let kk = 0; for (let j = 0; j < NP; j++) { const wj = wts[o + j]; if (wj) kk += wj * ksb[j * NB + b]; } const r = 1 + kk - Math.sqrt(kk * kk + 2 * kk); X += r * BW[b][0]; Y += r * BW[b][1]; Z += r * BW[b][2]; }
+      out[p * 3] = X; out[p * 3 + 1] = Y; out[p * 3 + 2] = Z;
+    }
+    if (y % 10 === 9) { D.done++; yield; }
+  }
+  IM.xyz[k] = out;
+}
+function* pipeline() {
+  const bank = MS.makeBank(20000, 4711); D.bank = bank; D.stage = '配合の見本'; yield;
+  const labD = MS.labUnder(PG.E_DAY, 0), SL = new Float32Array(bank.NS * 3);
+  for (let s = 0; s < bank.NS; s += 1000) { MS.bankLab(bank, labD, SL, s, s + 1000); D.done++; yield; }
+  D.stage = '格子の配合を解く'; const G = IM.G, lut = new Float32Array(G * G * G * NP); let es = 0, em = 0;
+  for (let n = 0; n < G * G * G; n++) {
+    const ri = n % G, gi = ((n / G) | 0) % G, bi = (n / G / G) | 0, T = PG.labOfLin([srgbLin(ri / (G - 1)), srgbLin(gi / (G - 1)), srgbLin(bi / (G - 1))]);
+    const q = MS.solveNear(T, labD, bank, SL, 1), a = q.w.reduce((p, v) => p + v, 0) || 1;
+    for (let j = 0; j < NP; j++) lut[n * NP + j] = q.w[j] / a; es += q.f; em = Math.max(em, q.f); D.done++; if (n % 6 === 5) yield;
+  }
+  IM.err = { mean: es / (G * G * G), max: em };
+  D.stage = '画素を配合に'; const { W, H, px } = IM, wts = new Float32Array(W * H * NP);
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4, fr = px[i] / 255 * (G - 1), fg = px[i + 1] / 255 * (G - 1), fb = px[i + 2] / 255 * (G - 1);
+      const r0 = Math.min(G - 2, fr | 0), g0 = Math.min(G - 2, fg | 0), b0 = Math.min(G - 2, fb | 0), tr = fr - r0, tg = fg - g0, tb = fb - b0, o = (y * W + x) * NP;
+      for (let k = 0; k < 8; k++) { const dr = k & 1, dg = (k >> 1) & 1, db = k >> 2, wt = (dr ? tr : 1 - tr) * (dg ? tg : 1 - tg) * (db ? tb : 1 - tb); if (wt < 1e-6) continue;
+        const L = (((b0 + db) * G + (g0 + dg)) * G + (r0 + dr)) * NP; for (let j = 0; j < NP; j++) wts[o + j] += wt * lut[L + j]; }
+    }
+    if (y % 10 === 9) { D.done++; yield; }
+  }
+  IM.wts = wts;
+  for (const k of XYZ_ORDER) { D.stage = PG.LIGHTS[k].jp + 'の下の絵'; yield* xyzFor(k);
+    if (k === 'DAY') {   // この画像の画素で、元の色と置き換えた色の差（4 画素に 1 つ）
+      const xyz = IM.xyz.DAY, M = PG.viewMatrix(PG.E_DAY, 0); let sum = 0, ok = 0, n = 0;
+      for (let q = 0; q < W * H; q += 4) { const L1 = linLab(PG.mv(M, [xyz[q * 3], xyz[q * 3 + 1], xyz[q * 3 + 2]])), L0 = PG.labOfLin([srgbLin(px[q * 4] / 255), srgbLin(px[q * 4 + 1] / 255), srgbLin(px[q * 4 + 2] / 255)]), d = PG.dE(L0, L1); sum += d; if (d <= 6) ok++; n++; }
+      IM.imgErr = { mean: sum / n, ok: ok / n }; } }
+  for (const k of TGL) {
+    D.stage = '逆算：' + PG.LIGHTS[k].jp; const lab = MS.labUnder(LT[k], 1), S2 = new Float32Array(bank.NS * 3);
+    for (let s = 0; s < bank.NS; s += 1000) { MS.bankLab(bank, lab, S2, s, s + 1000); D.done++; yield; }
+    D.tg[k] = TGH.map(([hex]) => { const T = PG.labOfLin(PG.hexLin(hex)), q = MS.solveNear(T, lab, bank, S2, 8), R = PG.mixRefl(q.w), now = PG.render(R, LT[k], 1);
+      return { hex, w: q.w, f: q.f, now: now.hex, day: PG.render(R, PG.E_DAY, 0).hex, verdict: verdict(T, now.lin, q.f) }; });
+    D.done++; yield;
+  }
+  D.stage = '完了'; D.done = D.total;
+}
+let job = null, jobDone = false;
+function work(budget) { if (!job || jobDone) return; const t0 = performance.now(); while (performance.now() - t0 < budget) { if (job.next().done) { jobDone = true; break; } } }
+/* 画像の読み込み（読めなければ自前の絵） */
+function drawScene(g, W, H) {   // 仮の絵：空・山・畑・赤い屋根の家・木（ポスターカラーで塗れる色）
+  const sky = g.createLinearGradient(0, 0, 0, H * 0.6); sky.addColorStop(0, '#5FA9DD'); sky.addColorStop(1, '#BFE0F0'); g.fillStyle = sky; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#FFFFFF'; for (const [cx, cy, r] of [[80, 50, 26], [110, 44, 32], [145, 52, 24], [330, 36, 20], [356, 30, 26]]) { g.beginPath(); g.arc(cx, cy, r, 0, 7); g.fill(); }
+  g.fillStyle = '#7FA6B8'; g.beginPath(); g.moveTo(0, 150); g.lineTo(120, 92); g.lineTo(230, 140); g.lineTo(340, 86); g.lineTo(480, 140); g.lineTo(480, 200); g.lineTo(0, 200); g.fill();
+  g.fillStyle = '#3E8E4E'; g.fillRect(0, 160, W, 100); g.fillStyle = '#E8C547'; g.beginPath(); g.moveTo(0, 210); g.lineTo(480, 190); g.lineTo(480, 260); g.lineTo(0, 260); g.fill();
+  g.fillStyle = '#C39A48'; g.beginPath(); g.moveTo(230, 260); g.lineTo(260, 175); g.lineTo(272, 175); g.lineTo(300, 260); g.fill();
+  g.fillStyle = '#F2E3C0'; g.fillRect(150, 128, 110, 62); g.fillStyle = '#C8402E'; g.beginPath(); g.moveTo(138, 132); g.lineTo(205, 96); g.lineTo(272, 132); g.fill();
+  g.fillStyle = '#2C3796'; g.fillRect(168, 148, 22, 22); g.fillRect(222, 148, 22, 22); g.fillStyle = '#8F452C'; g.fillRect(196, 156, 18, 34);
+  g.fillStyle = '#23805A'; for (const [cx, cy, r] of [[60, 150, 34], [100, 160, 26], [400, 150, 36], [440, 165, 28]]) { g.beginPath(); g.arc(cx, cy, r, 0, 7); g.fill(); }
+  g.fillStyle = '#D8607F'; for (let i = 0; i < 26; i++) { g.beginPath(); g.arc(20 + i * 17, 236 + (i % 3) * 6, 4, 0, 7); g.fill(); }
+}
+function setSrc(img, name) {
+  const c = document.createElement('canvas'); c.width = IM.W; c.height = IM.H; const g = c.getContext('2d', { willReadFrequently: true });
+  if (img) { const s = Math.max(IM.W / img.width, IM.H / img.height); g.drawImage(img, (IM.W - img.width * s) / 2, (IM.H - img.height * s) / 2, img.width * s, img.height * s); } else drawScene(g, IM.W, IM.H);
+  try { IM.px = g.getImageData(0, 0, IM.W, IM.H).data; } catch (e) { return false; }
+  IM.orig = c; IM.name = name; job = pipeline(); jobDone = false; return true;
+}
+{ const im = new Image(), fb = () => setSrc(null, 'scene'); im.onload = () => { if (!setSrc(im, 'totoro')) fb(); }; im.onerror = fb;   // #…&img=0＝参照画を使わず自前の絵
+  if (new URLSearchParams(location.hash.slice(1)).get('img') === '0') fb(); else im.src = '../_assets/ref/totoro001.jpg'; }
+/* 光 k・目の慣れ ad で見た絵（mode 'rgb'＝CG の掛け算） */
+const GLUT = new Uint8ClampedArray(4096); for (let i = 0; i < 4096; i++) GLUT[i] = Math.round(PC.gamma(i / 4095) * 255);
+function view(k, ad, mode) {
+  ad = Math.round(ad * 50) / 50; const key = k + '|' + ad + '|' + (mode || ''); let c = IM.view.get(key); if (c) return c;
+  const xyz = IM.xyz[mode === 'rgb' ? 'DAY' : k]; if (!xyz) return null;
+  const M = mode === 'rgb' ? PG.viewMatrix(PG.E_DAY, 0) : PG.viewMatrix(LT[k], ad), mul = mode === 'rgb' ? PG.mv(PG.viewMatrix(LT[k], ad), PG.whiteXYZ(LT[k])) : [1, 1, 1];
+  c = document.createElement('canvas'); c.width = IM.W; c.height = IM.H; const g = c.getContext('2d'), id = g.createImageData(IM.W, IM.H), d = id.data;
+  for (let p = 0, n = IM.W * IM.H; p < n; p++) { const X = xyz[p * 3], Y = xyz[p * 3 + 1], Z = xyz[p * 3 + 2];
+    for (let q = 0; q < 3; q++) { let v = (M[q][0] * X + M[q][1] * Y + M[q][2] * Z) * mul[q]; v = v < 0 ? 0 : v > 1 ? 1 : v; d[p * 4 + q] = GLUT[(v * 4095) | 0]; } d[p * 4 + 3] = 255; }
+  g.putImageData(id, 0, 0); if (IM.view.size > 48) IM.view.delete(IM.view.keys().next().value); IM.view.set(key, c); return c;
+}
+
+/* ================= 駅の中身 ================= */
+const ST = [
+  { name: '問い', en: '', big: '7 LIGHTS', kanji: '灯', lab: '', noise: '1122 > SCROLL-RELIGHT LOAD 10 STATIONS OK\nRAIL 5 FORMULA · LAW ph_pigment.js\nLINK relight_poster.html ACK' },
+  { name: '光', en: 'LIGHT', big: 'E(λ)', kanji: '光', lab: '#light=MERCURY', fig: 'FIG. 01', figt: '— 光の中身 · 波長ごとの強さ',
+    num: '01', ren: 'SPECTRUM · 光は波長の束', h: '白っぽい灯りも、<br>中身はまったく違う。', body: '光は 380〜750 nm の波長の束。昼の光はどの波長もそろって入っている。電球は赤い側が強く、水銀灯は 4 本の線だけ、ナトリウム灯（トンネルの橙）は 589 nm の 1 本だけ。',
+    kl: 'KEY NUMBER · ナトリウム灯の波長', kv: () => 589, kf: 0, ku: 'nm', kn: '幅はほぼ 1 本（低圧ナトリウム灯）。昼の光は 371 本（1 nm ごと）がそろっている', wow: '目には、束の中身の違いが見えない。違いが出るのは、その光が絵具に当たったとき。', next: '02 返す',
+    noise: '1122 > STATION 01 LIGHT · SPD\nDAY 6500K · BULB 2700K · LED 450+PHOS\nHg 405 436 546 578 · Na 589' },
+  { name: '返す', en: 'REFLECT', big: 'R(λ)', kanji: '返', lab: '', fig: 'FIG. 02', figt: '— 絵具 12 色 · 波長ごとに返す割合',
+    num: '02', ren: 'REFLECTANCE · 絵具の形', h: '絵具の色は、<br>返し方の「形」で決まる。', body: '絵具は、波長ごとに返す割合が違う。バーミリオンは 600 nm あたりから急に返し始める段の形、ウルトラマリンは 450 nm の山、オーカーはなだらかな坂。この形が、光が替わったときの運命を決める。',
+    kl: 'KEY NUMBER · バーミリオンの段の位置', kv: () => VSTEP, kf: 0, ku: 'nm', kn: 'いちばん急に上がる所。実測のナフトールレッド（600 nm）と ±6 nm で一致', wow: '昼に同じ色に見える 2 つの絵具でも、形が違えば、別の光の下では別の色になる（条件等色）。', next: '03 見える',
+    noise: '1122 > STATION 02 REFLECT · 12 PAINTS\nVERMILION STEP ' + VSTEP + ' nm · UM PEAK 450\nSOURCE MEASURED (CHSOS)' },
+  { name: '見える', en: 'SEE', big: 'Σ E·R', kanji: '見', lab: '#light=SODIUM&adapt=1', fig: 'FIG. 03', figt: '— 光 × 返す割合 ＝ 目に届く光',
+    num: '03', ren: 'COLOR · 光 × 絵具 × 目', h: '見える色は、<br>光 × 返す × 目。', body: '波長ごとに「光の強さ × 絵具の返す割合」を掛けたものが、目に届く光。それを目の 3 つの受け手の感度で足し合わせたものが、見える色。光に無い波長は、絵具がどれだけ返しても 0 のまま。',
+    kl: 'KEY NUMBER · ナトリウム灯で効く波長の数', kv: () => 1, kf: 0, ku: '本', kn: '589 nm の 1 点の高さだけで、明るさが決まる。色の手がかりは残らない', wow: 'ナトリウム灯の下では、バーミリオンもセルリアンも灰色。違うのは明るさだけ。', next: '04 死ぬ色・残る色',
+    noise: '1122 > STATION 03 SEE · TRISTIMULUS\nX = SUM E·R·xbar · 1 nm × 371\nNa → ACHROMATIC · C = 0' },
+  { name: '死ぬ色・残る色', en: 'SURVIVE', big: 'C → 0', kanji: '残', lab: '#light=MERCURY&adapt=1', fig: 'FIG. 04', figt: '— 12 色 × 光 · 本物と RGB×',
+    num: '04', ren: 'SURVIVAL · 街灯で死ぬ色', h: '街灯で死ぬ色、<br>残る色。', body: '水銀灯は赤い波長をほとんど持たないので、赤は茶色に沈む。緑や青は残る。CG のように「光の色を RGB で掛ける」と、この差が出ない。',
+    kl: 'KEY NUMBER · バーミリオンの彩度（水銀灯）', kv: () => chromaUnder('VERMILION', 'MERCURY', 1), kf: 0, kp: 'C ', ku: '',
+    kn: () => '昼 ' + num(chromaUnder('VERMILION', 'DAY', 1)) + ' → 水銀灯 ' + num(chromaUnder('VERMILION', 'MERCURY', 1)) + ' → ナトリウム灯 ' + num(chromaUnder('VERMILION', 'SODIUM', 1)) + '。RGB× だとどの光でも ' + num(chromaRgbx('VERMILION', 'MERCURY', 1)) + ' のまま（目は慣れる＝100%）',
+    wow: 'RGB× は「その光の白の色」で全体を染めるだけ。束の中身（線か、そろっているか）を見ていない。', next: '05 慣れる',
+    noise: '1122 > STATION 04 SURVIVE · C* UNDER LAMP\nVERM DAY 75 · Hg 36 · Na 0\nRGBx KEEPS 75 · ADAPT 1.0' },
+  { name: '慣れる', en: 'ADAPT', big: 'L ÷ L白', kanji: '慣', lab: '#light=BULB&adapt=0', fig: 'FIG. 05', figt: '— 電球の下 · 目の慣れ 0 → 100%',
+    num: '05', ren: 'ADAPTATION · 目は慣れる', h: '目は、<br>灯りの色に慣れる。', body: '電球の下の白い紙は、カメラには黄色く写る。でも目は数分で慣れて、紙を白と感じる。目の 3 つの受け手を、それぞれ「白い紙のときの反応」で割り直すのが慣れ（フォン・クリース）。',
+    kl: 'KEY NUMBER · 白い紙の色の差（昼と比べて）', kv: () => paperDE(D.ad5 || 0), kf: 1, kp: 'ΔE ', ku: '', kn: () => '慣れ 0%＝' + num(paperDE(0), 1) + ' ・ 100%＝' + num(paperDE(1), 1) + '（電球 2700 K）。数字は図の慣れに合わせて動く',
+    wow: () => '慣れで戻るのは白だけ。色どうしの差は戻らない（電球の下では、目が慣れても赤は昼より鮮やか：C ' + num(chromaUnder('VERMILION', 'DAY', 1)) + ' → ' + num(chromaUnder('VERMILION', 'BULB', 1)) + '）。', next: '06 混ぜる',
+    noise: '1122 > STATION 05 ADAPT · VON KRIES\nHPE LMS / LMS_WHITE · BULB 2700K\nADAPT 0 = CAMERA · 1 = EYE' },
+  { name: '混ぜる', en: 'MIX', big: 'K/S', kanji: '混', lab: '', fig: 'FIG. 06', figt: '— 絵具の混色 と 光の混色',
+    num: '06', ren: 'KUBELKA–MUNK · 混ぜる', h: '絵具の混色は、<br>光の混色と違う。', body: '絵具を混ぜると、それぞれが吸う波長が足し合わさる（クベルカ–ムンク：K/S を量で足す）。セルリアンとレモンを混ぜると、両方が返す緑の所だけが残って緑になる。光の平均だと、灰色がかった色になる。',
+    kl: 'KEY NUMBER · 半分ずつ混ぜた緑の彩度', kv: () => kmChroma(0.5), kf: 0, kp: 'C ', ku: '', kn: () => '光の平均（RGB）だと C ' + num(PG.chromaOf(PG.labOfLin(avgLin(0.5)))) + '。絵具は「吸う」側の足し算なので、濁らずに緑が立つ',
+    wow: '「混ぜると暗くなる」も同じ理由。吸う波長が増えるほど、返す光が減る。', next: '07 実測の顔料',
+    noise: '1122 > STATION 06 MIX · KUBELKA-MUNK\nK/S = (1-R)^2 / 2R · SUM BY AMOUNT\nCERULEAN + LEMON → GREEN' },
+  { name: '実測の顔料', en: 'MEASURED', big: 'CHSOS', kanji: '測', lab: '', fig: 'FIG. 07', figt: '— 12 色の形 · 実測から組んだ形 と 目安の形',
+    num: '07', ren: 'MEASURED · 測った顔料から', h: '絵具の形は、<br>測った顔料から組む。', body: 'ニッカーのポスターカラーに入っている顔料（メーカー公表の顔料番号）を、CHSOS の実測スペクトルから混ぜて組んだ。動かしたのは混ぜる割合と照り返しだけで、山や段の位置は測定のまま。点線は、色だけ合わせた目安の形。',
+    kl: 'KEY NUMBER · 使った実測の顔料', kv: () => N_MEAS, kf: 0, ku: '種', kn: 'CHSOS Pigments Checker（アクリル・厚紙の上）。ニッカーそのものの測定ではない。いちばん合っていないのはローズ（ΔE 13.8）',
+    wow: 'セルリアンの青（フタロ）は原液が暗すぎて形が測れないので、本物のセルリアン顔料 PB36 の測定で補った。ポスターカラーの情報が入り次第、ここを差し替える。', next: '08 画像を絵具に',
+    noise: '1122 > STATION 07 MEASURED · CHSOS ACRYLIC\nPW6 PY3 PR81 PB29 PB15 PB36 PG7 PY42 PBr7\nFIT RATIO + FLOOR + GAIN · POS FIXED' },
+  { name: '画像を絵具に', en: 'IMAGE', big: '11³', kanji: '画', lab: '', fig: 'FIG. 08', figt: '— 画像 → 12 色の配合 → 光を替える',
+    num: '08', ren: 'DECOMPOSE · 画像を絵具に', h: '画像を、<br>12 色の配合に置き換える。', body: '画素の色ごとに「12 色をどれだけ混ぜれば、昼の光でこの色になるか」を解く。配合の見本から近いものを選び、その色だけで詰める。置き換えた絵は、どの光の下にも持っていける。',
+    kl: 'KEY NUMBER · この画像の平均のずれ（元の色 → 絵具）', kv: () => IM.imgErr ? IM.imgErr.mean : null, kf: 1, kp: 'ΔE ', ku: '', kn: () => (IM.imgErr ? '画素の ' + num(IM.imgErr.ok * 100) + '% が ΔE 6 以下。' : '') + '黒は作れない（黒の絵具が無い）ので、暗い所ほどずれる。RGB の格子 11³ 点で解いて補間（アプリは 17³ 点・見本 4 万通りで、もっと細かい）',
+    wow: '写真の絵を一度「ポスターカラーで塗ったら」に変えてから光を当てる。だから街灯の下の見え方が、絵具の性質どおりになる。', next: '09 逆算',
+    noise: '1122 > STATION 08 IMAGE · LUT 11^3\nBANK 20000 MIXES · NELDER-MEAD\nTRILINEAR IN PAINT SPACE' },
+  { name: '逆算', en: 'TARGET', big: '→ DAY', kanji: '逆', lab: '#light=SODIUM&adapt=1', fig: 'FIG. 09', figt: '— この光で、この色に見せたい → 何を塗る？',
+    num: '09', ren: 'INVERSE · 目標の光で解く', h: 'この光でこう見せたい。<br>昼に何を塗る？', body: '08 の解き方を、昼ではなく目標の光で解く。夜の水銀灯の下で緑に見せたいなら、昼に何を塗っておけばいいか。光に無い波長の色は、どう混ぜても作れない。',
+    kl: 'KEY NUMBER · 赤 #C8402E を作ったときのずれ（図の光）', kv: () => { const r = D.tg[D.k9]; return r ? r[0].f : null; }, kf: 1, kp: 'ΔE ', ku: '', kn: '6 以下＝作れる・12 以下＝ほぼ作れる・それより上＝作れない（境目は目安）。目は慣れる＝100% で解く',
+    wow: () => { const r = D.tg.SODIUM; return r ? 'ナトリウム灯で赤を頼むと「' + MS.mixText(r[0].w) + '」と答える。どの絵具も灰色になるので、明るさだけ合わせた答え。' : 'ナトリウム灯で赤を頼むと、どの絵具も灰色になるので、明るさだけ合わせた答えが返る。'; }, next: '10 持ち出す',
+    noise: '1122 > STATION 09 TARGET · INVERSE SOLVE\nK 8 STARTS · ADAPT 1.0\nΔE ≤6 OK · ≤12 NEAR · ELSE NO' },
+  { name: '持ち出す', en: 'TRANSFER', big: '→ LAB', kanji: '渡', lab: '', noise: '1122 > STATION 10 TRANSFER · 5 NOTES\nRAIL COMPLETE 5/5 · LAB LINK READY\nNEXT W1 ONE OCTAVE · STATUS OPEN' },
+];
+const RAIL = [
+  { k: '① LIGHT', ja: '光', f: 'E(λ)', d: '光 ＝ 波長ごとの強さ（380〜750 nm・371 本）', at: 1 },
+  { k: '② REFLECT', ja: '返す', f: 'R(λ)', d: '絵具 ＝ 波長ごとに返す割合（0〜1）', at: 2 },
+  { k: '③ SEE', ja: '見える', f: 'X = Σ E·R·x̄', d: '光 × 返す割合 を、目の感度で足す（Y・Z も同じ）', at: 3 },
+  { k: '④ ADAPT', ja: '慣れる', f: 'L′ = L ÷ L<sub>白</sub>', d: '目の受け手を、白い紙の反応で割り直す', at: 5 },
+  { k: '⑤ MIX', ja: '混ぜる', f: 'K/S = (1−R)²/2R', d: '吸う量 K/S を、絵具の量で足してから R に戻す', at: 6 },
+];
+const REF = { 4: [3], 7: [2, 5], 8: [3, 5], 9: [3, 4, 5] };
+
+/* ================= 描画の部品 ================= */
+const cv = $('cv'), ctx = cv.getContext('2d');
+let SC = 1;
+function resize() { SC = Math.min(2, (PHShell.scale || 1) * (window.devicePixelRatio || 1)); cv.width = Math.round(1920 * SC); cv.height = Math.round(1080 * SC); }
+const mono = (px, w) => (w || 400) + ' ' + px + 'px "JetBrains Mono",monospace', note = px => px + 'px "M PLUS 1 Code","IBM Plex Sans JP",monospace', jp = (px, w) => (w || 400) + ' ' + px + 'px "IBM Plex Sans JP",sans-serif';
+function txt(s, x, y, o) { o = o || {}; ctx.font = o.f || note(12); ctx.fillStyle = o.c || C.ink; ctx.textAlign = o.a || 'left'; ctx.textBaseline = o.b || 'alphabetic'; ctx.fillText(s, x, y); }
+function wrap(s, x, y, maxW, lh, o) { ctx.font = (o && o.f) || note(13); let line = '', yy = y; for (const ch of s) { if (ctx.measureText(line + ch).width > maxW) { txt(line, x, yy, o); line = ch; yy += lh; } else line += ch; } if (line) txt(line, x, yy, o); return yy; }
+function plate(x, y, w, h) {
+  ctx.fillStyle = C.paper; ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath();
+  for (const [bx, by, sx, sy] of [[x + 10, y + 10, 1, 1], [x + w - 10, y + 10, -1, 1], [x + 10, y + h - 10, 1, -1], [x + w - 10, y + h - 10, -1, -1]]) { ctx.moveTo(bx + sx * 20, by); ctx.lineTo(bx, by); ctx.lineTo(bx, by + sy * 20); }
+  ctx.stroke();
+}
+function rainbow(x0, x1) { const g = ctx.createLinearGradient(x0, 0, x1, 0); for (let l = 380; l <= 750; l += 10) g.addColorStop((l - 380) / 370, SPEC[l - 380]); return g; }
+function chart(x, y, w, h, o) {   // 横＝波長 380〜750 nm・縦＝0〜1
+  o = o || {}; const X = l => x + (l - 380) / 370 * w, Y = v => y + h - v * h;
+  ctx.strokeStyle = 'rgba(42,37,31,.12)'; ctx.lineWidth = 1; for (let l = 400; l <= 750; l += 50) { ctx.beginPath(); ctx.moveTo(X(l), y); ctx.lineTo(X(l), y + h); ctx.stroke(); }
+  ctx.strokeStyle = C.ink; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + h); ctx.lineTo(x + w, y + h); ctx.stroke();
+  if (!o.noLab) for (let l = 400; l <= 750; l += 50) txt(String(l), X(l), y + h + 16, { f: mono(10), a: 'center', c: C.dim });
+  if (o.strip) { ctx.fillStyle = rainbow(x, x + w); ctx.fillRect(x, y + h + (o.noLab ? 5 : 22), w, 7); }
+  if (o.title) txt(o.title, x, y - 9, { f: note(12.5) });
+  return { X, Y };
+}
+function curve(arr, X, Y, col, lw, fillRainbow) {
+  const p = new Path2D(); for (let i = 0; i < N; i++) { const xx = X(380 + i), yy = Y(Math.min(1, arr[i])); i ? p.lineTo(xx, yy) : p.moveTo(xx, yy); }
+  if (fillRainbow) { const q = new Path2D(p); q.lineTo(X(750), Y(0)); q.lineTo(X(380), Y(0)); q.closePath(); ctx.fillStyle = rainbow(X(380), X(750)); ctx.fill(q); }
+  ctx.strokeStyle = col; ctx.lineWidth = lw || 1.5; ctx.lineJoin = 'round'; ctx.stroke(p);
+}
+function sw(x, y, w, h, hex, lab, sub) { ctx.fillStyle = hex; ctx.fillRect(x, y, w, h); ctx.strokeStyle = 'rgba(42,37,31,.35)'; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1); if (lab) txt(lab, x, y + h + 17, { f: note(12.5) }); if (sub) txt(sub, x, y + h + 33, { f: mono(11), c: C.dim }); }
+function chips(list, cur, x, y, w) { const cw = w / list.length; list.forEach((q, i) => { const on = q === cur; ctx.fillStyle = on ? C.ink : 'rgba(42,37,31,.07)'; ctx.fillRect(x + i * cw, y, cw - 6, 40); txt(PG.LIGHTS[q].jp, x + i * cw + 10, y + 26, { f: jp(14, on ? 600 : 400), c: on ? C.paper : C.ink }); }); }
+const pick = (a, arr, end) => arr[Math.min(arr.length - 1, Math.floor(clamp(a / (end || 0.78), 0, 0.9999) * arr.length))];
+function peaks(E, X, Y) { for (let i = 2; i < N - 2; i++) if (E[i] > 0.25 && E[i] >= E[i - 1] && E[i] > E[i + 1] && E[i] - Math.min(E[i - 2], E[i + 2]) > 0.08) txt(PC.lam(i) + '', X(PC.lam(i)), Y(E[i]) - 8, { f: mono(11, 600), a: 'center' }); }
+function wait(x, y, w, h) { x = x == null ? PL.x : x; y = y == null ? PL.y : y; w = w || PL.w; h = h || PL.h; txt('法則で計算中… ' + Math.min(99, D.done / D.total * 100).toFixed(0) + '%（' + D.stage + '）', x + w / 2, y + h / 2, { a: 'center', f: mono(15, 600), c: C.dim }); }
+function img(c, x, y, w, h) { ctx.imageSmoothingQuality = 'high'; ctx.drawImage(c, x, y, w, h); ctx.strokeStyle = 'rgba(42,37,31,.4)'; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1); }
+const CREDIT = () => IM.name === 'totoro' ? '画像：となりのトトロ © 1988 Hayao Miyazaki / Studio Ghibli（公式の場面写真）' : '画像：仮の絵（参照画が読めないので自前で描いた）';
+
+const PL = { x: 280, y: 150, w: 1040, h: 706 };
+let railLive = '';
+const FIG = [];
+// 00 問い：1 枚の絵を 7 つに切って、それぞれ別の光で（目は慣れる）
+FIG[0] = (a, t) => {
+  const x = 280, y = 486, w = 1600, h = 370; plate(x, y, w, h); if (!IM.orig) return;
+  const n = 7, sw_ = IM.W / n, sh = h / (w / IM.W), sy = (IM.H - sh) * 0.42 + (RM ? 0 : (a - 0.3) * 20);
+  for (let i = 0; i < n; i++) {
+    const k = XYZ_ORDER[[0, 6, 3, 4, 5, 2, 1][i]], v = view(k, 1) || IM.orig, X = x + i * w / n;
+    ctx.drawImage(v, i * sw_, clamp(sy, 0, IM.H - sh), sw_, sh, X, y, w / n + 0.5, h);
+    ctx.fillStyle = 'rgba(11,11,10,.78)'; ctx.fillRect(X + 10, y + h - 40, w / n - 20, 28);
+    txt(PG.LIGHTS[k].jp + (view(k, 1) ? '' : '（計算中）'), X + 20, y + h - 21, { f: jp(13, 500), c: '#E8E6DF' });
+    if (i) { ctx.fillStyle = C.paper; ctx.fillRect(X - 1, y, 2, h); }
+  }
+  txt(CREDIT(), x + w - 12, y - 10, { f: note(11), a: 'right', c: '#8C877C' });
+};
+// 01 光
+FIG[1] = (a, t) => {
+  const { x, y, w, h } = PL, k = pick(a, PG.LIGHT_ORDER), E = LT[k], L = PG.LIGHTS[k];
+  txt(L.jp + '　' + L.en, x + w - 60, y + 64, { f: jp(24, 500), a: 'right' });
+  const c = chart(x + 60, y + 130, w - 120, 320, { strip: true, title: '光の強さ（いちばん強い所を 1）' }); curve(E, c.X, c.Y, C.ink, 1.6, true); peaks(E, c.X, c.Y);
+  chips(PG.LIGHT_ORDER, k, x + 60, y + 540, w - 120);
+  txt(L.note, x + 60, y + 612, { f: note(13), c: C.dim });
+  const wh = PG.render(R_ONE, E, 0).hex; sw(x + 60, y + 632, 110, 46, wh); txt('この光の白（カメラで撮ると）' + wh, x + 186, y + 662, { f: note(13) });
+  railLive = 'いま：' + L.jp;
+};
+// 02 返す
+FIG[2] = (a, t) => {
+  const { x, y, w, h } = PL, j = Math.min(NP - 1, Math.floor(clamp(a / 0.8, 0, 0.9999) * NP)), p = PG.PIGMENTS[j], m = PG.MEASURED[p.id];
+  const c = chart(x + 60, y + 90, w - 120, 380, { strip: true, title: '返す割合（1＝全部返す）' });
+  ctx.globalAlpha = 0.4; for (let q = 0; q < NP; q++) if (q !== j) curve(REFL_M[q], c.X, c.Y, PG.PIGMENTS[q].hex, 1.2); ctx.globalAlpha = 1;
+  curve(REFL_M[j], c.X, c.Y, C.ink, 3.4); curve(REFL_M[j], c.X, c.Y, p.hex, 1.6);
+  if (p.id === 'VERMILION') { const X = c.X(VSTEP); ctx.setLineDash([4, 4]); ctx.strokeStyle = C.red; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(X, c.Y(1)); ctx.lineTo(X, c.Y(0)); ctx.stroke(); ctx.setLineDash([]); txt('段 ' + VSTEP + ' nm', X + 8, c.Y(0.93), { f: mono(13, 600), c: C.red }); }
+  sw(x + 60, y + 560, 140, 110, PG.render(PG.mixRefl(one(p.id)), PG.E_DAY, 0).hex);
+  txt(p.jp, x + 224, y + 588, { f: jp(24, 500) }); txt(p.en + (m ? '　顔料 ' + m.ci : ''), x + 224, y + 618, { f: mono(13) });
+  if (m && m.sub) wrap('代用：' + m.sub, x + 224, y + 644, 740, 18, { f: note(12), c: C.dim });
+  for (let q = 0; q < NP; q++) { ctx.fillStyle = q === j ? C.ink : 'rgba(42,37,31,.2)'; ctx.fillRect(x + 60 + q * 22, y + 690, 14, 4); }
+  railLive = p.jp + (m ? ' · ' + m.ci : '');
+};
+// 03 見える：昼 と ナトリウム灯 を並べる
+FIG[3] = (a, t) => {
+  const { x, y, w, h } = PL, second = a >= 0.45, pid = second ? 'CERULEAN' : 'VERMILION', rv = RM ? 1 : ease(second ? (a - 0.45) / 0.3 : a / 0.35), R = REFL_M[PG.PID[pid]];
+  for (const [k, cx] of [['DAY', x + 90], ['SODIUM', x + 570]]) {
+    const E = LT[k], cw = 400; txt(PG.LIGHTS[k].jp, cx + cw, y + 62, { f: jp(22, 500), a: 'right' });
+    const c1 = chart(cx, y + 110, cw, 90, { noLab: true, title: '光 E' }); curve(E, c1.X, c1.Y, C.ink, 1.4, true);
+    const c2 = chart(cx, y + 255, cw, 90, { noLab: true, title: '絵具が返す割合 R（' + PG.PIGMENTS[PG.PID[pid]].jp + '）' }); curve(R, c2.X, c2.Y, C.ink, 1.8);
+    const c3 = chart(cx, y + 400, cw, 90, { strip: true, title: '目に届く光 E × R' }), ER = new Float32Array(N); for (let i = 0; i < N; i++) ER[i] = E[i] * R[i];
+    ctx.save(); ctx.beginPath(); ctx.rect(cx - 2, y + 380, cw * rv + 4, 150); ctx.clip(); curve(ER, c3.X, c3.Y, C.ink, 1.6, true); ctx.restore();
+    const col = PG.render(R, E, 1).hex; ctx.globalAlpha = clamp((rv - 0.8) / 0.2); sw(cx, y + 570, 190, 80, col, '見える色 ' + col); ctx.globalAlpha = 1;
+  }
+  txt('×', x + 40, y + 320, { f: mono(34) }); txt('=', x + 40, y + 470, { f: mono(34) }); txt('→', x + 40, y + 620, { f: mono(30) });
+  railLive = PG.PIGMENTS[PG.PID[pid]].jp + '：昼 ' + PG.render(R, PG.E_DAY, 1).hex + ' / ナトリウム ' + PG.render(R, LT.SODIUM, 1).hex;
+};
+// 04 死ぬ色・残る色
+FIG[4] = (a, t) => {
+  const { x, y, w, h } = PL, k = pick(a, ['BULB', 'LED', 'MERCURY', 'SODIUM']), x0 = x + 40, cw = (w - 80) / 12, s = cw - 10;
+  txt('いまの光：' + PG.LIGHTS[k].jp, x + w - 40, y + 52, { f: jp(20, 500), a: 'right' });
+  const rows = [['昼の光（基準）', q => PG.render(PG.mixRefl(one(q)), PG.E_DAY, 0)], ['本物：波長で計算（' + PG.LIGHTS[k].jp + '・目は慣れる）', q => PG.render(PG.mixRefl(one(q)), LT[k], 1)], ['RGB×：CG の掛け算（' + PG.LIGHTS[k].jp + 'の白で染める）', q => PG.rgbMultiply(PG.mixRefl(one(q)), LT[k], 1)]];
+  rows.forEach(([lab, fn], r) => { const yy = y + 110 + r * 175; txt(lab, x0, yy - 14, { f: note(14) });
+    PG.PIGMENTS.forEach((p, j) => { const o = fn(p.id), Cc = PG.chromaOf(linLab(o.lin)); ctx.fillStyle = o.hex; ctx.fillRect(x0 + j * cw, yy, s, s); ctx.fillStyle = C.ink; ctx.fillRect(x0 + j * cw, yy + s + 8, s * Math.min(1, Cc / 90), 4); txt(String(Math.round(Cc)), x0 + j * cw, yy + s + 26, { f: mono(11), c: C.dim }); }); });
+  PG.PIGMENTS.forEach((p, j) => txt(p.en, x0 + j * cw, y + 110 + 2 * 175 + s + 44, { f: mono(9.5), c: C.ink }));
+  chips(['BULB', 'LED', 'MERCURY', 'SODIUM'], k, x0, y + 616, w - 80);
+  txt('棒と数字＝彩度 C（色の鮮やかさ）。本物は光の束の中身で色が変わり、RGB× は全体が同じ向きに染まるだけ', x0, y + 684, { f: note(12), c: C.dim });
+  railLive = 'バーミリオン C ' + num(chromaUnder('VERMILION', k, 1)) + '（RGB× ' + num(chromaRgbx('VERMILION', k, 1)) + '）';
+};
+// 05 慣れる：電球の下の絵で、目の慣れを 0 → 100%
+FIG[5] = (a, t) => {
+  const { x, y, w, h } = PL, ad = RM ? 1 : ease(a / 0.75); D.ad5 = ad;
+  txt('電球 2700 K の下', x + 1000, y + 46, { f: jp(18, 500), a: 'right' });
+  const v = view('BULB', ad); if (!v) return wait(); img(v, x + 40, y + 62, 960, 520);
+  const ph = PG.render(R_PAPER, LT.BULB, ad).hex; sw(x + 40, y + 604, 110, 60, ph); txt('白い紙 ' + ph, x + 166, y + 640, { f: note(13) });
+  const gx = x + 520, gy = y + 628, gw = 480; ctx.fillStyle = 'rgba(42,37,31,.12)'; ctx.fillRect(gx, gy, gw, 10); ctx.fillStyle = C.ink; ctx.fillRect(gx, gy, gw * ad, 10);
+  txt('目の慣れ ' + Math.round(ad * 100) + '%', gx, gy - 10, { f: mono(14, 600) }); txt('0＝カメラ（昼の白のまま）', gx, gy + 30, { f: note(12), c: C.dim }); txt('100＝目が慣れた', gx + gw, gy + 30, { f: note(12), c: C.dim, a: 'right' });
+  railLive = '慣れ ' + Math.round(ad * 100) + '% · 紙の差 ΔE ' + num(paperDE(ad), 1);
+};
+// 06 混ぜる：セルリアン → レモン
+FIG[6] = (a, t) => {
+  const { x, y, w, h } = PL, tt = RM ? 0.5 : ease(a / 0.75), wv = new Array(NP).fill(0); wv[PG.PID.CERULEAN] = 1 - tt; wv[PG.PID.LEMON] = tt;
+  const Rm = PG.mixRefl(wv), c = chart(x + 50, y + 100, 560, 320, { strip: true, title: '返す割合' });
+  curve(REFL_M[PG.PID.CERULEAN], c.X, c.Y, '#2A93D2', 1.6); curve(REFL_M[PG.PID.LEMON], c.X, c.Y, '#C9A818', 1.6); curve(Rm, c.X, c.Y, C.ink, 3);
+  txt('セルリアン', c.X(440), c.Y(0.8), { f: note(12), c: '#1F6FA0' }); txt('レモン', c.X(640), c.Y(0.88), { f: note(12), c: '#8A7410' }); txt('混ぜた絵具', c.X(520), c.Y(Rm[140]) - 12, { f: note(13) });
+  const km = PG.render(Rm, PG.E_DAY, 0), av = avgLin(tt), avHex = PG.toHex(av.map(PC.gamma));
+  sw(x + 680, y + 100, 300, 130, km.hex, '絵具を混ぜる（K/S を足す）', km.hex + '　C ' + num(PG.chromaOf(linLab(km.lin))));
+  sw(x + 680, y + 330, 300, 130, avHex, '光を混ぜる（RGB の平均）', avHex + '　C ' + num(PG.chromaOf(PG.labOfLin(av))));
+  const bx = x + 50, by = y + 560, bw = 930; ctx.fillStyle = 'rgba(42,37,31,.1)'; ctx.fillRect(bx, by, bw, 8); ctx.fillStyle = C.ink; ctx.fillRect(bx + bw * tt - 2, by - 10, 4, 28);
+  txt('セルリアン ' + Math.round((1 - tt) * 100) + '%', bx, by + 40, { f: mono(13) }); txt('レモン ' + Math.round(tt * 100) + '%', bx + bw, by + 40, { f: mono(13), a: 'right' });
+  txt('どちらも緑の所（500〜560 nm）は少し返す。混ぜると、片方が吸う所はもう片方も消すので、緑だけが残る', bx, by + 92, { f: note(13) });
+  railLive = 'K/S を足す → 緑 C ' + num(PG.chromaOf(linLab(km.lin))) + ' ／ 光の平均 C ' + num(PG.chromaOf(PG.labOfLin(av)));
+};
+// 07 実測の顔料：12 色の形（実線＝実測から組んだ・点線＝目安）
+FIG[7] = (a, t) => {
+  const { x, y, w, h } = PL, n = RM ? 12 : 1 + Math.floor(ease(a / 0.7) * 11.999), cw = 245, ch = 192;
+  PG.PIGMENTS.forEach((p, j) => {
+    const cx = x + 40 + (j % 4) * cw, cy = y + 72 + Math.floor(j / 4) * ch, m = PG.MEASURED[p.id]; ctx.globalAlpha = j < n ? 1 : 0.16;
+    sw(cx, cy, 24, 24, PG.render(PG.mixRefl(one(p.id)), PG.E_DAY, 0).hex); txt(p.jp, cx + 32, cy + 11, { f: jp(13, 500) }); txt(m ? m.ci + (m.sub ? ' *' : '') : '', cx + 32, cy + 27, { f: mono(10), c: C.dim });
+    const c = chart(cx, cy + 44, 205, 100, { noLab: true }); ctx.setLineDash([4, 3]); curve(REFL_S[j], c.X, c.Y, '#8C877C', 1.2); ctx.setLineDash([]); curve(REFL_M[j], c.X, c.Y, C.ink, 1.8);
+    ctx.globalAlpha = 1;
+  });
+  txt('実線＝実測の顔料から組んだ形　点線＝色だけ合わせた目安の形　＊＝データに無い顔料を代用', x + 40, y + 670, { f: note(12.5) });
+  txt('出典：CHSOS Pigments Checker（アクリル・厚紙）／顔料番号：メーカー公表の Pigment Information', x + 40, y + 692, { f: note(11.5), c: C.dim });
+  railLive = n + ' / 12 色';
+};
+// 08 画像を絵具に
+FIG[8] = (a, t) => {
+  const { x, y, w, h } = PL; if (!IM.orig) return wait();
+  txt('元の画像', x + 40, y + 84, { f: note(13) }); img(IM.orig, x + 40, y + 96, 470, 254);
+  txt('12 色の配合に置き換え（昼の光）', x + 530, y + 84, { f: note(13) }); const v = view('DAY', 0);
+  if (v) img(v, x + 530, y + 96, 470, 254); else wait(x + 530, y + 96, 470, 254);
+  if (IM.wts) {
+    const u = 0.1 + 0.8 * (RM ? 0.5 : ease(a / 0.8)), vv = 0.45 + 0.3 * Math.sin(u * 9), px = Math.round(u * (IM.W - 1)), py = Math.round(vv * (IM.H - 1)), o = (py * IM.W + px) * NP;
+    for (const bx of [x + 40, x + 530]) { const X = bx + u * 470, Y = y + 96 + vv * 254; ctx.strokeStyle = '#0B0B0A'; ctx.lineWidth = 3; ctx.strokeRect(X - 8, Y - 8, 16, 16); ctx.strokeStyle = '#F7F5EE'; ctx.lineWidth = 1.2; ctx.strokeRect(X - 8, Y - 8, 16, 16); }
+    txt('スポイト：' + MS.mixText(Array.from(IM.wts.subarray(o, o + NP))), x + 40, y + 384, { f: jp(15, 500) });
+  }
+  ['BULB', 'MERCURY', 'SODIUM'].forEach((k, i) => { const bx = x + 40 + i * 323, by = y + 446; txt(PG.LIGHTS[k].jp + 'の下（目は慣れる）', bx, by - 10, { f: note(13) }); const vk = view(k, 1); if (vk) img(vk, bx, by, 310, 168); else wait(bx, by, 310, 168); });
+  txt(CREDIT(), x + 40, y + 660, { f: note(11.5), c: C.dim });
+  railLive = IM.imgErr ? 'この画像の平均 ΔE ' + num(IM.imgErr.mean, 1) : '計算中';
+};
+// 09 逆算
+FIG[9] = (a, t) => {
+  const { x, y, w, h } = PL, k = pick(a, TGL); D.k9 = k; const R = D.tg[k];
+  txt('いまの光：' + PG.LIGHTS[k].jp + '・目の慣れ 100%', x + 40, y + 96, { f: jp(20, 500) });
+  chips(TGL, k, x + 600, y + 66, 400);
+  if (!R) return wait();
+  TGH.forEach(([hex, nm], r) => {
+    const q = R[r], yy = y + 150 + r * 250;
+    sw(x + 40, yy, 150, 100, hex, '見せたい色（' + nm + '）', hex); txt('→', x + 202, yy + 58, { f: mono(22) });
+    sw(x + 232, yy, 150, 100, q.now, 'この光での仕上がり', q.now); txt('＝', x + 394, yy + 58, { f: mono(22) });
+    sw(x + 424, yy, 150, 100, q.day, '昼に見ると＝塗る色', q.day);
+    txt('配合', x + 610, yy + 14, { f: note(12), c: C.dim }); wrap(MS.mixText(q.w), x + 610, yy + 38, 390, 22, { f: jp(15, 500) });
+    txt('ずれ ΔE ' + num(q.f, 1), x + 610, yy + 96, { f: mono(15, 600) });
+    wrap(q.verdict, x + 610, yy + 124, 390, 20, { f: jp(14, q.f <= 6 ? 600 : 400), c: q.f <= 12 ? C.ink : C.red });
+  });
+  const c = chart(x + 40, y + 640, 960, 40, { noLab: true }); curve(LT[k], c.X, c.Y, C.ink, 1.2, true);
+  railLive = '赤 ΔE ' + num(R[0].f, 1) + ' · 緑 ΔE ' + num(R[1].f, 1);
+};
+// 10：アプリの見本（小さな窓）＝ 昼 | ナトリウム灯
+let thumbDone = false;
+function thumb() {
+  if (thumbDone) return; const d = view('DAY', 0), s = view('SODIUM', 1); if (!d || !s) return; thumbDone = true;
+  const g = $('tc').getContext('2d'); g.setTransform(2, 0, 0, 2, 0, 0); g.fillStyle = '#0B0B0A'; g.fillRect(0, 0, 300, 150);
+  g.drawImage(d, 0, 0, IM.W / 2, IM.H, 12, 12, 138, 126); g.drawImage(s, IM.W / 2, 0, IM.W / 2, IM.H, 150, 12, 138, 126);
+  g.strokeStyle = C.acc; g.lineWidth = 1; g.strokeRect(8, 8, 284, 134); g.fillStyle = C.acc; g.fillRect(149, 12, 2, 126);
+}
+
+/* ================= 画面の部品 ================= */
+const stl = $('stl'); ST.forEach((s, i) => { const li = document.createElement('li'); li.innerHTML = '<u>' + String(i).padStart(2, '0') + '</u><b>' + s.name + '</b><s>' + s.en + '</s>'; li.addEventListener('click', () => goTo(i)); stl.appendChild(li); });
+const rail = $('rail');
+RAIL.forEach(r => { const d = document.createElement('div'); d.className = 'rb'; d.innerHTML = '<div class="rt"><span>' + r.k + '<b>' + r.ja + '</b></span><i></i></div><div class="rf">' + r.f + '</div><div class="dots">···</div><div class="rd"></div>'; rail.appendChild(d); });
+const labA = document.createElement('a'); labA.className = 'rb lab'; labA.href = LAB; labA.innerHTML = '<div class="rt"><span>LAB<b>終点</b></span><i></i></div><div class="rf">OPEN THE LAB →</div><div class="rd">いつでもアプリへ飛べる</div>'; rail.appendChild(labA);
+function frame() { const svg = $('frame'), M = 'rgba(232,230,223,0.55)', S = 'rgba(232,230,223,0.10)'; let s = '';
+  for (const p of ['52,24 24,24 24,52', '1868,24 1896,24 1896,52', '52,1056 24,1056 24,1028', '1868,1056 1896,1056 1896,1028']) s += '<polyline points="' + p + '" fill="none" stroke="' + M + '" stroke-width="1.5"/>';
+  for (const yy of [124, 870]) s += '<line x1="24" y1="' + yy + '" x2="1896" y2="' + yy + '" stroke="' + S + '"/>';
+  s += '<line x1="372" y1="44" x2="372" y2="108" stroke="' + C.acc + '" stroke-width="2"/><line x1="1090" y1="78" x2="1110" y2="78" stroke="' + C.acc + '"/><line x1="1100" y1="68" x2="1100" y2="88" stroke="' + C.acc + '"/>';
+  svg.innerHTML = s; }
+frame();
+
+let cur = -1, kvAnim = { t0: 0 }, textT = 0;
+const val = v => typeof v === 'function' ? v() : v;
+function setStation(i) {
+  if (i === cur) return; cur = i; const s = ST[i], two = String(i).padStart(2, '0');
+  $('o_stn').textContent = two + ' / 10'; $('o_tab').textContent = 'LP · ' + two + ' / 10'; $('noise').textContent = s.noise; $('bigTop').textContent = s.big;
+  const kj = $('kanji'); kj.textContent = s.kanji; Object.assign(kj.style, i === 0 ? { left: '1560px', top: '160px' } : { left: '-6px', top: '600px' });
+  $('L0').classList.toggle('on', i === 0); $('LS').classList.toggle('on', i > 0); $('L1').classList.toggle('on', i > 0 && i < LAST); $('L10').classList.toggle('on', i === LAST);
+  [...stl.children].forEach((li, k) => { li.className = k < i ? 'done' : k === i ? 'now' : ''; });
+  $('o_read').textContent = two + ' / 10'; $('o_bar').style.width = (i / LAST * 100) + '%';
+  if (i > 0 && i < LAST) { $('o_fig').textContent = s.fig; $('o_figt').textContent = s.figt; $('r_num').textContent = s.num; $('r_en').textContent = s.ren; $('r_h').innerHTML = s.h; $('r_body').textContent = s.body; $('r_kl').textContent = s.kl; $('r_ku').textContent = s.ku; $('r_next').textContent = s.next; liveText(); }
+  $('foot').textContent = 'ARCHIVE/WAVE/RELIGHT/1122/LP — ' + (i === LAST ? 'END OF RECORD' : 'STATION ' + two + (s.fig ? ' · ' + s.fig.replace('. ', '.') : ''));
+  [...rail.children].forEach((d, j) => {
+    if (j === 5) { d.className = 'rb lab' + (i === LAST ? ' now' : ''); d.querySelector('.rt i').textContent = i === LAST ? 'NOW' : ''; d.querySelector('.rd').textContent = i === LAST ? '5 つの式を、筆と光で確かめる' : 'いつでもアプリへ飛べる'; d.href = LAB + (s.lab || ''); return; }
+    const r = RAIL[j], ref = (REF[i] || []).includes(j + 1), st = i < r.at ? 'fut' : i === r.at ? 'now' : ref ? 'ref' : 'done';
+    d.className = 'rb ' + st; d.querySelector('.rt i').textContent = st === 'fut' ? '— 未着' : st === 'now' ? 'NOW' : st === 'ref' ? 'REF · 再登場' : '✓';
+    d.querySelector('.rd').textContent = st === 'fut' ? String(r.at).padStart(2, '0') + ' の駅で入線' : r.d; d.dataset.st = st;
+  });
+  for (const id of ['L0', 'L1', 'L10']) { const el = $(id); el.classList.remove('go'); void el.offsetWidth; if (el.classList.contains('on')) el.classList.add('go'); }
+  kvAnim.t0 = performance.now();
+}
+function liveText() { const s = ST[cur]; if (!s || !s.kn) return; const kn = val(s.kn), wow = val(s.wow); if ($('r_kn').innerHTML !== kn) $('r_kn').innerHTML = kn; if ($('r_wow').textContent !== wow) $('r_wow').textContent = wow; }
+function keyNumber() {
+  const s = ST[cur]; if (!s || !s.kv) return; const v = s.kv(), el = $('r_kv');
+  if (v == null) { el.textContent = '—'; return; } if (typeof v === 'string') { el.textContent = v; return; }
+  const f = RM ? 1 : eo((performance.now() - kvAnim.t0 - 300) / 600); el.textContent = (s.kp || '') + num(v * f, s.kf);
+}
+function railLiveSet() { [...rail.children].forEach((d, j) => { if (j < 5 && d.dataset.st === 'now' && railLive) d.querySelector('.rd').textContent = railLive; }); }
+
+/* ================= スクロール（1 駅＝画面 1 枚・なめらかに追いかける） ================= */
+const track = $('track'); let vh = innerHeight; function size() { vh = innerHeight; track.style.height = (NST * vh) + 'px'; }
+size(); addEventListener('resize', () => { size(); resize(); });
+let P = 0, last = performance.now(), tSec = 0, FIX = null;
+const target = () => FIX != null ? FIX : clamp(scrollY / vh, 0, NST - 1);
+function goTo(i) { scrollTo({ top: i * vh + 2, behavior: RM ? 'auto' : 'smooth' }); }
+addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); goTo(Math.min(NST - 1, Math.floor(P + 0.02) + 1)); } if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); goTo(Math.max(0, Math.ceil(P - 0.02) - 1)); } });
+PHShell.onScale(resize); resize();
+function render(P) {
+  const i = Math.min(NST - 1, Math.floor(P + 1e-6)), a = P - i; setStation(i);
+  ctx.setTransform(SC, 0, 0, SC, 0, 0); ctx.clearRect(0, 0, 1920, 1080);
+  if (i === 0) FIG[0](a, tSec);
+  else if (i < LAST) { plate(PL.x, PL.y, PL.w, PL.h); ctx.save(); ctx.beginPath(); ctx.rect(PL.x, PL.y, PL.w, PL.h); ctx.clip(); railLive = ''; FIG[i](a, tSec); ctx.restore(); }
+  thumb(); keyNumber(); railLiveSet();
+  const now = performance.now(); if (now - textT > 400) { textT = now; liveText(); $('calc').textContent = jobDone ? '' : '計算中 ' + Math.min(99, D.done / D.total * 100).toFixed(0) + '% · ' + D.stage; }
+}
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now; tSec += dt;
+  work(cur === 0 ? 14 : 9);
+  const T = target(); P = RM ? T : P + (T - P) * Math.min(1, dt * 9); if (Math.abs(T - P) < 1e-4) P = T;
+  render(P);
+  requestAnimationFrame(loop);
+}
+// 直リンク：#s=駅&p=駅の中の進み（例 #s=4&p=0.5）・&fix=1＝スクロールせずにその位置で止める（検証・撮影用）
+{ const Q = new URLSearchParams(location.hash.slice(1)); if (Q.has('s')) { const s = clamp(+Q.get('s') + (+Q.get('p') || 0), 0, NST - 1); if (Q.get('fix') === '1') { FIX = s; P = s; } else requestAnimationFrame(() => { scrollTo(0, s * vh); P = s; }); } }
+if (document.fonts) ["13px 'M PLUS 1 Code'", "13px 'IBM Plex Sans JP'", "19px Michroma", "12px 'JetBrains Mono'"].forEach(f => document.fonts.load(f));
+window.__LP = { D, IM, ST, get P() { return P; }, render, work: b => work(b), get jobDone() { return jobDone; }, setP: v => { FIX = v; P = v; render(v); }, view };   // 検証用
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
