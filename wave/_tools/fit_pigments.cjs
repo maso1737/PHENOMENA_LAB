@@ -5,6 +5,7 @@ const fs = require('fs'), path = require('path');
 const FILE = path.join(__dirname, '../_law/ph_pigment.js');
 const PG = require('../_law/ph_pigment.js');
 const { reflOf, render, E_DAY, hexLin, labOfLin, dE, PIGMENTS, PAPER, mixRefl, PID, NP } = PG;
+PG.setSource('shape');   // 目安の形を合わせる（実測の絵具は fit_measured.cjs）
 
 // 初期の形（顔料の種類ごとの目安）。[位置, 幅, 高さ]
 const INIT = {

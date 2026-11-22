@@ -58,12 +58,19 @@
 
 - `wave/relight_poster.html`（本体・サーバ経由 `http://localhost:8231/wave/relight_poster.html`＝ルート launch.json の `phenomena`。file:// でも動くはず＝未確認）＋ `wave/_law/ph_pigment.js`（**絵具の分光反射率・クベルカ–ムンク・光源 7 種・目の慣れの正本**）＋ `wave/_tools/fit_pigments.cjs`（形を POSTER BG の hex に昼光で合わせ直して FIT / RECIPES を書き換える）＋ `wave/_tools/check_relight.cjs`（照合 25 項目）＋ `wave/_assets/papers.js`（POSTER BG の紙の複製）。
 - 仕組み：POSTER BG の筆（毛の束・1 回分の重なり・濡れ・引きずり・にじみ）を**ほぼそのまま移植**し、色 RGB の代わりに「絵具 12 色の量」（RGBA32F × 3 枚・掛けた量のまま＝合計が被覆）を持つ。POSTER BG の合成の式はどれも色の 1 次式なので量の並びにそのまま効く。表示で画素ごとに KM（32 帯）→ 光の重み → XYZ → 目の慣れ → 画面。
-- 絵具：POSTER BG の 16 色のうち 12 色を顔料（段・山・坂の形）、SKY・LAVENDER・INDIGO・OLIVE は 2〜3 色の混色の見本。昼光で hex との差 ΔE 0.06 以下（CERULEAN だけ 2.3＝画面の外）。混色の見本は INDIGO 5.5・OLIVE 9.2（3 色までの混ぜ方の限界）。**実測の顔料データではない（目安）**。
+- 絵具（v0.1・いまは「目安の形」側）：POSTER BG の 16 色のうち 12 色を顔料（段・山・坂の形）、SKY・LAVENDER・INDIGO・OLIVE は 2〜3 色の混色の見本。昼光で hex との差 ΔE 0.06 以下（CERULEAN だけ 2.3＝画面の外）。混色の見本は INDIGO 5.5・OLIVE 9.2（3 色までの混ぜ方の限界）。**実測の顔料データではない（目安）**。
 - 光源：昼光（6500 K 黒体）・夕日（太陽の高さ 0〜60°・レイリー＋もや）・電球・白色 LED・3 波長蛍光灯・水銀灯・ナトリウム灯・描いた光（グラフをなぞる）。目の慣れ 0（カメラ）〜100%。「RGB × で比べる」＝CG の掛け算（昼光の色 × 光の白）。「1 日を回す」48 秒。
 - 実測の結論：水銀灯でバーミリオンが茶に（色相 40°→69°、CG の掛け算は 43° のまま）／ナトリウム灯で目が慣れると全絵具の彩度 0（CG なら 75）／CG の掛け算は白く合わせると昼光と同じ（ΔE 0）。32 帯と 1 nm の差は最大 ΔE 0.67。
 - 動作チェック：全コントロールを内蔵ブラウザで数値確認（光源 8・太陽の高さ・目の慣れ・RGB×・1 日・白を混ぜる・道具 4・太さ・水・量・混ざり（青＋黄で緑 105,185,101）・速さ・SCENE/SKY/CLOUD/CLEAR/UNDO/PNG・スポイト・キー）。見本 `_out/relight/lights_sheet.jpg`。
 - 地雷：表示の読み出し（readPixels）は**上下反転しない**（描いた先の行＝文書の行）。テスト用の `__RELIGHT.stroke` は手ぶれ補正 0（補正があると終点まで届かない）。SCENE は白い紙から（濡れた上に描くと前の絵と混ざって灰色になった）。
-- 検証の出口 `window.__RELIGHT`（`step`・`setLight`・`setAdapt`・`setRgb`・`setCycle`・`setSun`・`readDisplay(x,y,w,h)`・`pickMixAt`・`stroke`・`autoScene(true)`）。直リンク `#light=SODIUM&adapt=1&rgb=1&cycle=1&sun=0&blank=1`。
+- 検証の出口 `window.__RELIGHT`（`step`・`setLight`・`setAdapt`・`setRgb`・`setCycle`・`setSun`・`readDisplay(x,y,w,h)`・`pickMixAt`・`stroke`・`autoScene(true)`・`loadImageUrl`・`setSource`・`mixText`・`IMG`）。直リンク `#light=SODIUM&adapt=1&rgb=1&cycle=1&sun=0&blank=1`。
+
+### v0.2（2026-11-22 同日・ユーザー依頼「実測に差し替え・筋は薄め・画像を読みたい」）
+- **絵具を実測に**：既定は `PG.SOURCE='measured'`。ニッカーの各色の顔料（Blick の Pigment Information で確認：White PW6／Lemon PY3／Chrome Deep PY2+PY1+PO13／Vermilion PO16+PR22／Brilliant Rose PR81／Mauve PV3／Cerulean PB15:3+PW6／Cobalt・Ultramarine PB29／Viridian PG7+PY3／Yellow Ocher PY42／Burnt Sienna PBr7）を、CHSOS Pigments Checker の実測（`wave/_assets/chsos_pigments/`・アクリル・厚紙）で KM 混色して組む＝`wave/_tools/fit_measured.cjs`（約 15 秒・MEASURED と RECIPES を書き直す）。動かすのは混ぜる割合と顔料ごとの「底上げ・倍率」だけ。
+- 昼光の色の差：8 色は ΔE 0.1 以下・Y.OCHRE 1.1・WHITE 2.6・LEMON 5.2・**ROSE 13.8**（PR81 単体はもっと青いピンク＝POSTER BG の hex の方が実物とずれている可能性）。代用：PV3・PO16・PY2/PO13 はデータに無い／セルリアンはフタロの原液が 2% に張り付き形が読めず PB36 で補う（入れないと空が灰色の藤色になった）。
+- 目安の形は `PG.setSource('shape')`（画面の「実測の顔料」ボタンで切り替え）で残してある。照合 `check_relight.cjs` は 40 項目（両方の絵具で 2〜5 を回す＋実測の段の位置がナフトールレッドの測定と ±6 nm）。
+- **厚みの筋**つまみ `P.relief`（既定 0.15）：筆が置くときの毛の筋（`uStreak` × relief/0.5）と凸凹の陰（`uRelief` = relief×0.7）。0.5 が前の版（油絵っぽい）。横縞の正体は表示の陰でなく**置くときの毛の筋**だった（陰を 0 にしても縞の量は変わらなかった）。空の縞の量（高域の SD）0→5.8・0.15→6.1・0.5→7.7・1→13.7。
+- **IMAGE**（ボタン／キャンバスへドロップ）：画素ごとに「12 色をどれだけ混ぜれば昼光でその色か」を解く＝配合 4 万通り（1〜3 色＋白）→ RGB 17³ の格子で最近傍＋その色だけでネルダー–ミード → 画素は格子の 3 次元補間。初回 約 2.7 秒・2 回目から 0.4 秒。紙の色域内の色は ΔE 0.7〜5、黒は無い（最暗＝ウルトラマリン＋バーントシェンナ・#101010 は ΔE 22）。Alt+クリックで「スポイト＝ホワイト 56% ＋ セルリアン 37% …」と配合が出る。見本 `_out/relight/measured_sheet.png`。
 - **ユーザーが見る番**：絵の見え方（特に夕日で空が緑がかる＝青い絵具 × 橙の光、は物理どおりだが絵として好きか）、筆の手応え。
 - 次の候補：POSTER BG 本体に「絵具の量」で持つモードを入れる（今は別ファイル）／実測の顔料データ（ニッカーのポスターカラーを分光測色）に差し替える／W4 空の色の光を直接この絵に当てる。
 

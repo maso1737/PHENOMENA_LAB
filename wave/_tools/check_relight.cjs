@@ -11,11 +11,28 @@ const check = (name, cond, info) => { (cond ? ok++ : ng++); console.log((cond ? 
 const lab = r => labOfLin(r.lin.map(v => Math.max(0, v)));
 const hue = l => (Math.atan2(l[2], l[1]) * 180 / Math.PI + 360) % 360;
 
-console.log('── 1. 昼光で POSTER BG の色に合う');
+console.log('── 1. 昼光で POSTER BG の色に合う（目安の形）');
+PG.setSource('shape');
 for (const p of PIGMENTS) { const d = dE(lab(render(mixRefl(vec({ [p.id]: 1 })), E_DAY, 0)), labOfLin(hexLin(p.hex))); check(p.id.padEnd(12) + ' ' + p.hex, d < 2.5, 'ΔE ' + d.toFixed(2)); }
 { const d = dE(lab(render(REFL_PAPER, E_DAY, 0)), labOfLin(hexLin(PAPER.hex))); check('PAPER        ' + PAPER.hex, d < 1, 'ΔE ' + d.toFixed(2)); }
-for (const r of PG.RECIPES) { const d = dE(lab(render(mixRefl(vec(r.w)), E_DAY, 0)), labOfLin(hexLin(r.hex))); console.log('   （混色の見本）' + r.id.padEnd(9) + r.hex + '  ΔE ' + d.toFixed(2) + '（3 色までの混ぜ方の限界。合否は付けない）'); }
+for (const r of PG.RECIPES) { const d = dE(lab(render(mixRefl(vec(r.w)), E_DAY, 0)), labOfLin(hexLin(r.hex))); console.log('   （混色の見本）' + r.id.padEnd(9) + r.hex + '  ΔE ' + d.toFixed(2) + '（見本の配合は実測の絵具で合わせてある。合否は付けない）'); }
 
+console.log('── 1b. 実測の顔料から組んだ絵具（CHSOS の測定・混ぜる割合と底上げだけ合わせた）');
+PG.setSource('measured');
+{ const ds = PIGMENTS.map(p => { const d = dE(lab(render(mixRefl(vec({ [p.id]: 1 })), E_DAY, 0)), labOfLin(hexLin(p.hex))); const m = PG.MEASURED[p.id]; console.log('   ' + p.id.padEnd(12) + ' ΔE ' + d.toFixed(2).padStart(5) + '  ' + m.ci + (m.sub ? '（' + m.sub + '）' : '')); return d; });
+  const sorted = ds.slice().sort((a, b) => a - b), med = sorted[6];
+  check('実測：12 色すべてに実測の形がある', PIGMENTS.every(p => PG.MEASURED[p.id] && PG.MEASURED[p.id].R5.length === 75));
+  check('実測：昼光の色の差の中央値が 3 未満（形は実測のまま・割合だけで合う）', med < 3, '中央値 ΔE ' + med.toFixed(2) + '・最大 ' + sorted[11].toFixed(2));
+  // 形が実測のまま：バーミリオンの「赤へ上がる段」の位置が、ナフトールレッドの測定と同じ所にある
+  const half = R => { let best = 0, at = 0; for (let l = 565; l <= 695; l++) { const d = R[l + 5 - 380] - R[l - 5 - 380]; if (d > best) { best = d; at = l; } } return at; };   // いちばん急に上がる所（底上げや白で動かない）
+  const raw = require('fs').readFileSync(require('path').join(__dirname, '../_assets/chsos_pigments/spectra/naphthol red.txt'), 'utf8').trim().split(/\r?\n/).map(l => l.trim().split(/\s+/).map(Number));
+  const rawR = new Float64Array(371).map((_, i) => { let s = 0, n = 0; for (const [x, y] of raw) if (Math.abs(x - 380 - i) < 3) { s += y; n++; } return s / n; });
+  const v = half(PG.REFL[PG.PID.VERMILION]), m = half(rawR);
+  check('実測：バーミリオンの「赤へ上がる段」（いちばん急な所）がナフトールレッドの測定と同じ位置（±6 nm）', Math.abs(v - m) <= 6, '絵具 ' + v + ' nm・測定 ' + m + ' nm'); }
+
+for (const SRC of ['shape', 'measured']) {
+PG.setSource(SRC);
+console.log('\n════ ' + (SRC === 'shape' ? '目安の形' : '実測の顔料') + ' で 2〜5');
 console.log('── 2. 32 帯（画面の計算）と 1 nm の差');
 let worst = 0, where = '';
 const mixes = [...PIGMENTS.map(p => vec({ [p.id]: 1 })), vec({ CERULEAN: 0.5, LEMON: 0.5 }), vec({ VERMILION: 0.3, WHITE: 0.7 }), vec({ ULTRAMARINE: 0.6, B_SIENNA: 0.4 }).map(v => v * 0.6)];
@@ -51,6 +68,6 @@ console.log('── 5. 夕日');
 { const r = h => { const w = PG.whiteXYZ(PG.sunAt(h)); return w[0] / (w[0] + w[1] + w[2]); };
   check('太陽が低いほど赤い（色度 x：60° > 10° > 2°）', r(2) > r(10) && r(10) > r(60), 'x ' + [60, 10, 2].map(h => r(h).toFixed(3)).join(' → '));
   check('エアマス：真上 1・地平線で約 38', Math.abs(PG.airmass(90) - 1) < 0.01 && Math.abs(PG.airmass(0) - 38) < 1, PG.airmass(90).toFixed(3) + ' / ' + PG.airmass(0).toFixed(1)); }
-
+}
 console.log('\n' + ok + ' OK / ' + ng + ' NG');
 process.exit(ng ? 1 : 0);

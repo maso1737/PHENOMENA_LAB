@@ -124,12 +124,16 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
       <div id="swatches"></div>
       <div id="swName"></div>
       <div class="note">マスの左上＝昼光の色・右下＝いまの光の色。後ろ 4 色は 2〜3 色を混ぜた見本。</div>
+      <div class="row" style="margin-top:6px">
+        <button class="bt" id="tg-src" style="flex:1">実測の顔料<span class="k" id="src-k">CHSOS の測定から組んだ絵具（押すと目安の形と比べる）</span></button>
+      </div>
       <div class="ctl" data-c="whiteMix"><label>白を混ぜる</label><input type="range" id="s-whiteMix"><output id="v-whiteMix"></output></div>
       <div class="row" id="tools" style="margin-top:6px"></div>
       <div class="ctl" data-c="size"><label>太さ</label><input type="range" id="s-size"><output id="v-size"></output></div>
       <div class="ctl" data-c="water"><label>水</label><input type="range" id="s-water"><output id="v-water"></output></div>
       <div class="ctl" data-c="load"><label>絵具の量</label><input type="range" id="s-load"><output id="v-load"></output><div class="why" id="c-load"></div></div>
       <div class="ctl" data-c="blend"><label>混ざり</label><input type="range" id="s-blend"><output id="v-blend"></output><div class="why" id="c-blend"></div></div>
+      <div class="ctl" data-c="relief"><label>厚みの筋</label><input type="range" id="s-relief"><output id="v-relief"></output><div class="why">毛の筋（濃淡）は次に描く筆から・凸凹の陰はすぐ効く。0＝平ら〜0.5＝前の版（油絵っぽい）〜1</div></div>
     </div>
 
     <div class="sec">
@@ -141,7 +145,10 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
         <button class="bt" id="b-clear">CLEAR<span class="k">紙に戻す</span></button>
         <button class="bt" id="b-undo">UNDO<span class="k">Ctrl+Z</span></button>
         <button class="bt" id="b-save">PNG<span class="k">いまの光で保存</span></button>
+        <button class="bt" id="b-image">IMAGE<span class="k">画像を絵具に分解</span></button>
       </div>
+      <input type="file" id="f-image" accept="image/*" style="display:none">
+      <div class="note">IMAGE：写真や絵を読み込むと、画素ごとに「どの絵具をどれだけ混ぜればその色になるか」（昼光で）を解いて紙に置く。光を替えると、その絵が絵具として変わる。キャンバスへドロップでも読める。<b>Alt+クリックで、その場所の配合が出る。</b>黒の絵具は無いので、いちばん暗いのはウルトラマリン＋バーントシェンナ。</div>
       <div class="ctl" data-c="speed"><label>描く速さ</label><input type="range" id="s-speed"><output id="v-speed"></output></div>
     </div>
 
@@ -155,7 +162,7 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
     <div class="sec">
       <div class="hd"><span class="en">KEYS</span></div>
       <div id="keys"><b>1–4</b> 筆　<b>[ ]</b> 太さ　<b>X</b> A⇄B　<b>Alt+クリック</b> スポイト（絵具の配合ごと拾う）<br><b>L</b> 次の光　<b>R</b> RGB × で比べる　<b>Ctrl+Z</b> / <b>Ctrl+Shift+Z</b>　<b>Ctrl+S</b> PNG　<b>Esc</b> 自動を止める</div>
-      <div class="note">正直に：絵具の返す割合は POSTER BG の色に昼光で合わせた「顔料らしい形」の目安（実測ではない）。昼光は 6500 K の黒体で代用。混ぜ方はクベルカ–ムンク（単一定数）。画面の計算は 32 本の帯（1 nm の計算との差は ΔE 1 未満）。法則：<code>_law/ph_pigment.js</code>・照合：<code>node wave/_tools/check_relight.cjs</code>。</div>
+      <div class="note">正直に：絵具の返す割合は、ニッカーの各色に入っている顔料（Blick の顔料表示）を CHSOS Pigments Checker の実測（アクリル・厚紙の上）で混ぜて組んだもの。動かしたのは混ぜる割合と「底上げ」（表面の照り返し・透け）だけで、山や段の位置は測定のまま。PV3・PO16・PY2 はデータに無いので近い顔料で代用、セルリアンはフタロの原液が暗すぎて形が測れていないので PB36 で補った。ニッカーの絵具そのものを測った値ではない。昼光は 6500 K の黒体で代用。混ぜ方はクベルカ–ムンク（単一定数）。画面の計算は 32 本の帯（1 nm の計算との差は ΔE 1 未満）。法則：<code>_law/ph_pigment.js</code>・照合：<code>node wave/_tools/check_relight.cjs</code>。</div>
     </div>
   </aside>
 </div>
@@ -188,7 +195,7 @@ const TOOL_ID = { flat: 0, hake: 1, round: 2, lift: 3 };
 const TOOL_LABEL = { flat: ['FLAT', '平筆'], hake: ['HAKE', '刷毛'], round: ['ROUND', '削用筆'], lift: ['LIFT', '拭き取り'] };
 const LS_KEY = 'relightposter.params.v1';
 const DEF = { tool: 'flat', a: 'VERMILION', b: 'WHITE', whiteMix: 0, sizes: { flat: 90, hake: 240, round: 34, lift: 70 },
-  water: 0.45, load: 0.6, blend: 0.45, speed: 3, light: 'DAY', sunAlt: 3, adapt: 0.5 };
+  water: 0.45, load: 0.6, blend: 0.45, relief: 0.15, speed: 3, light: 'DAY', sunAlt: 3, adapt: 0.5 };
 const P = JSON.parse(JSON.stringify(DEF));
 try { const s = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); if (s) for (const k in P) if (k in s && k !== 'a' && k !== 'b') P[k] = k === 'sizes' ? Object.assign(P.sizes, s.sizes) : s[k]; } catch (e) { /* */ }
 const persist = () => { try { const o = Object.assign({}, P); delete o.a; delete o.b; localStorage.setItem(LS_KEY, JSON.stringify(o)); } catch (e) { /* */ } };
@@ -549,7 +556,10 @@ const paperReady = new Promise(res => {
   const src = window.POSTER_PAPERS && window.POSTER_PAPERS.scan; if (!src) { res(); return; }
   const im = new Image(); im.onload = () => { try { setPaperData(analyzePaper(im)); } catch (e) { console.warn(e); } res(); }; im.onerror = () => res(); im.src = src;
 });
-const GRAIN = 0.55, RELIEF = 0.35;
+const GRAIN = 0.55;
+/* 厚みの筋 P.relief（0〜1）：筆が置く絵具の毛の筋（濃淡・かすれ）と、凸凹の陰の両方。0.5 ＝ 前の版（POSTER BG と同じ・油絵っぽい） */
+const streakK = () => P.relief / 0.5;
+const reliefK = () => P.relief * 0.7;
 
 /* ════════════════ 絵の状態 ════════════════ */
 const E = { W: 1920, H: 1080, cur: null, tmp: null, dab: null, dab2: null, dabFbo: null, res: [], undo: [], redo: [], pool: [], maxUndo: 6, stroke: null, wetUntil: 0, dryZeroed: true, dryTime: 24, bleed: 0.25 };
@@ -654,7 +664,7 @@ function flushStroke () {
   gl.enable(gl.BLEND); gl.blendEquation(gl.MAX); gl.blendFunc(gl.ONE, gl.ONE);
   gl.useProgram(PR.stamp.p); const u = PR.stamp.u;
   gl.uniform2f(u.uDoc, W, H); gl.uniform1i(u.uType, TOOL_ID[cfg.tool]); gl.uniform1f(u.uWater, cfg.water);
-  gl.uniform1f(u.uStreak, cfg.tool === 'round' ? cfg.streak * 0.8 : cfg.streak);
+  gl.uniform1f(u.uStreak, Math.min(1, (cfg.tool === 'round' ? cfg.streak * 0.8 : cfg.streak) * streakK()));
   gl.uniform1f(u.uBristleN, Math.max(6, st.lastR * 2 / (cfg.tool === 'hake' ? 1.7 : 1.35)) / (E.W / 1920));
   gl.uniform1f(u.uKara, cfg.kara ? 1 : 0);
   gl.uniform1i(u.uPaper, bindTex(0, paperTex)); gl.uniform2f(u.uPaperUV, 1 / paperSize[0], 1 / paperSize[1]);
@@ -742,7 +752,7 @@ function drawDisplay (offX, offY, scale, canvasH, flip) {
   bindLayer(PR.disp, E.cur, 0); gl.uniform1i(u.uPaper, bindTex(4, paperTex));
   gl.uniform2f(u.uDoc, E.W, E.H); gl.uniform2f(u.uOff, offX, offY); gl.uniform1f(u.uScale, scale); gl.uniform1f(u.uCanvasH, canvasH); gl.uniform1f(u.uFlip, flip);
   gl.uniform2f(u.uPaperUV, 1 / paperSize[0], 1 / paperSize[1]); gl.uniform2f(u.uPaperTexel, 1 / paperSize[0], 1 / paperSize[1]);
-  gl.uniform1f(u.uGrain, GRAIN); gl.uniform1f(u.uRelief, RELIEF); gl.uniform1f(u.uRgb, S.rgb ? 1 : 0);
+  gl.uniform1f(u.uGrain, GRAIN); gl.uniform1f(u.uRelief, reliefK()); gl.uniform1f(u.uRgb, S.rgb ? 1 : 0);
   gl.uniform4fv(u.uKS, U.KS); gl.uniform4fv(u.uRP, U.RP); gl.uniform4fv(u.uWX, U.WX); gl.uniform4fv(u.uWY, U.WY); gl.uniform4fv(u.uWZ, U.WZ);
   gl.uniformMatrix3fv(u.uM, false, U.M); gl.uniform3f(u.uLightRGB, U.LRGB[0], U.LRGB[1], U.LRGB[2]);
   drawFull();
@@ -932,6 +942,97 @@ function autoSky () { const items = []; skyItems(items, mixV(colA, W_, P.whiteMi
 function autoCloud () { const rnd = mulberry32((Math.random() * 1e9) | 0), items = [{ action: () => dryAll() }], cw = E.W * lerp(0.2, 0.32, rnd());
   cloudItems(items, rnd, E.W * lerp(0.22, 0.78, rnd()), E.H * lerp(0.4, 0.6, rnd()), cw, cw * lerp(0.5, 0.78, rnd()), 0, V({ CERULEAN: 0.62, COBALT: 0.08, WHITE: 0.3 }), W_); Robot.run(items); }
 
+/* ════════════════ 画像 → 絵具の配合 ════════════════
+   画素の色（sRGB）ごとに「12 色をどれだけ混ぜれば、昼光の下でその色になるか」を解く。
+   1. ランダムな配合（1〜3 色＋白）を 4 万通り作り、昼光での Lab を計算（32 帯・画面と同じ式）
+   2. RGB を 17³ の格子にして、各点にいちばん近い配合を選び、その色だけでネルダー–ミードで詰める
+   3. 画素は格子から 3 次元の直線補間（配合どうしを混ぜる＝絵具を混ぜるのと同じ）
+   絵具を替えたら（実測⇄目安）作り直す。 */
+const IMG = { lut: null, lutSrc: null, src: null, G: 17, busy: false, lastErr: null, lutErr: null };
+const srgbLin = v => v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+function dayLab () {
+  const B = PG.bands(PG.E_DAY), M = PG.viewMatrix(PG.E_DAY, 0), KS = B.KS, W = B.W, RP = B.RP;
+  return w => { let a = 0; for (let j = 0; j < NP; j++) a += w[j]; const xyz = [0, 0, 0];
+    for (let b = 0; b < NB; b++) { let r = RP[b]; if (a > 1e-6) { let k = 0; for (let j = 0; j < NP; j++) if (w[j]) k += w[j] * KS[j][b]; k /= a; r = 1 + k - Math.sqrt(k * k + 2 * k); }
+      xyz[0] += r * W[b][0]; xyz[1] += r * W[b][1]; xyz[2] += r * W[b][2]; }
+    return PG.labOfLin(PG.mv(M, xyz).map(v => Math.max(0, v))); };
+}
+const tick = () => new Promise(r => setTimeout(r, 0));
+async function buildLut (progress) {
+  const lab = dayLab(), rnd = mulberry32(4711), WI = PG.PID.WHITE, others = [...Array(NP).keys()].filter(j => j !== WI);
+  const NS = 40000, SW_ = new Float32Array(NS * NP), SL_ = new Float32Array(NS * 3);
+  for (let s = 0; s < NS; s++) {
+    const w = new Array(NP).fill(0), k = s < NP ? 0 : 1 + Math.floor(rnd() * 3);
+    if (s < NP) w[s] = 1;
+    else { for (let q = 0; q < k; q++) w[others[Math.floor(rnd() * others.length)]] += 0.05 + rnd(); const sum = w.reduce((p, v) => p + v, 0), t = Math.pow(rnd(), 1.3);
+      for (let j = 0; j < NP; j++) w[j] = w[j] / sum * (1 - t); w[WI] += t; }
+    const L = lab(w); SW_.set(w, s * NP); SL_[s * 3] = L[0]; SL_[s * 3 + 1] = L[1]; SL_[s * 3 + 2] = L[2];
+    if (s % 4000 === 0) { progress('配合の見本 ' + Math.round(s / NS * 100) + '%'); await tick(); }
+  }
+  const G = IMG.G, lut = new Float32Array(G * G * G * NP); let errSum = 0, errMax = 0;
+  const toW = (x, idx) => { const e = x.map(v => Math.exp(Math.max(-30, Math.min(30, v)))), sm = e.reduce((p, v) => p + v, 0), w = new Array(NP).fill(0); idx.forEach((j, i) => { w[j] = e[i] / sm; }); return w; };
+  for (let bi = 0; bi < G; bi++) {
+    for (let gi = 0; gi < G; gi++) for (let ri = 0; ri < G; ri++) {
+      const T = PG.labOfLin([srgbLin(ri / (G - 1)), srgbLin(gi / (G - 1)), srgbLin(bi / (G - 1))]);
+      let best = 0, bd = 1e9; for (let s = 0; s < NS; s++) { const d = (SL_[s * 3] - T[0]) ** 2 + (SL_[s * 3 + 1] - T[1]) ** 2 + (SL_[s * 3 + 2] - T[2]) ** 2; if (d < bd) { bd = d; best = s; } }
+      const w0 = Array.from(SW_.subarray(best * NP, best * NP + NP)), idx = []; for (let j = 0; j < NP; j++) if (w0[j] > 1e-4) idx.push(j);
+      let w = w0, f = Math.sqrt(bd);
+      if (idx.length > 1 && f > 0.5) {   // その配合の色だけで詰める（色の数は増やさない＝絵描きが混ぜる数のまま）
+        const fn = x => { const L = lab(toW(x, idx)); return Math.hypot(L[0] - T[0], L[1] - T[1], L[2] - T[2]); };
+        const n = idx.length; let P_ = [idx.map(j => Math.log(w0[j]))]; for (let i = 0; i < n; i++) { const x = P_[0].slice(); x[i] += 0.7; P_.push(x); }
+        let F = P_.map(fn);
+        for (let it = 0; it < 70 * n; it++) {
+          const o = F.map((_, i) => i).sort((a, b) => F[a] - F[b]); P_ = o.map(i => P_[i]); F = o.map(i => F[i]);
+          const c = new Array(n).fill(0); for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) c[j] += P_[i][j] / n;
+          const at = t => c.map((v, j) => v + t * (P_[n][j] - v)), xr = at(-1), fr = fn(xr);
+          if (fr < F[0]) { const xe = at(-2), fe = fn(xe); if (fe < fr) { P_[n] = xe; F[n] = fe; } else { P_[n] = xr; F[n] = fr; } }
+          else if (fr < F[n - 1]) { P_[n] = xr; F[n] = fr; }
+          else { const xc = at(0.5), fc = fn(xc); if (fc < F[n]) { P_[n] = xc; F[n] = fc; } else for (let i = 1; i <= n; i++) { P_[i] = P_[i].map((v, j) => P_[0][j] + 0.5 * (v - P_[0][j])); F[i] = fn(P_[i]); } }
+        }
+        if (F[0] < f) { w = toW(P_[0], idx); f = F[0]; }
+      }
+      lut.set(w, ((bi * G + gi) * G + ri) * NP); errSum += f; errMax = Math.max(errMax, f);
+    }
+    progress('配合を解く ' + Math.round((bi + 1) / G * 100) + '%'); await tick();
+  }
+  IMG.lutErr = { mean: errSum / (G * G * G), max: errMax };
+  return lut;
+}
+/* 画像を紙いっぱいに（はみ出す所は切る）置く */
+async function loadImage (img) {
+  if (IMG.busy) return; IMG.busy = true; Robot.stop(); finishStroke();
+  const badge = $('#robot'), say = t => { badge.textContent = t; badge.classList.add('on'); };
+  try {
+    if (!IMG.lut || IMG.lutSrc !== PG.SOURCE) { IMG.lut = await buildLut(say); IMG.lutSrc = PG.SOURCE; }
+    say('画像を絵具に置き換え中'); await tick();
+    const W = E.W, H = E.H, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const cx = c.getContext('2d', { willReadFrequently: true }), s = Math.max(W / img.width, H / img.height);
+    cx.fillStyle = '#fff'; cx.fillRect(0, 0, W, H);
+    cx.drawImage(img, (W - img.width * s) / 2, (H - img.height * s) / 2, img.width * s, img.height * s);
+    const px = cx.getImageData(0, 0, W, H).data, G = IMG.G, lut = IMG.lut, out = [0, 1, 2].map(() => new Float32Array(W * H * 4)), wv = new Float32Array(NP);
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 4, fr = px[i] / 255 * (G - 1), fg = px[i + 1] / 255 * (G - 1), fb = px[i + 2] / 255 * (G - 1);
+        const r0 = Math.min(G - 2, fr | 0), g0 = Math.min(G - 2, fg | 0), b0 = Math.min(G - 2, fb | 0), tr = fr - r0, tg = fg - g0, tb = fb - b0;
+        wv.fill(0);
+        for (let k = 0; k < 8; k++) { const dr = k & 1, dg = (k >> 1) & 1, db = k >> 2, wt = (dr ? tr : 1 - tr) * (dg ? tg : 1 - tg) * (db ? tb : 1 - tb); if (wt < 1e-6) continue;
+          const o = (((b0 + db) * G + (g0 + dg)) * G + (r0 + dr)) * NP; for (let j = 0; j < NP; j++) wv[j] += wt * lut[o + j]; }
+        for (let j = 0; j < NP; j++) out[j >> 2][i + (j & 3)] = wv[j];
+      }
+      if (y % 270 === 269) { say('画像を絵具に置き換え中 ' + Math.round((y + 1) / H * 100) + '%'); await tick(); }
+    }
+    pushUndo();
+    for (let t = 0; t < 3; t++) { gl.bindTexture(gl.TEXTURE_2D, E.cur.tex[t]); gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, W, H, gl.RGBA, gl.FLOAT, out[t]); }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, E.cur.one[3]); gl.clearBufferfv(gl.COLOR, 0, [0, 0, 0, 0]); clearLayer(E.tmp);
+    E.wetUntil = 0; E.dryZeroed = true; IMG.src = img;
+  } catch (err) { console.error(err); IMG.lastErr = String(err.message || err); }
+  badge.textContent = 'AUTO PAINTING'; badge.classList.remove('on'); IMG.busy = false;
+}
+function loadImageFile (file) { if (!file || !/^image\//.test(file.type)) return; const u = URL.createObjectURL(file), im = new Image(); im.onload = () => { loadImage(im).then(() => URL.revokeObjectURL(u)); }; im.src = u; }
+const loadImageUrl = url => new Promise((res, rej) => { const im = new Image(); im.onload = () => loadImage(im).then(res); im.onerror = rej; im.src = url; });
+/* 配合を言葉に（多い順に 4 つまで） */
+const mixText = w => { const a = w.reduce((p, q) => p + q, 0) || 1; return w.map((v, j) => [j, v / a]).filter(q => q[1] >= 0.01).sort((p, q) => q[1] - p[1]).slice(0, 4).map(([j, v]) => PG.PIGMENTS[j].jp + ' ' + Math.round(v * 100) + '%').join(' ＋ '); };
+
 /* ════════════════ 入力 ════════════════ */
 const cursorEl = $('#cursor');
 const pointer = { down: false, id: -1, lastT: 0, lastX: 0, lastY: 0, press: 1, client: null, alt: false };
@@ -945,7 +1046,7 @@ function pressureOf (e, x, y) {
 }
 cv.addEventListener('pointerdown', e => {
   if (e.button !== 0) return; const [x, y] = toDoc(e);
-  if (e.altKey) { const w = pickMixAt(x, y), a = w.reduce((p, q) => p + q, 0); setA(a < 0.05 ? one('WHITE') : normV(w), a < 0.05 ? '紙（→ ホワイト）' : 'スポイト（配合ごと）'); return; }
+  if (e.altKey) { const w = pickMixAt(x, y), a = w.reduce((p, q) => p + q, 0); setA(a < 0.05 ? one('WHITE') : normV(w), a < 0.05 ? '紙（→ ホワイト）' : 'スポイト＝' + mixText(w)); return; }
   if (Robot.active) Robot.stop();
   try { cv.setPointerCapture(e.pointerId); } catch (err) { /* */ }
   pointer.down = true; pointer.id = e.pointerId; pointer.lastT = e.timeStamp; pointer.lastX = x; pointer.lastY = y; pointer.press = 1;
@@ -990,6 +1091,7 @@ const SL = [
   { id: 'water', min: 0, max: 1, step: 0.01, fmt: v => v.toFixed(2) },
   { id: 'load', min: 0, max: 1, step: 0.01, fmt: v => v.toFixed(2) },
   { id: 'blend', min: 0, max: 1, step: 0.01, fmt: v => v.toFixed(2) },
+  { id: 'relief', min: 0, max: 1, step: 0.01, fmt: v => v.toFixed(2) },
   { id: 'speed', min: 0.25, max: 8, step: 0.25, fmt: v => v.toFixed(2) + '×' }
 ];
 const slGet = c => c.get ? c.get() : P[c.id];
@@ -1006,11 +1108,21 @@ $('#b-cloud').addEventListener('click', autoCloud);
 $('#b-clear').addEventListener('click', () => { Robot.stop(); clearCanvas(); });
 $('#b-undo').addEventListener('click', doUndo);
 $('#b-save').addEventListener('click', savePng);
+$('#b-image').addEventListener('click', () => $('#f-image').click());
+$('#f-image').addEventListener('change', e => { loadImageFile(e.target.files[0]); e.target.value = ''; });
+main.addEventListener('dragover', e => { e.preventDefault(); });
+main.addEventListener('drop', e => { e.preventDefault(); const f = e.dataTransfer && e.dataTransfer.files[0]; if (f) loadImageFile(f); });
+/* 実測の顔料 ⇄ 目安の形 */
+function setSource (src) { PG.setSource(src); S.dirtyLight = true; IMG.lut = null; syncUI(); applyLight(); drawSwatches(); }
+$('#tg-src').addEventListener('click', () => setSource(PG.SOURCE === 'measured' ? 'shape' : 'measured'));
 /* 条件つきのつまみ：効かないときは薄くして理由を書く */
 function syncUI () {
   $$('#lights .bt').forEach(b => b.classList.toggle('on', !S.cycle && b.dataset.light === S.light));
   $$('#tools .bt').forEach(b => b.classList.toggle('on', b.dataset.tool === P.tool));
   $('#tg-rgb').classList.toggle('on', S.rgb); $('#tg-cycle').classList.toggle('on', S.cycle);
+  const meas = PG.SOURCE === 'measured'; $('#tg-src').classList.toggle('on', meas);
+  $('#tg-src').firstChild.textContent = meas ? '実測の顔料' : '目安の形';
+  $('#src-k').textContent = meas ? 'CHSOS の測定から組んだ絵具（押すと目安の形と比べる）' : '顔料らしい形を色に合わせただけ（押すと実測に戻す）';
   const sunOk = !S.cycle && S.light === 'SUNSET';
   $('.ctl[data-c="sunAlt"]').classList.toggle('na', !sunOk); $('#s-sunAlt').disabled = !sunOk;
   $('#c-sunAlt').textContent = sunOk ? '0°＝地平線（赤い）〜 60°（ほぼ昼）' : (S.cycle ? '1 日を回している間は自動' : '「夕日」のときだけ');
@@ -1026,7 +1138,9 @@ SWATCHES.forEach(s => {
   const c = document.createElement('canvas'); c.width = 40; c.height = 40; b.appendChild(c);
   b.addEventListener('click', () => { setA(s.w.slice(), s.id); });
   b.addEventListener('contextmenu', e => { e.preventDefault(); colB = s.w.slice(); nameB = s.id; P.b = s.id; markSwatches(); });
-  b.addEventListener('mouseenter', () => { $('#swName').textContent = s.jp + ' · ' + s.en + (s.recipe ? '　＝ ' + Object.entries(s.recipe).map(([k, v]) => SW[k].jp + ' ' + Math.round(v * 100) + '%').join(' ＋ ') : ''); });
+  b.addEventListener('mouseenter', () => { const m = PG.MEASURED[s.id];
+    $('#swName').textContent = s.jp + ' · ' + s.en + (s.recipe ? '　＝ ' + Object.entries(s.recipe).map(([k, v]) => SW[k].jp + ' ' + Math.round(v * 100) + '%').join(' ＋ ') : '') +
+      (m && PG.SOURCE === 'measured' ? '　顔料 ' + m.ci + (m.sub ? '（' + m.sub + '）' : '') : ''); });
   $('#swatches').appendChild(b); swEls.push({ s, b, c });
 });
 function setA (w, name) { colA = w; nameA = name; if (SW[name]) P.a = name; markSwatches(); updateCheck(); $('#swName').textContent = '色 A：' + (SW[name] ? SW[name].jp : name); }
@@ -1133,7 +1247,7 @@ window.__RELIGHT = {
   setCycle: (v, t) => { S.cycle = !!v; if (t != null) S.cycleT = t; S.dirtyLight = true; syncUI(); },
   setSun: h => { P.sunAlt = h; S.dirtyLight = true; syncUI(); },
   stroke: (pts, cfg) => { beginStroke(pts[0][0], pts[0][1], 1, Object.assign(userCfg(), { stab: 0 }, cfg)); for (const p of pts.slice(1)) moveStroke(p[0], p[1], 1); finishStroke(); },
-  clear: () => { Robot.stop(); clearCanvas(); }, view
+  clear: () => { Robot.stop(); clearCanvas(); }, view, IMG, loadImageUrl, loadImage, setSource, mixText, streakK, reliefK
 };
 })();
 </script>
