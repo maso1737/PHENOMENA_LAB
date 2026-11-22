@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E1 PUSH &amp; CARVE 解説 LP — PHENOMENA LAB</title>
+<link rel="stylesheet" href="../../_shell/shell.css">
+<style>
+  /* E1 のアクセント＝黄。見本：earth/scroll/_design（Claude Design・10 駅＋部品） */
+  :root { --accent: #F3D21C; --accent-ink: #0B0B0A; --accent-line: #F3D21C; }
+  html, body { height: auto; overflow-x: hidden; overflow-y: auto; }
+  #track { position: relative; width: 1px; pointer-events: none; }
+  .ph-viewport { z-index: 1; }
+  #cv { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; }
+  .ab { position: absolute; }
+  .lay { position: absolute; inset: 0; pointer-events: none; transition: opacity .25s; opacity: 0; }
+  .lay.on { opacity: 1; }
+  .lay.on .hit { pointer-events: auto; }
+
+  /* ヘッダ */
+  .brand b { display: block; width: 300px; font: 400 22px/1.35 var(--f-wide); letter-spacing: .24em; color: var(--ink); }
+  .brand span { display: block; margin-top: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .2em; color: var(--accent-line); }
+  .ids { display: grid; grid-template-columns: 96px 1fr; row-gap: 6px; width: 340px; font-size: 11px; }
+  .ids dt { font-family: var(--f-thin); letter-spacing: .18em; color: var(--ink-2); }
+  .ids dd { margin: 0; font-family: var(--f-num); color: var(--ink); }
+  .tab { left: 1704px; top: 24px; width: 176px; height: 152px; background: var(--accent); color: var(--accent-ink); padding: 18px 18px 0; }
+  .tab .k { display: flex; justify-content: space-between; font: 600 13px/1 var(--f-thin); letter-spacing: .24em; }
+  .tab .n { font: 400 62px/1 var(--f-wide); margin-top: 12px; }
+  .tab .s { font: 400 12px/1 var(--f-num); margin-top: 10px; }
+  .noise { left: 1130px; top: 44px; font: 400 8.5px/13px var(--f-num); color: var(--ink); opacity: .2; white-space: pre; }
+  #bigTop { left: 1100px; top: 36px; width: 590px; text-align: right; font: 400 72px/1 var(--f-wide); color: var(--accent); opacity: .16; white-space: nowrap; }
+  #kanji { font: 500 300px/1 var(--f-jp); color: var(--accent); opacity: .12; white-space: nowrap; }
+  #kanji.num { font: 400 200px/1 var(--f-wide); }
+
+  /* 00 問い */
+  .band { left: 32px; top: 136px; width: 1316px; height: 330px; background: var(--accent); color: var(--accent-ink); padding: 34px 48px; }
+  .band .f { font: 600 13px/1 var(--f-thin); letter-spacing: .42em; }
+  .band h1 { margin: 26px 0 0; font: 400 128px/118px var(--f-wide); letter-spacing: -.01em; }
+  .q { left: 1376px; top: 190px; width: 480px; }
+  .q .k { font: 600 12px/1 var(--f-thin); letter-spacing: .3em; color: var(--accent-line); }
+  .q p { margin: 22px 0 0; font: 500 28px/1.55 var(--f-jp); color: var(--ink); }
+  .howto { left: 40px; top: 486px; width: 212px; }
+  .howto h3, .stl h3 { margin: 0; display: flex; align-items: center; gap: 10px; font: 400 15px/1 var(--f-wide); letter-spacing: .16em; color: var(--ink); }
+  .howto h3 i, .stl h3 i, .railk i { width: 10px; height: 10px; background: var(--accent); }
+  .howto .st { border-bottom: 1px solid var(--line-sub); padding: 18px 0 14px; }
+  .howto .st span { display: block; font: 600 10px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .howto .st b { font: 400 28px/1 var(--f-num); color: var(--ink); margin-right: 10px; }
+  .howto .st small { font: 400 12px/1 var(--f-jp); color: var(--ink-2); }
+  .hint { font: 600 11px/1 var(--f-thin); letter-spacing: .24em; color: var(--accent-line); }
+  .hint em, .nextk em { font-style: normal; display: inline-block; animation: bob 1.2s ease-in-out infinite; }
+  @keyframes bob { 0%, 100% { transform: translateY(-2px); } 50% { transform: translateY(3px); } }
+
+  /* 駅の一覧 */
+  .stl { left: 40px; top: 140px; width: 212px; }
+  .stl ol { list-style: none; margin: 16px 0 0; padding: 0; }
+  .stl li { display: flex; align-items: center; height: 45px; padding: 0 10px; border-bottom: 1px solid var(--line-sub); cursor: pointer; color: var(--ink-3); }
+  .stl li u { text-decoration: none; font: 400 12px/1 var(--f-num); width: 32px; }
+  .stl li b { font: 400 14px/1 var(--f-jp); flex: 1; }
+  .stl li s { text-decoration: none; font: 600 9px/1 var(--f-thin); letter-spacing: .14em; }
+  .stl li.done { color: var(--ink); }
+  .stl li.done s::before { content: '✓'; font-size: 11px; color: var(--ink-2); }
+  .stl li.done s { font-size: 0; }
+  .stl li.now { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .stl li.now b { font-weight: 500; }
+  .stl li.now s { font-size: 0; }
+  .stl li.now s::after { content: '◀ NOW'; font-size: 9px; }
+  .stl li:hover:not(.now) { color: var(--ink); background: rgba(232,230,223,.04); }
+  .read { margin-top: 26px; display: flex; justify-content: space-between; font: 600 10px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .read b { font: 400 12px/1 var(--f-num); color: var(--ink); }
+  .bar { margin-top: 8px; height: 5px; background: rgba(232,230,223,.1); }
+  .bar i { display: block; height: 100%; background: var(--accent); width: 0; }
+
+  /* 図の札 */
+  .figtag { left: 302px; top: 168px; height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: #0B0B0A; color: var(--ink); }
+  .figtag i { width: 10px; height: 10px; background: var(--accent); }
+  .figtag b { font: 400 15px/1 var(--f-wide); letter-spacing: .1em; }
+  .figtag span { font: 500 12px/1 var(--f-jp); }
+  .brkchip { left: 1166px; top: 168px; height: 30px; padding: 0 12px; display: flex; align-items: center; gap: 8px; background: #0B0B0A; color: var(--ink); font: 600 11px/1 var(--f-thin); letter-spacing: .2em; }
+  .brkchip b { font: 500 12px/1 var(--f-jp); letter-spacing: 0; }
+
+  /* 右の欄 */
+  .rc { left: 1360px; top: 158px; width: 520px; display: flex; flex-direction: column; }
+  .rc .hd { display: flex; align-items: baseline; gap: 22px; }
+  .rc .num { font: 400 82px/1 var(--f-wide); color: var(--accent-line); }
+  .rc .en { font: 600 12px/1 var(--f-thin); letter-spacing: .24em; color: var(--ink-2); }
+  .rc h2 { margin: 18px 0 0; font: 500 40px/1.38 var(--f-jp); color: var(--ink); letter-spacing: .02em; }
+  .rc .body { margin: 20px 0 0; font: 400 16px/1.78 var(--f-jp); color: var(--ink); padding-bottom: 20px; border-bottom: 1px solid var(--line-main); }
+  .rc .kl { margin-top: 20px; font: 600 10px/1 var(--f-thin); letter-spacing: .22em; color: var(--ink-2); }
+  .rc .kv { margin-top: 10px; display: flex; align-items: baseline; gap: 12px; }
+  .rc .kv b { font: 400 64px/1 var(--f-num); color: var(--accent-line); }
+  .rc .kv span { font: 400 18px/1 var(--f-num); color: var(--ink-2); }
+  .rc .kn { margin-top: 12px; font: 400 13px/1.6 var(--f-jp); color: var(--ink-2); }
+  .rc .kn sup { font-size: 9px; }
+  .rc .wow { margin-top: 18px; display: flex; gap: 12px; font: 400 14px/1.65 var(--f-jp); color: var(--ink); }
+  .rc .wow i { flex: none; font: 600 10px/1 var(--f-jp); background: var(--ink); color: #0B0B0A; padding: 5px 8px; height: 20px; margin-top: 2px; font-style: normal; }
+  .nextk { left: 1360px; top: 838px; width: 520px; display: flex; align-items: center; gap: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .24em; color: var(--ink-2); }
+  .nextk hr { flex: 1; border: 0; border-top: 1px solid var(--line-sub); margin: 0; }
+  .nextk span { font: 500 13px/1 var(--f-jp); letter-spacing: 0; color: var(--ink); }
+  .nextk span small { font-size: 12px; color: var(--ink-2); margin-right: 10px; }
+
+  /* 文字の入り方：左から（0.26〜0.34 秒） */
+  .in { clip-path: inset(0 100% 0 0); }
+  .go .in { animation: wipe .32s cubic-bezier(.2,.8,.2,1) forwards; animation-delay: calc(var(--d, 0) * 60ms); }
+  @keyframes wipe { from { clip-path: inset(0 100% 0 0); transform: translateX(-10px); } to { clip-path: inset(0 0 0 0); transform: none; } }
+
+  /* 09 持ち出す */
+  .endh { left: 284px; top: 160px; display: flex; align-items: baseline; gap: 26px; }
+  .endh b { font: 400 96px/1 var(--f-wide); color: var(--accent-line); }
+  .endh span { font: 400 32px/1 var(--f-wide); letter-spacing: .08em; color: var(--ink); }
+  .endh em { font: 500 22px/1 var(--f-jp); font-style: normal; color: var(--ink); }
+  .endn { left: 1300px; top: 230px; width: 580px; text-align: right; font: 600 11px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .cards { left: 280px; top: 272px; width: 1600px; height: 332px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .cards > div { border-left: 2px solid var(--accent); padding: 16px 16px; color: var(--ink); transition: background .2s, color .2s; }
+  .cards > div:hover { background: var(--accent); color: var(--accent-ink); }
+  .cards h4 { margin: 0; font: 400 15px/1 var(--f-wide); letter-spacing: .08em; }
+  .cards h4 u { text-decoration: none; font: 400 12px/1 var(--f-num); color: var(--accent-line); margin-right: 8px; }
+  .cards h4 small { font: 400 11px/1 var(--f-jp); color: var(--ink-2); margin-left: 8px; letter-spacing: 0; }
+  .cards > div:hover h4 u, .cards > div:hover h4 small { color: var(--accent-ink); }
+  .cards p { margin: 26px 0 0; font: 400 15px/1.85 var(--f-jp); }
+  .cards p em { display: block; margin-top: 12px; font: 400 11px/1.5 var(--f-num); font-style: normal; color: var(--ink-2); }
+  .cards > div:hover p em { color: var(--accent-ink); }
+  .cards > div { transform: translateY(16px); opacity: 0; transition: transform .4s cubic-bezier(.2,.8,.2,1), opacity .4s, background .2s, color .2s; }
+  .go .cards > div { transform: none; opacity: 1; }
+  .cta { left: 280px; top: 628px; width: 1254px; height: 200px; background: var(--accent); color: var(--accent-ink); padding: 44px 36px; display: block; text-decoration: none; }
+  .cta .k { font: 600 12px/1 var(--f-thin); letter-spacing: .32em; }
+  .cta b { display: block; margin-top: 18px; font: 400 58px/1 var(--f-wide); }
+  .cta b em { font-style: normal; display: inline-block; transition: transform .2s; }
+  .cta:hover b em { transform: translateX(10px); }
+  .cta span { display: block; margin-top: 16px; font: 500 16px/1 var(--f-jp); }
+  .ctaf { left: 1208px; top: 812px; font: 400 10px/1 var(--f-num); color: var(--accent-ink); }
+  .nextc { left: 1550px; top: 628px; width: 330px; height: 200px; border: 1px solid var(--line-main); padding: 26px; }
+  .nextc .k { font: 600 11px/1 var(--f-thin); letter-spacing: .26em; color: var(--ink-2); }
+  .nextc b { display: block; margin-top: 16px; font: 400 28px/1 var(--f-wide); color: var(--ink); }
+  .nextc p { margin: 14px 0 0; font: 400 14px/1.6 var(--f-jp); color: var(--ink); }
+  .nextc small { display: block; margin-top: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .14em; color: var(--ink-2); }
+
+  /* 式の線路 */
+  .railk { left: 40px; top: 882px; display: flex; align-items: center; gap: 12px; }
+  .railk i { width: 24px; height: 8px; }
+  .railk b { font: 400 15px/1 var(--f-wide); letter-spacing: .16em; color: var(--ink); }
+  .railk span { font: 400 12px/1 var(--f-jp); color: var(--ink-2); }
+  .rail { left: 40px; top: 912px; width: 1840px; height: 120px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .rb { border: 1px solid var(--line-sub); padding: 16px 16px; position: relative; color: var(--ink-3); transition: background .3s, color .3s, border-color .3s; }
+  .rb .rt { display: flex; justify-content: space-between; font: 600 11px/1 var(--f-thin); letter-spacing: .14em; }
+  .rb .rt b { font: 500 11px/1 var(--f-jp); letter-spacing: 0; margin-left: 4px; }
+  .rb .rt i { font-style: normal; }
+  .rb .rf { margin-top: 18px; font: 400 24px/1 var(--f-num); white-space: nowrap; }
+  .rb .rf sup { font-size: 13px; }
+  .rb .rd { margin-top: 14px; font: 400 12px/1.35 var(--f-jp); }
+  .rb .dots { display: none; margin-top: 18px; font: 400 18px/1 var(--f-num); letter-spacing: .9em; }
+  .rb.fut .rf { display: none; }
+  .rb.fut .dots { display: block; }
+  .rb.done { border-color: var(--line-main); color: var(--ink); }
+  .rb.done .rd { color: var(--ink-2); }
+  .rb.ref { border-color: var(--accent-line); color: var(--ink); }
+  .rb.ref .rt i, .rb.ref .rf { color: var(--accent-line); }
+  .rb.now { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); animation: grow .3s cubic-bezier(.2,.8,.2,1); transform-origin: left; }
+  @keyframes grow { from { transform: scaleX(.3); } to { transform: none; } }
+  .rb.lab { border: 1px dashed var(--accent-line); color: var(--accent-line); text-decoration: none; display: block; }
+  .rb.lab .rf { font: 400 25px/1 var(--f-wide); }
+  .rb.lab .rd { color: var(--ink); }
+  .rb.lab:hover, .rb.lab.now { background: var(--accent); color: var(--accent-ink); border-style: solid; }
+  .rb.lab:hover .rd, .rb.lab.now .rd { color: var(--accent-ink); }
+  .foot { left: 300px; top: 1050px; font: 400 9px/1 var(--f-num); letter-spacing: .14em; color: var(--ink-3); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .in, .go .in { clip-path: none; animation: none; }
+    .hint em, .nextk em { animation: none; }
+    .cards > div { transform: none; opacity: 1; transition: none; }
+    .rb.now { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div class="ph-viewport"><div class="ph-shell" id="shell">
+  <div class="ph-grid"></div>
+  <div class="ab" id="kanji"></div>
+  <div class="ab" id="bigTop"></div>
+  <div class="ab noise" id="noise"></div>
+  <svg class="ab" id="frame" width="1920" height="1080" viewBox="0 0 1920 1080" aria-hidden="true" style="left:0;top:0;pointer-events:none"></svg>
+  <canvas id="cv"></canvas>
+
+  <!-- ヘッダ（全駅共通） -->
+  <div class="ab brand" style="left:48px;top:46px"><b>PHENOMENA LAB</b><span>EARTH SURVEY ARCHIVE · EXPLAINER</span></div>
+  <dl class="ab ids" style="left:392px;top:62px;margin:0"><dt>OBS.No</dt><dd>E-001-0907</dd><dt>DOC</dt><dd>SCROLL-E1-LP</dd><dt>TIMESTAMP</dt><dd>2125-08-02T05:11:09Z</dd></dl>
+  <dl class="ab ids" style="left:760px;top:62px;margin:0"><dt>FIELD</dt><dd>EARTH</dd><dt>CARD</dt><dd>E1 / 22</dd><dt>STATION</dt><dd id="o_stn">00 / 09</dd></dl>
+  <div class="ab tab"><div class="k"><span>SCROLL</span><span>/</span></div><div class="n">E1</div><div class="s" id="o_tab">LP · 00 / 09</div></div>
+
+  <!-- 00 問い -->
+  <div class="lay" id="L0">
+    <div class="ab band"><div class="f in">E1 — EARTH · UPLIFT vs EROSION · SCROLL EXPLAINER</div><h1 class="in" style="--d:1">PUSH &amp;<br>CARVE</h1></div>
+    <div class="ab q"><div class="k in" style="--d:2">QUESTION</div><p class="in" style="--d:3">山はどうやって高くなり、<br>なぜ無限には<br>高くならないのか。</p></div>
+    <div class="ab howto"><h3><i></i>HOW TO READ</h3>
+      <div class="st"><span>STATIONS</span><b>9</b><small>の駅</small></div>
+      <div class="st"><span>READING</span><b>≈ 6</b><small>分</small></div>
+      <div class="st"><span>FORMULAS</span><b>4</b><small>本の式</small></div></div>
+    <div class="ab figtag" style="left:302px;top:504px"><i></i><b>LOOK</b><span>— 実物の姿 · 山並みの横顔</span></div>
+    <div class="ab hint" style="left:40px;top:842px">SCROLL <em>▼</em>　01 押す</div>
+  </div>
+
+  <!-- 01〜09 共通：駅の一覧 -->
+  <div class="lay" id="LS">
+    <div class="ab stl hit"><h3><i></i>STATIONS <small style="font:400 12px var(--f-jp);color:var(--ink-2)">駅</small></h3><ol id="stl"></ol>
+      <div class="read"><span>READ</span><b id="o_read">01 / 09</b></div><div class="bar"><i id="o_bar"></i></div></div>
+  </div>
+
+  <!-- 01〜08：図と本文 -->
+  <div class="lay" id="L1">
+    <div class="ab figtag in" id="figtag"><i></i><b id="o_fig">FIG. 01</b><span id="o_figt"></span></div>
+    <div class="ab brkchip" id="brkchip" style="display:none">BREAK <b>現実の外</b></div>
+    <div class="ab rc" id="rc">
+      <div class="hd"><span class="num in" id="r_num">01</span><span class="en in" style="--d:1" id="r_en"></span></div>
+      <h2 class="in" style="--d:2" id="r_h"></h2>
+      <p class="body in" style="--d:3" id="r_body"></p>
+      <div class="kl in" style="--d:4" id="r_kl"></div>
+      <div class="kv in" style="--d:5"><b id="r_kv"></b><span id="r_ku"></span></div>
+      <div class="kn in" style="--d:6" id="r_kn"></div>
+      <div class="wow in" style="--d:7"><i>驚き</i><span id="r_wow"></span></div>
+    </div>
+    <div class="ab nextk">SCROLL <em>▼</em><hr><span><small>次の駅</small><b id="r_next"></b></span></div>
+  </div>
+
+  <!-- 09 持ち出す -->
+  <div class="lay" id="L9">
+    <div class="ab endh"><b class="in">09</b><span class="in" style="--d:1">TRANSFER</span><em class="in" style="--d:2">表現に持ち出す</em></div>
+    <div class="ab endn in" style="--d:3">NOTES FOR CG / ANIMATION · カードに触れると黄色になる</div>
+    <div class="ab cards hit">
+      <div style="transition-delay:0ms"><h4><u>01</u>LOOK RULES<small>絵の決まり</small></h4><p>若い山は鋭く高く、古い山は丸く低い。雨の多い側は谷が深く細かい。高い山ほど広い裾を持つ。</p></div>
+      <div style="transition-delay:60ms"><h4><u>02</u>CG</h4><p>地形は「隆起のマスク」と「侵食の回数」の綱引きで作る。侵食なしの高さノイズが嘘に見えるのは、谷に上流・下流の順序がないから。</p></div>
+      <div style="transition-delay:120ms"><h4><u>03</u>GEN CHECK<small>嘘の見つけ方</small></h4><p>谷が枝分かれの順序を持つか。山が孤立して突き出ていないか。雨の側と乾いた側で谷の細かさが違うか。<em>dendritic valleys / rain-shadow asymmetry</em></p></div>
+      <div style="transition-delay:180ms"><h4><u>04</u>BREAK<small>わざと外す</small></h4><p>雨 0＝削られない世界（月のように、押された形のまま伸び続ける）。根なし＝育つのも崩れるのも速い、軽い山。</p></div>
+      <div style="transition-delay:240ms"><h4><u>05</u>FIELD NOTE<small>宿題</small></h4><p>地形図の陰影図で、日本アルプスの東と西の谷の刻まれ方を比べる。雪と雨が多いのはどちら側か。</p></div>
+    </div>
+    <a class="ab cta hit in" style="--d:4" href="../01_push_and_carve.html#t=1"><span class="k" style="margin:0">END OF SCROLL · 終点</span><b>OPEN THE LAB <em>→</em></b><span>押す速さを動かして、山が止まる高さを確かめる</span></a>
+    <canvas class="ab" id="tc" width="600" height="300" style="left:1198px;top:652px;width:300px;height:150px"></canvas>
+    <div class="ab ctaf">01_push_and_carve.html</div>
+    <div class="ab nextc in" style="--d:5"><div class="k">NEXT CARD</div><b>E2 DRAINAGE</b><p>上から見た版。川の枝分かれと、高さマップの書き出し。</p><small>COMING · 仕様のみ</small></div>
+  </div>
+
+  <!-- 式の線路（全駅共通） -->
+  <div class="ab railk"><i></i><b>FORMULA RAIL</b><span>— 式の線路 · 駅を通るたびに式が入線する · アプリと同じ式（ph_e1_law.js）</span></div>
+  <div class="ab rail hit" id="rail" style="pointer-events:auto"></div>
+  <div class="ab foot" id="foot">ARCHIVE/EARTH/E1/0907/LP — CLASSIFICATION: NONE · STATION 00</div>
+</div></div>
+<div id="track"></div>
+
+<script src="../../_shell/shell.js"></script>
+<script src="../_law/ph_e1_law.js"></script>
+<script>
+'use strict';
+const L = PH_E1, $ = id => document.getElementById(id);
+const C = { paper: '#ECE5D1', ink: '#2A251F', dim: '#6B6357', up: '#B0392B', down: '#2D5E8C', mud: '#A57B52', sand: '#D2B06A', lime: '#A3A099', granite: '#E6DECA', mantle: '#C8C2B2', acc: '#F3D21C' };
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const NST = 10, LAB = '../01_push_and_carve.html';
+
+/* ================= 駅の中身（文字は見本 _design の LP_0x から） ================= */
+const ST = [
+  { name: '問い', en: '', big: '10⁵ YR', kanji: '削', lab: '#t=1', noise: '0907 > SCROLL-E1 LOAD 9 STATIONS OK\nRAIL 4 FORMULA · LAW ph_e1_law.js\nLINK 01_push_and_carve.html ACK' },
+  { name: '押す', en: 'PUSH', big: 'v cm/YR', kanji: '押', lab: '#v=1.5&t=0.5', fig: 'FIG. 01', figt: '— 押す · 地殻が厚くなる',
+    num: '01', ren: 'CONVERGENCE · 押す', h: 'ぶつかると、<br>地面は厚くなる。', body: '2 枚の板がぶつかる所では、横から押された地殻が逃げ場を失い、縦に厚くなる。上に盛り上がるだけでなく、下にも膨らむ。',
+    kl: 'KEY NUMBER · 押す速さ（既定）', kv: () => 1.5, kf: 1, ku: 'cm/年', kn: 'アプリのつまみは 0〜4 cm/年。爪の伸びる速さが ≈ 3 cm/年', wow: '押し込んだ量は消えない。地層も同じ割合で厚くなるので、まず背斜のように持ち上がる。', next: '02 浮く',
+    noise: '0907 > STATION 01 PUSH · CONVERGE\nσ 30 KM · A = v × 35 KM · MASS KEPT\nv 1.5 cm/yr · RANGE 0-4' },
+  { name: '浮く', en: 'FLOAT', big: '×5.6', kanji: '浮', lab: '#t=6', fig: 'FIG. 02', figt: '— 浮き沈み · 山の根の断面',
+    num: '02', ren: 'ISOSTASY · 浮き沈み', h: '山には、<br>見えない根がある。', body: '地殻（密度 2.8）は、重いマントル（3.3）に浮いている。氷山と同じで、上に高く出た分だけ、下にも深く沈む。',
+    kl: 'KEY NUMBER · 根の深さ ÷ 山の高さ', kv: () => L.RF / L.HF, kf: 1, kp: '×', ku: '', kn: '2.8 ÷（3.3 − 2.8）＝ 5.6 ／ シミュレーションの断面積の比は 5.5（両端で根が切れる分）', wow: '最高点の真下の根は、最高点の 1.9 倍しかない。板が広く支えるので、根はなだらかに広がる。', next: '03 削る',
+    noise: '0907 > STATION 02 FLOAT · AIRY\nρC 2.8  ρM 3.3  RATIO 5.6 / SIM 5.5\nROOT@PEAK 1.9 · FLEX σ 12 KM' },
+  { name: '削る', en: 'CARVE', big: 'K·Q·S', kanji: '刻', lab: '#t=6&rain=2', fig: 'FIG. 03', figt: '— 削る · 川と斜面',
+    num: '03', ren: 'EROSION · 削る', h: '水が集まり、<br>傾きが山を刻む。', body: '雨は斜面を流れ下るほど集まって川になる。川は「水の量 × 傾き」が大きいほど速く削る。尖った頂は、斜面がにじむように崩れて丸くなる。',
+    kl: 'KEY NUMBER · 雨が 4 倍になると', kv: () => Math.sqrt(4), kf: 0, kp: '×', ku: '削る力', kn: 'Q<sup>0.5</sup> なので √4 ＝ 2 倍。だから雨の多い側ほど谷が深く細かい', wow: '高い山ほど急で、水も集まる。育つほど削られやすくなる——ここに「無限には高くならない」答えがある。', next: '04 綱引き',
+    noise: '0907 > STATION 03 CARVE · STREAM POWER\nE = K Q^0.5 S · K 1.2e-5 · D 20 m2/yr\nHACK AREA · IMPLICIT DOWNSTREAM' },
+  { name: '綱引き', en: 'TUG', big: 'U−E', kanji: '止', lab: '#t=1', fig: 'FIG. 04', figt: '— 綱引き · 2 本の矢印と天秤',
+    num: '04', ren: 'BALANCE · 綱引き', h: '上と下が<br>同じになると、止まる。', body: '上がる速さ（押して厚くなる）と、削る速さ（川と斜面）。上が勝てば山は育ち、下が勝てば低くなる。高い山ほど急で、水も集まるので、よく削られる。',
+    kl: 'KEY NUMBER · 止まったときの速さ', kv: () => 0.015 * L.C0 * L.beltMean(L.G) * 1e3, kf: 2, ku: 'mm/年', kn: '侵食 ＝ 押し込みで厚くなる速さ。最高点 約 3.7 km、止まるまで約 300 万年（既定の条件）', wow: '高さは押す速さに比例し、雨の平方根に反比例する。雨が 4 倍なら、山は半分の高さで止まる。', next: '05 削ると浮く',
+    noise: '0907 > STATION 04 TUG · U-E\nU 4.94 E 4.94 NET +0.00 mm/yr\nSTEADY ±0.1 · PEAK 3.7 KM · T 3 Myr' },
+  { name: '削ると浮く', en: 'PROOF', big: '−152 M', kanji: '85%', lab: '#t=6&proof=1', fig: 'FIG. 05', figt: '— PROOF · 削ると浮く',
+    num: '05', ren: 'PROOF · 削ると浮く', h: '1000 m 削っても、<br>152 m しか下がらない。', body: '広い範囲を削ると、軽くなった分だけ根が浮き上がる。削った厚さの約 85% を、浮き上がりが取り戻す。だから山は、削られながらも長く残る。',
+    kl: 'KEY NUMBER · 地表が下がった量', kv: () => D.proof ? D.proof.drop : null, kf: 0, ku: 'm', kn: '−1000 m（削る）＋ 848 m（浮く）＝ −152 m', wow: '押すのをやめて山が半分になるまで：浮き沈みあり 約 80 万年、なし 約 14 万年。根が山を長生きさせる。', next: '06 風と分水嶺',
+    noise: '0907 > STATION 05 PROOF · CLOCK HOLD\nCUT 80 KM × 1000 M · REBOUND 848 M\nNARROW 2 KM → 8.5% · T½ 0.8 / 0.14 Myr' },
+  { name: '風と分水嶺', en: 'WIND', big: '17 KM', kanji: '風', lab: '#wind=-1&t=10', fig: 'FIG. 06', figt: '— 風 · 雨の側と乾いた側',
+    num: '06', ren: 'RAIN SHADOW · 風と分水嶺', h: 'いちばん高い線は、<br>乾いた側へ逃げる。', body: '風が山に当たると、風上で雨が多く降り、山を越えた風下は乾く。雨の多い側ほど速く削られるので、山の形が左右で違ってくる。',
+    kl: 'KEY NUMBER · 分水嶺が動いた距離', kv: () => D.W.length > 16 ? D.W[D.W.length - 1].div - 100 : null, kf: 0, ku: 'km', kn: '風上の雨 ×1.6・風下 ×0.4 のとき、乾いた側へ', wow: '日本アルプスでも、雪と雨の多い側と少ない側で、谷の刻まれ方が違う（TRANSFER の宿題）。', next: '07 山の一生',
+    noise: '0907 > STATION 06 WIND · OROGRAPHIC\nRAIN W ×1.6 L ×0.4 · DIVIDE SHIFT 17 KM\nDENDRITIC ASYM OK' },
+  { name: '山の一生', en: 'LIFE', big: '0.8 MYR', kanji: '齢', lab: '#seq=1.5:6,0:4,1.5:4', fig: 'FIG. 07', figt: '— 山の一生 · 育つ・止まる・低くなる',
+    num: '07', ren: 'LIFE · 山の一生', h: '止まっても、<br>山はすぐには消えない。', body: '押す速さを変えると、山は育ち、止まり、低くなる。押すのをやめても、削られた分だけ根が浮くので、山は長く残る。',
+    kl: 'KEY NUMBER · 半分の高さになるまで', kv: () => D.half != null ? D.half / 1e4 : null, kf: 0, ku: '万年', kn: '浮き沈みあり。根が無ければ 約 14 万年で半分になる', wow: '若い山は鋭く高く、古い山は丸く低い。線を積むと、山の頂の並びがそのまま高さの歴史になる。', next: '08 BREAK',
+    noise: '0907 > STATION 07 LIFE · SEQ 1.5:6,0:4,1.5:4\nLINES 0.5 Myr STEP · MAX 36\nT½ ISO 0.8 / NO-ISO 0.14 Myr' },
+  { name: '月と根なし', en: 'BREAK', big: 'RAIN 0', kanji: '月', lab: '#brk=rain&t=3', fig: 'FIG. 08', figt: '— BREAK · 現実の外',
+    num: '08', ren: 'BREAK · わざと外す', h: '外してみると、<br>法則が見える。', body: '雨を 0 にすると、削る側がいなくなる。根を止めると、浮く側がいなくなる。片方を消すと、ふだん釣り合っている 2 つの力が、それぞれ見えてくる。',
+    kl: 'KEY NUMBER · 雨 0 のときの止まる高さ', kv: () => '∞', ku: '', kn: '削られないので、押した分だけ伸び続ける（STEADY に入らない）', wow: '根なしの山は、押すのをやめると 約 14 万年で半分になる。根を戻すと、その瞬間に一気に浮き上がる。', next: '09 持ち出す',
+    noise: '0907 > STATION 08 BREAK · OUT OF REALITY\nBRK rain=0 → STEADY N/A\nBRK iso=off → ROOT FROZEN' },
+  { name: '持ち出す', en: 'TRANSFER', big: '→ LAB', kanji: '渡', lab: '#t=1', noise: '0907 > STATION 09 TRANSFER · 5 NOTES\nRAIL COMPLETE 4/4 · LAB LINK READY\nNEXT E2 DRAINAGE · STATUS SPEC' },
+];
+const RAIL = [
+  { k: '① PUSH', ja: '厚くなる', f: 'A = v × 35 km', d: '毎年、中央に押し込まれる地殻の断面積', at: 1 },
+  { k: '② FLOAT', ja: '浮く', f: 'r ≈ 5.6 × h', d: '根の深さ ＝ 山の高さ × 2.8 ÷ (3.3 − 2.8)', at: 2 },
+  { k: '③ CARVE', ja: '削る', f: 'E = K · Q<sup>0.5</sup> · S', d: '水の集まる量 × 傾き で川が刻む', at: 3 },
+  { k: '④ TUG', ja: '綱引き', f: 'dh/dt = U − E', d: '上がる速さ − 削る速さ ＝ 高さの変わる速さ', at: 4 },
+];
+const REF = { 5: [2], 6: [3], 7: [2], 8: [2, 3] };
+
+/* ================= 法則で記録する（アプリと同じ式・少しずつ計算して画面を止めない） ================= */
+const Pp = (v, o) => Object.assign({ v: v / 100, P: 1, wind: 0, iso: true }, o || {});
+const D = { live: null, rec: [], prof: [], snap: {}, S6: null, W: [], B: [], M: [], proof: null, half: null, halfNo: null, done: 0, total: 0 };
+function clone(s) { const o = {}; for (const k in s) { const v = s[k]; o[k] = v instanceof Float64Array ? Float64Array.from(v) : Array.isArray(v) ? v.map(a => a instanceof Float64Array ? Float64Array.from(a) : a) : v && typeof v === 'object' ? Object.assign({}, v) : v; } return o; }
+const DT = 2.5e4;   // 1 回 2.5 万年（中は法則が 250 年ずつに小分け）
+function* runR1() {   // 押す 1.5 で 600 万年 → やめて 400 万年 → また 1.5 で 400 万年（雨 1・風なし）
+  const s = L.create(); L.isostasy(s, true); D.live = s; let k = 0;
+  for (const [v, dur] of [[1.5, 6e6], [0, 4e6], [1.5, 4e6]]) for (let a = 0; a < dur; a += DT) {
+    const st = L.step(s, DT, Pp(v)); k++; D.done += DT; const t = k * DT;
+    if (k % 4 === 0) D.rec.push({ t, up: st.up, down: st.down, peak: st.peak, meanH: st.meanH, s: L.state(st.up, st.down), v });
+    if (k % 20 === 0) D.prof.push({ t, h: Float32Array.from(s.h), s: L.state(st.up, st.down) });
+    if (t === 1e6) D.snap.grow = clone(s);
+    if (t === 6e6) { D.S6 = clone(s); makeProof(); yield* runW(); yield* runB(); }
+    if (t === 7.5e6) D.snap.decay = clone(s);
+    if (t > 6e6 && D.half == null && st.meanH < D.S6.stat.meanH / 2) D.half = t - 6e6;
+    yield;
+  }
+  yield* runM();
+}
+function* runW() {   // 止まった山に左から風（800 万年・0.5 百万年ごとに残す）
+  const s = clone(D.S6); D.W.push(snapW(s));
+  for (let k = 1; k <= 320; k++) { L.step(s, DT, Pp(1.5, { wind: -1 })); D.done += DT; if (k % 20 === 0) D.W.push(snapW(s)); yield; }
+}
+const snapW = s => ({ h: Float32Array.from(s.h), E: Float32Array.from(s.E), P: Float32Array.from(s.P), div: s.div });
+function* runB() {   // 根なし（根をいまの形で止める）で押すのをやめる（100 万年）
+  const s = clone(D.S6); s.rootFrozen = null; const m0 = D.S6.stat.meanH; D.B.push({ t: 0, h: Float32Array.from(s.h), peak: s.stat.peak, root: Float32Array.from(s.root), up: 0, down: 0 });
+  for (let k = 1; k <= 80; k++) { const st = L.step(s, 1.25e4, Pp(0, { iso: false })); D.done += 1.25e4; D.B.push({ t: k * 1.25e4, h: Float32Array.from(s.h), peak: st.peak, root: Float32Array.from(s.root), up: st.up, down: st.down, UR: s.UR[100], E: s.E[100] }); if (D.halfNo == null && st.meanH < m0 / 2) D.halfNo = k * 1.25e4; if (k % 2 === 0) yield; }
+}
+function* runM() {   // 雨 0（月）：平らから押す 1.5 で 300 万年
+  const s = L.create(); L.isostasy(s, true); D.M.push(snapM(s));
+  for (let k = 1; k <= 120; k++) { L.step(s, DT, Pp(1.5, { P: 0 })); D.done += DT; if (k % 4 === 0) D.M.push(snapM(s)); yield; }
+}
+function snapM(s) { const cols = []; for (let i = 0; i < L.NX; i++) cols.push(L.column(s, i)); return { cols, peak: Math.max(...s.h) }; }
+function makeProof() {   // アプリの PROOF と同じ：中央 80 km を 1000 m 削って浮かせる
+  const s0 = D.S6, s1 = clone(s0), cut = 1000; for (let i = 60; i <= 140; i++) L.carve(s1, i, cut); L.isostasy(s1, true);
+  const n = clone(s0); for (let i = 99; i <= 101; i++) L.carve(n, i, cut); L.isostasy(n, true);
+  D.proof = { cut, drop: s0.h[100] - s1.h[100], narrow: 1 - (s0.h[100] - n.h[100]) / cut };
+}
+D.total = 14e6 + 8e6 + 1e6 + 3e6;
+const job = runR1();
+let jobDone = false;
+function work(budget) { const t0 = performance.now(); while (!jobDone && performance.now() - t0 < budget) { if (job.next().done) jobDone = true; } }
+
+/* ================= 描く道具 ================= */
+const cv = $('cv'), ctx = cv.getContext('2d');
+let SC = 1;
+function resize() { SC = Math.min(2, (PHShell.scale || 1) * (window.devicePixelRatio || 1)); cv.width = Math.round(1920 * SC); cv.height = Math.round(1080 * SC); }
+function pat(w, h, fn) { const c = document.createElement('canvas'); c.width = w * 2; c.height = h * 2; const g = c.getContext('2d'); g.scale(2, 2); g.strokeStyle = g.fillStyle = C.ink; fn(g); const p = ctx.createPattern(c, 'repeat'); p.setTransform(new DOMMatrix().scale(0.5)); return p; }
+const PAT = {
+  mud: pat(16, 8, g => { g.globalAlpha = 0.5; g.beginPath(); g.moveTo(1, 4); g.lineTo(9, 4); g.stroke(); }),
+  sand: pat(10, 10, g => { g.globalAlpha = 0.55; for (const [x, y] of [[2, 3], [7, 8]]) { g.beginPath(); g.arc(x, y, 1, 0, 7); g.fill(); } }),
+  lime: pat(24, 12, g => { g.globalAlpha = 0.55; g.beginPath(); g.moveTo(0, .5); g.lineTo(24, .5); g.moveTo(0, 6.5); g.lineTo(24, 6.5); g.moveTo(6, .5); g.lineTo(6, 6.5); g.moveTo(18, 6.5); g.lineTo(18, 12); g.stroke(); }),
+  dots: pat(12, 12, g => { g.globalAlpha = 0.4; for (const [x, y] of [[3, 3], [9, 9]]) { g.beginPath(); g.arc(x, y, 0.8, 0, 7); g.fill(); } }),
+  mantle: pat(8, 8, g => { g.globalAlpha = 0.4; g.beginPath(); g.moveTo(-2, 10); g.lineTo(10, -2); g.stroke(); }),
+};
+const ROCK = [[C.mud, 'mud'], [C.sand, 'sand'], [C.lime, 'lime'], [C.granite, 'dots'], [C.mantle, 'mantle']];
+const mono = (px, w) => (w || 400) + ' ' + px + 'px "JetBrains Mono",monospace', note = px => px + 'px "M PLUS 1 Code","IBM Plex Sans JP",monospace', jp = (px, w) => (w || 400) + ' ' + px + 'px "IBM Plex Sans JP",sans-serif';
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v)), ease = v => { v = clamp(v); return v * v * (3 - 2 * v); }, eo = v => 1 - Math.pow(1 - clamp(v), 3);
+const num = (v, d) => v == null ? '—' : (+v).toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 });
+const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+const vnoise = x => { const i = Math.floor(x), f = x - i, u = f * f * (3 - 2 * f); return hash(i) * (1 - u) + hash(i + 1) * u - 0.5; };
+function txt(s, x, y, o) { o = o || {}; ctx.font = o.f || note(12); ctx.fillStyle = o.c || C.ink; ctx.textAlign = o.a || 'left'; ctx.textBaseline = o.b || 'alphabetic'; if (o.bg) { const w = ctx.measureText(s).width, x0 = o.a === 'center' ? x - w / 2 : o.a === 'right' ? x - w : x; ctx.save(); ctx.fillStyle = o.bg; ctx.fillRect(x0 - 3, y - 13, w + 6, 17); ctx.restore(); ctx.fillStyle = o.c || C.ink; } ctx.fillText(s, x, y); }
+function arrow(x0, y0, x1, y1, col, w) {   // (x0,y0) → (x1,y1)
+  const a = Math.atan2(y1 - y0, x1 - x0), L2 = Math.hypot(x1 - x0, y1 - y0); if (L2 < 3) return;
+  ctx.strokeStyle = ctx.fillStyle = col; ctx.lineWidth = w || 2.5; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1 - Math.cos(a) * 9, y1 - Math.sin(a) * 9); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x1 - Math.cos(a) * 13 + Math.sin(a) * 6, y1 - Math.sin(a) * 13 - Math.cos(a) * 6); ctx.lineTo(x1 - Math.cos(a) * 13 - Math.sin(a) * 6, y1 - Math.sin(a) * 13 + Math.cos(a) * 6); ctx.closePath(); ctx.fill();
+}
+const bob = (t, f, a) => RM ? 0 : Math.sin(t * Math.PI * 2 * (f || 0.9)) * (a || 4);   // 矢印の上下のゆれ
+function plate(x, y, w, h, dashed) {
+  ctx.fillStyle = C.paper; ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath();
+  for (const [bx, by, sx, sy] of [[x + 10, y + 10, 1, 1], [x + w - 10, y + 10, -1, 1], [x + 10, y + h - 10, 1, -1], [x + w - 10, y + h - 10, -1, -1]]) { ctx.moveTo(bx + sx * 20, by); ctx.lineTo(bx, by); ctx.lineTo(bx, by + sy * 20); }
+  ctx.stroke();
+  if (dashed) { ctx.strokeStyle = '#E8E6DF'; ctx.setLineDash([6, 5]); ctx.lineWidth = 2; ctx.strokeRect(x - 7, y - 7, w + 14, h + 14); ctx.setLineDash([]); }
+}
+function cloud(x, y, r, rain, t, a) {   // 雨雲（rain＝線の本数）
+  ctx.save(); ctx.globalAlpha = a == null ? 1 : a;
+  ctx.strokeStyle = C.down; ctx.lineWidth = 1.6; ctx.beginPath();
+  for (let k = 0; k < rain; k++) { const xx = x - r * 1.4 + (k + .5) / rain * r * 2.8, ph = RM ? 0.3 : (t * 1.4 + k * 0.37) % 1; ctx.moveTo(xx - ph * 6, y + r * 0.7 + ph * 26); ctx.lineTo(xx - 6 - ph * 6, y + r * 0.7 + 16 + ph * 26); }
+  ctx.stroke();
+  ctx.fillStyle = C.paper; ctx.strokeStyle = C.ink; ctx.lineWidth = 1.3; ctx.beginPath();
+  for (const [px, py, pr] of [[-0.95, 0.2, 0.5], [-0.4, -0.2, 0.7], [0.25, -0.35, 0.8], [0.9, 0.05, 0.55]]) { ctx.moveTo(x + px * r + pr * r, y + py * r); ctx.arc(x + px * r, y + py * r, pr * r, 0, 7); }
+  ctx.fill(); ctx.stroke(); ctx.fillStyle = C.paper; ctx.fillRect(x - r * 1.6, y + r * 0.3, r * 3.2, r * 0.5);
+  ctx.beginPath(); ctx.moveTo(x - r * 1.45, y + r * 0.52); ctx.lineTo(x + r * 1.45, y + r * 0.52); ctx.stroke(); ctx.restore();
+}
+/* 地層つきの断面（一つの縮尺）：cols[i]＝[地表・泥の底・砂の底・石灰の底・モホ]。o = {x0,x1,ySea,k,yb} */
+function section(cols, o) {
+  const n = cols.length, X = i => o.x0 + i / (n - 1) * (o.x1 - o.x0), Y = z => o.ySea - z * o.k;
+  ctx.save(); ctx.beginPath(); ctx.rect(o.x0, o.yt || 0, o.x1 - o.x0, o.yb - (o.yt || 0)); ctx.clip();
+  for (let k = 0; k < 5; k++) {
+    const p = new Path2D(); for (let i = 0; i < n; i++) { const y = Y(cols[i][k]); i ? p.lineTo(X(i), y) : p.moveTo(X(i), y); }
+    for (let i = n - 1; i >= 0; i--) p.lineTo(X(i), k < 4 ? Y(cols[i][k + 1]) : o.yb + 2); p.closePath();
+    ctx.fillStyle = ROCK[k][0]; ctx.fill(p); ctx.fillStyle = PAT[ROCK[k][1]]; ctx.fill(p);
+  }
+  for (let k = 0; k < 5; k++) { ctx.strokeStyle = C.ink; ctx.lineWidth = k === 0 ? 1.8 : k === 4 ? 1.4 : 0.6; ctx.beginPath(); for (let i = 0; i < n; i++) { const y = Y(cols[i][k]); i ? ctx.lineTo(X(i), y) : ctx.moveTo(X(i), y); } ctx.stroke(); }
+  ctx.strokeStyle = 'rgba(42,37,31,.6)'; ctx.lineWidth = 1; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.moveTo(o.x0, Y(-L.C0)); ctx.lineTo(o.x1, Y(-L.C0)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.restore(); return { X, Y };
+}
+const colsOf = s => { const out = []; for (let i = 0; i < L.NX; i++) out.push(L.column(s, i)); return out; };
+/* 押して厚くした断面（侵食なし）。T 年ぶん・e＝浮き沈みの効き（1＝釣り合い） */
+function pushed(T, e) {
+  const s = L.create(); for (let i = 0; i < L.NX; i++) { const dc = 0.015 * L.C0 * L.G[i] * T, f = (L.C0 + dc) / L.C0; s.c[i] = L.C0 + dc; for (const a of s.lay) a[i] *= f; }
+  L.isostasy(s, true); if (e != null && e < 1) for (let i = 0; i < L.NX; i++) { s.root[i] *= e; s.h[i] = s.c[i] - L.C0 - s.root[i]; }
+  return s;
+}
+/* 地表の線（profile）を塗りと線で（k＝縦の縮尺 px/m） */
+function profile(h, o) {
+  const n = h.length, X = i => o.x0 + i / (n - 1) * (o.x1 - o.x0), Y = z => o.yb - Math.max(0, z) * o.k;
+  const p = new Path2D(); for (let i = 0; i < n; i++) { const y = Y(h[i] + (o.det ? o.det(i) : 0)); i ? p.lineTo(X(i), y) : p.moveTo(X(i), y); }
+  if (o.fill !== false) { const f = new Path2D(p); f.lineTo(o.x1, o.yb + (o.fd || 40)); f.lineTo(o.x0, o.yb + (o.fd || 40)); f.closePath(); ctx.fillStyle = C.paper; ctx.fill(f); ctx.fillStyle = PAT.dots; ctx.fill(f); }
+  ctx.strokeStyle = o.c || C.ink; ctx.lineWidth = o.w || 1.8; if (o.dash) ctx.setLineDash(o.dash); ctx.stroke(p); ctx.setLineDash([]);
+  return { X, Y };
+}
+
+/* ================= 駅ごとの図（a＝駅の中の進み 0〜1・t＝秒） ================= */
+const PL = { x: 280, y: 150, w: 1040, h: 706 };
+let railLive = '';
+const FIG = [];
+// 00 問い：山並みの横顔（記録中の山が、読んでいるうちに育つ）
+FIG[0] = (a, t) => {
+  const x = 280, y = 486, w = 1600, h = 370; plate(x, y, w, h);
+  const s = D.S6 || D.live; if (!s) return;
+  const yb = y + h - 46, k = 0.07, pmax = Math.max(1e-6, ...s.P);
+  ctx.save(); ctx.beginPath(); ctx.rect(x + 1, y + 1, w - 2, h - 2); ctx.clip();
+  for (const [sc, sh, seed, col, par] of [[0.62, 14, 11, '#B9AE97', 30], [0.82, -9, 5, '#8A7E6C', 18], [1, 0, 1, '#2A251F', 0]]) {
+    const off = RM ? 0 : (a - 0.2) * par * 2, p = new Path2D();
+    for (let i = 0; i < L.NX; i++) { const j = clamp(i + sh, 0, L.NX - 1), hh = Math.max(0, s.h[j]) * sc, e = s.E[j] * 1e3, rain = s.P[j] / pmax;
+      const dd = (Math.min(hh, 3000) * 0.1 + Math.min(e, 8) * 60) * (vnoise(i / 5 + seed) + 1.2 * rain * vnoise(i / 1.3 + seed * 3) + 0.8 * rain * vnoise(i / 0.55 + seed * 7));
+      const X = x + i / (L.NX - 1) * w + off, Y = yb - Math.max(0, hh + (hh > 30 ? dd : 0)) * k; i ? p.lineTo(X, Y) : p.moveTo(X, Y); }
+    p.lineTo(x + w + 40, y + h); p.lineTo(x - 40, y + h); p.closePath(); ctx.fillStyle = col; ctx.fill(p);
+  }
+  ctx.fillStyle = 'rgba(42,37,31,.25)'; for (let xx = x; xx < x + w; xx += 6) ctx.fillRect(xx, y + h - 14, 1, 1);
+  const pk = s.stat.peak, xd = x + s.div / (L.NX - 1) * w;
+  if (pk > 300) { ctx.strokeStyle = C.ink; ctx.setLineDash([3, 3]); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(xd, y + 44); ctx.lineTo(xd, yb - pk * k - 10); ctx.stroke(); ctx.setLineDash([]); txt('分水嶺 DIVIDE', xd + 8, y + 62, { f: note(12) }); }
+  cloud(x + 1190, y + 96, 34, 6, t);
+  txt('雨の多い側は、谷が細かい', x + 1280, y + 96, { f: note(12) });
+  ctx.restore();
+  txt('横 200 km · 縦 ×' + (k * 1000 / (w / 200)).toFixed(0), x + 36, y + h - 18, { f: mono(11, 600), c: C.paper });
+  txt(D.S6 ? '◎ 法則で削った横顔 ／ 細部はまね △' : '記録中：' + (D.live.t / 1e6).toFixed(1) + ' 百万年の山（読んでいるうちに育つ）', x + w - 36, y + h - 18, { f: note(12), a: 'right', c: C.paper });
+};
+// 01 押す
+FIG[1] = (a, t) => {
+  const { x, y, w, h } = PL, T = ease(a / 0.8) * 3e6, s = pushed(T), x0 = x + 40, x1 = x + w - 40, ySea = y + 232, k = 0.008;
+  const g = section(colsOf(s), { x0, x1, ySea, k, yt: y + 120, yb: y + h - 50 });
+  // 押し込む所
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.strokeRect(g.X(55), y + 108, g.X(145) - g.X(55), 34); ctx.setLineDash([]);
+  txt('ここに押し込まれる（幅 σ 30 km）', g.X(100), y + 130, { a: 'center', f: note(12) });
+  const A = 0.015 * L.C0 * T / 1e6;
+  txt(T < 1e4 ? 'BEFORE　押す前：厚さ 35 km の平らな地殻' : '押して ' + num(T / 1e4) + ' 万年　押し込んだ断面積 A ＝ 1.5 cm/年 × 35 km × 時間 ＝ ' + num(A) + ' km²', x + 40, y + 90, { f: note(13) });
+  // 左右から押す取っ手と赤い矢印（内へ行ったり来たり）
+  const sw = 18 + ease(a / 0.8) * 10;
+  for (const sd of [-1, 1]) {
+    const hx = sd < 0 ? x0 : x1 - 36, hy = ySea + 50; ctx.fillStyle = '#0B0B0A'; ctx.fillRect(hx, hy, 36, 110);
+    ctx.fillStyle = C.acc; ctx.beginPath(); const cx = hx + 18, cy = hy + 55; ctx.moveTo(cx + sd * 8, cy - 12); ctx.lineTo(cx - sd * 10, cy); ctx.lineTo(cx + sd * 8, cy + 12); ctx.fill();
+    const bx = (RM ? 0 : (Math.sin(t * 3.2) * 0.5 + 0.5) * sw), ax0 = sd < 0 ? x0 + 70 + bx : x1 - 70 - bx, ax1 = sd < 0 ? x0 + 300 + bx : x1 - 300 - bx;
+    arrow(ax0, ySea + 105, ax1, ySea + 105, C.up, 3); txt('押す v', sd < 0 ? x0 + 82 : x1 - 82, ySea + 132, { c: C.up, a: sd < 0 ? 'left' : 'right', f: note(13) });
+  }
+  // 下へも厚くなる（青い矢印）
+  const rb = g.Y(-L.C0 - s.root[100]);
+  if (s.root[100] > 1500) { const by = bob(t, 0.8, 5); arrow(g.X(100), g.Y(-L.C0) + 6, g.X(100), rb - 4 + by, C.down, 2.5); txt('下へも厚くなる＝根 ' + (s.root[100] / 1000).toFixed(1) + ' km', g.X(100) + 14, (g.Y(-L.C0) + rb) / 2 + 6, { c: C.down, f: note(13), bg: 'rgba(236,229,209,.85)' }); }
+  if (s.h[100] > 300) { arrow(g.X(100), ySea - 2, g.X(100), g.Y(s.h[100]) - 6 + bob(t, 0.8, 3), C.up, 2); txt('上にも ' + (s.h[100] / 1000).toFixed(1) + ' km', g.X(100) + 12, g.Y(s.h[100]) - 8, { c: C.up, f: note(12) }); }
+  txt('もとのモホ面', x0 + 50, g.Y(-L.C0) - 8, { f: note(12) }); txt('マントル', x0 + 50, g.Y(-L.C0) + 40, { f: note(12) });
+  txt('量は保存：押し込んだ地殻は消えない · 地層も同じ割合で厚くなる', x + 40, y + h - 20, { f: note(12) });
+  txt('縦：地上も地下も同じ縮尺 · 横 200 km', x + w - 40, y + h - 20, { a: 'right', f: mono(11) });
+  railLive = 'いま ' + num(T / 1e4) + ' 万年ぶん → A ＝ ' + num(A) + ' km²';
+};
+// 02 浮く：根のない仮の山が沈み、根が育って釣り合う
+FIG[2] = (a, t) => {
+  const { x, y, w, h } = PL, e = eo(a / 0.75), s = pushed(3e6, e), x0 = x + 40, x1 = x + w - 40, ySea = y + 256, k = 0.0062;
+  const g = section(colsOf(s), { x0, x1, ySea, k, yt: y + 60, yb: y + h - 50 });
+  const pk = s.h[100], rt = s.root[100], bx = g.X(126);
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = C.up; ctx.beginPath(); ctx.moveTo(bx, g.Y(0)); ctx.lineTo(bx, g.Y(pk)); ctx.moveTo(bx - 6, g.Y(0)); ctx.lineTo(bx + 6, g.Y(0)); ctx.moveTo(bx - 6, g.Y(pk)); ctx.lineTo(bx + 6, g.Y(pk)); ctx.stroke();
+  ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(g.X(100), g.Y(pk)); ctx.lineTo(bx, g.Y(pk)); ctx.stroke(); ctx.setLineDash([]);
+  txt('h 山の高さ ' + (pk / 1000).toFixed(1) + ' km', bx + 12, (g.Y(0) + g.Y(pk)) / 2 + 5, { c: C.up, f: note(13), bg: 'rgba(236,229,209,.85)' });
+  if (rt > 300) { ctx.strokeStyle = C.down; ctx.beginPath(); ctx.moveTo(bx, g.Y(-L.C0)); ctx.lineTo(bx, g.Y(-L.C0 - rt)); ctx.moveTo(bx - 6, g.Y(-L.C0 - rt)); ctx.lineTo(bx + 6, g.Y(-L.C0 - rt)); ctx.stroke();
+    txt('r 山の根 ' + (rt / 1000).toFixed(1) + ' km', bx + 12, g.Y(-L.C0) + 40, { c: C.down, f: note(13), bg: 'rgba(236,229,209,.85)' }); }
+  let ah = 0, ar = 0; for (let i = 0; i < L.NX; i++) { ah += s.h[i]; ar += s.root[i]; }   // 断面積（地上の山・地下の根）
+  const ratio = ah > 1 ? ar / ah : 0;
+  txt(e < 0.35 ? '仮に根が無いとすると…（沈む前）' : e < 0.995 ? '重いマントルに沈みながら、根が育つ（断面積の比 ' + ratio.toFixed(1) + ' → 5.6）' : '釣り合った：根の断面積 ÷ 山の断面積 ＝ ' + ratio.toFixed(1), x + 40, y + 90, { f: note(14) });
+  txt('地殻 CRUST ρ 2.8', x0 + 20, g.Y(-12000), { f: note(13) }); txt('もとのモホ面（深さ 35 km）', x0 + 20, g.Y(-L.C0) - 8, { f: note(12) }); txt('マントル MANTLE ρ 3.3', x0 + 20, g.Y(-L.C0) + 60, { f: note(13) });
+  // 氷山（同じ形）：浮かべると 9 割沈んで止まる
+  const ix = x + w - 280, iy = y + h - 176, iw = 230, ih = 120; ctx.fillStyle = 'rgba(236,229,209,.95)'; ctx.fillRect(ix, iy, iw, ih); ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.strokeRect(ix + .5, iy + .5, iw, ih);
+  txt('氷山と同じ形', ix + 10, iy + 18, { f: note(12) }); const wl = iy + 48; ctx.fillStyle = 'rgba(45,94,140,.18)'; ctx.fillRect(ix + 1, wl, iw - 2, ih - 49); ctx.strokeStyle = C.down; ctx.beginPath(); ctx.moveTo(ix, wl); ctx.lineTo(ix + iw, wl); ctx.stroke();
+  const draft = 62 * (0.9 * e) + bob(t, 0.5, 1.5) * e, top = wl + draft - 62; ctx.fillStyle = '#F7F4EA'; ctx.strokeStyle = C.ink; ctx.beginPath(); ctx.moveTo(ix + 78, top + 14); ctx.lineTo(ix + 100, top); ctx.lineTo(ix + 122, top + 16); ctx.lineTo(ix + 128, top + 62); ctx.lineTo(ix + 82, top + 64); ctx.closePath(); ctx.fill(); ctx.stroke();
+  txt('水 1.0', ix + 150, wl + 22, { f: mono(11), c: C.down }); txt('氷 0.9', ix + 150, wl + 40, { f: mono(11), c: C.down }); txt('→ 9 割沈む', ix + 150, wl + 58, { f: note(11), c: C.down });
+  txt('縦：地上も地下も同じ縮尺（根の比を見るため）· 横 200 km', x + w - 40, y + h - 20, { a: 'right', f: note(12) });
+  railLive = 'いま h ' + (pk / 1000).toFixed(1) + ' km ／ r ' + (rt / 1000).toFixed(1) + ' km（断面積の比 ' + ratio.toFixed(1) + '）';
+};
+// 03 削る：水が集まりながら流れ下り、川が育つ
+FIG[3] = (a, t) => {
+  const { x, y, w, h } = PL, s = D.S6; if (!s) return wait();
+  const x0 = x + 40, x1 = x + w - 40, yb = y + 590, k = 0.08, g = profile(s.h, { x0, x1, yb, k });
+  const div = s.div, hackQ = i => L.hackA(Math.abs(div - i) * L.DX + L.DX / 2), Qmax = hackQ(1);
+  cloud(x + 250, y + 120, 42, 7, t); txt('雨 1 m/年', x + 320, y + 120, { c: C.down, f: note(13) });
+  // しずく：分水嶺から下流へ
+  const iD = Math.round(div - ease(a / 0.85) * (div - 4));
+  ctx.strokeStyle = C.down; ctx.lineCap = 'round';
+  for (let i = div - 1; i >= iD; i--) { ctx.globalAlpha = 0.85; ctx.lineWidth = 1.5 + 7 * Math.sqrt(hackQ(i) / Qmax); ctx.beginPath(); ctx.moveTo(g.X(i + 1), g.Y(s.h[i + 1]) + 2); ctx.lineTo(g.X(i), g.Y(s.h[i]) + 2); ctx.stroke(); }
+  ctx.globalAlpha = 1; ctx.lineCap = 'butt';
+  const Q = hackQ(iD), S = Math.max(0, (s.h[iD + 1] - s.h[iD]) / L.DX), E = L.K * Math.sqrt(Q) * S;
+  const dx = g.X(iD), dy = g.Y(s.h[iD]); ctx.fillStyle = C.down; ctx.beginPath(); ctx.arc(dx, dy - 1, 7, 0, 7); ctx.fill(); ctx.strokeStyle = C.paper; ctx.lineWidth = 2; ctx.stroke();
+  const fq = q => q >= 1e8 ? (q / 1e8).toFixed(1) + ' 億' : (q / 1e4).toFixed(0) + ' 万';
+  txt('Q ' + fq(Q) + ' m³/年 · S ' + S.toFixed(3) + ' · E ' + (E * 1e3).toFixed(1) + ' mm/年', dx + 10, Math.min(dy + 36, y + 650), { f: mono(12, 600), c: C.down, bg: 'rgba(236,229,209,.92)' });
+  // 削る速さの矢印（上から刺さる・ゆれる）
+  for (const i of [30, 55, 78, 90]) { const e = s.E[i] * 1e3, yy = g.Y(s.h[i]) - 4, len = 14 + e * 9, by = bob(t + i * 0.01, 0.9, 4); arrow(g.X(i), yy - len + by, g.X(i), yy + by, C.down, 2); }
+  // 上流・下流の札
+  { const up = [g.X(86), g.Y(s.h[86])], dn = [g.X(24), g.Y(s.h[24])], ly1 = y + 300, ly2 = y + 420; ctx.strokeStyle = C.dim; ctx.lineWidth = 0.8; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(x + 372, ly1 - 4); ctx.lineTo(up[0] - 5, up[1] - 4); ctx.moveTo(dn[0], ly2 + 6); ctx.lineTo(dn[0], dn[1] - 6); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = C.ink; for (const [px, py] of [up, dn]) { ctx.beginPath(); ctx.arc(px, py, 3, 0, 7); ctx.fill(); }
+    txt('上流　水は少ない · 傾きは急　Q 小 × S 大', x + 60, ly1, { f: note(12) }); txt('下流　水は多い · 傾きはゆるい　Q 大 × S 小', x + 60, ly2, { f: note(12) }); }
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(g.X(div), g.Y(s.h[div]) + 8, 34, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+  txt('斜面がにじんで丸くなる　D 20 m²/年', g.X(div) + 44, g.Y(s.h[div]) - 14, { f: note(12) });
+  // 式の箱（いまの数で）
+  const bx = x + 650, by = y + 420; ctx.fillStyle = '#0B0B0A'; ctx.fillRect(bx, by, 340, 150);
+  txt('川が削る速さ', bx + 20, by + 28, { c: '#E8E6DF', f: note(12) }); txt('E = K · Q^0.5 · S', bx + 20, by + 70, { c: C.acc, f: mono(24) });
+  txt('= 1.2e-5 × √(' + fq(Q) + ') × ' + S.toFixed(3), bx + 20, by + 100, { c: '#E8E6DF', f: mono(12) });
+  txt('= ' + (E * 1e3).toFixed(1) + ' mm/年', bx + 20, by + 122, { c: C.acc, f: mono(13, 600) });
+  txt('下流から順に解く（1 コマが大きくても暴れない）', x + 40, y + h - 20, { f: note(12) });
+  txt('縦 ×' + (k * 1000 / ((x1 - x0) / 200)).toFixed(0) + ' · K 1.2e-5 は目安の合わせ込み', x + w - 40, y + h - 20, { a: 'right', f: note(12) });
+  railLive = 'Q ' + fq(Q) + ' m³/年 · S ' + S.toFixed(3) + ' → E ' + (E * 1e3).toFixed(1) + ' mm/年';
+};
+// 04 綱引き：時間を進めて、天秤が傾き → 水平 → 逆へ
+FIG[4] = (a, t) => {
+  const { x, y, w, h } = PL; if (D.rec.length < 80) return wait();
+  const tc = a < 0.3 ? a / 0.3 * 2.6e6 : a < 0.62 ? 2.6e6 + (a - 0.3) / 0.32 * 3.4e6 : 6e6 + clamp((a - 0.62) / 0.3) * 2e6;
+  const r = D.rec[clamp(Math.round(tc / 1e5) - 1, 0, D.rec.length - 1)], U = r.up * 1e3, E = r.down * 1e3, st = r.s;
+  const P3 = [['GROW', '育つ', 'U ＞ E', D.snap.grow], ['STEADY', '止まる', 'U ＝ E', D.S6], ['DECAY', '低くなる', 'U ＜ E', D.snap.decay]];
+  P3.forEach(([nm, ja, rel, sn], j) => {
+    const px = x + 40 + j * 330, py = y + 70, pw = 300, ph = 250, on = nm === st;
+    ctx.fillStyle = on ? '#F7F3E6' : C.paper; ctx.fillRect(px, py, pw, ph); ctx.strokeStyle = on ? C.ink : 'rgba(42,37,31,.35)'; ctx.lineWidth = on ? 2 : 1; ctx.strokeRect(px + .5, py + .5, pw, ph);
+    txt(nm, px + 14, py + 30, { f: '400 19px Michroma' }); txt(ja, px + 14, py + 50, { f: jp(12) }); txt(rel, px + pw - 14, py + 30, { a: 'right', f: mono(13) });
+    if (sn) { const hh = sn.h, base = py + ph - 40, kk = 0.04, pth = new Path2D(); for (let i = 0; i < L.NX; i++) { const X = px + 10 + i / (L.NX - 1) * (pw - 20), Y = base - Math.max(0, hh[i]) * kk; i ? pth.lineTo(X, Y) : pth.moveTo(X, Y); } pth.lineTo(px + pw - 10, base); pth.lineTo(px + 10, base); pth.closePath(); ctx.fillStyle = on ? C.ink : '#6E6456'; ctx.fill(pth);
+      const ru = sn.stat ? sn.stat.up * 1e3 : 0, rd = sn.stat ? sn.stat.down * 1e3 : 0; arrow(px + 150 - 40, base + 34, px + 150 - 40, base + 34 - ru * 10 + bob(t, 0.9, on ? 3 : 0), C.up, 2); arrow(px + 150 + 40, py + 64 + bob(t + .5, 0.9, on ? 3 : 0), px + 150 + 40, py + 64 + rd * 10, C.down, 2); }
+    if (on) { ctx.fillStyle = '#0B0B0A'; ctx.fillRect(px + pw - 78, py + ph - 34, 66, 24); txt('◀ ここ', px + pw - 45, py + ph - 17, { a: 'center', c: '#E8E6DF', f: note(12) }); }
+  });
+  // 天秤
+  const cx = x + 520, cy = y + 560, ang = clamp((E - U) * 0.06, -0.2, 0.2), Lb = 320, ex = Math.cos(ang) * Lb, ey = Math.sin(ang) * Lb;
+  ctx.fillStyle = C.ink; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx - 30, cy + 62); ctx.lineTo(cx + 30, cy + 62); ctx.fill(); ctx.fillRect(cx - 80, cy + 62, 160, 2);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(cx - ex, cy - ey); ctx.lineTo(cx + ex, cy + ey); ctx.stroke();
+  const ku = 32, lx = cx - ex + 60, ly = cy - ey - 4, rx = cx + ex - 60, ry = cy + ey - 4;
+  arrow(lx, ly + 40 + bob(t, 0.8, 4), lx, ly + 40 - U * ku + bob(t, 0.8, 4), C.up, 4);
+  arrow(rx, ry - E * ku + bob(t + .4, 0.8, 4), rx, ry - 4 + bob(t + .4, 0.8, 4), C.down, 4);
+  txt('↑ 隆起 U　' + U.toFixed(2) + ' mm/年', lx + 18, ly - 40 - Math.min(U * ku, 200) * 0.5, { c: C.up, f: mono(15, 600), bg: 'rgba(236,229,209,.9)' });
+  txt('押して厚くなり、浮いて上がる', lx + 18, ly - 18 - Math.min(U * ku, 200) * 0.5, { c: C.up, f: note(12) });
+  txt('↓ 侵食 E　' + E.toFixed(2) + ' mm/年', rx - 18, ry - E * ku * 0.5 - 10, { a: 'right', c: C.down, f: mono(15, 600), bg: 'rgba(236,229,209,.9)' });
+  txt('川が刻み、斜面がにじむ', rx - 18, ry - E * ku * 0.5 + 12, { a: 'right', c: C.down, f: note(12) });
+  txt(st === 'GROW' ? '上が長い ＝ 育つ（GROW）' : st === 'STEADY' ? '同じ長さ ＝ 高さが止まる（STEADY）' : '下が長い ＝ 低くなる（DECAY）', cx, cy + 96, { a: 'center', f: note(15) });
+  txt('時間 ' + (tc / 1e6).toFixed(1) + ' 百万年 · 押す ' + (r.v ? '1.5 cm/年' : '0（やめた）') + ' · 最高点 ' + num(r.peak) + ' m', x + 40, y + h - 20, { f: mono(11) });
+  txt('天秤の矢印 1 mm/年 ＝ ' + ku + ' px · 雨 1 m/年', x + w - 40, y + h - 20, { a: 'right', f: note(12) });
+  railLive = 'U ' + U.toFixed(2) + ' − E ' + E.toFixed(2) + ' ＝ ' + (U - E >= 0 ? '+' : '−') + Math.abs(U - E).toFixed(2) + ' mm/年';
+};
+// 05 削ると浮く
+FIG[5] = (a, t) => {
+  const { x, y, w, h } = PL, pr = D.proof || { cut: 1000, drop: 152, narrow: 0.085 }, kp = 0.2, f = clamp(a / 0.85);
+  const ys = y + 190, bx0 = x + 310, bx1 = x + 730, cutPx = pr.cut * kp, reb = (pr.cut - pr.drop) * kp;
+  const g1 = clamp(f / 0.3), g2 = eo((f - 0.3) / 0.35), g3 = clamp((f - 0.65) / 0.2);
+  ctx.fillStyle = PAT.dots; ctx.fillRect(x + 40, ys, w - 80, 420);
+  const rise = reb * g2, top = ys + cutPx - rise;
+  ctx.fillStyle = C.paper; ctx.fillRect(bx0, ys, bx1 - bx0, top - ys);   // 削ってできた穴
+  if (g2 > 0) { ctx.fillStyle = 'rgba(210,176,106,.55)'; ctx.fillRect(bx0, top, bx1 - bx0, ys + cutPx - top); }
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.moveTo(x + 40, ys); ctx.lineTo(bx0, ys); ctx.lineTo(bx0, top); ctx.lineTo(bx1, top); ctx.lineTo(bx1, ys); ctx.lineTo(x + w - 40, ys); ctx.stroke();
+  if (g3 > 0) { ctx.save(); ctx.globalAlpha = g3; ctx.fillStyle = PAT.mantle; ctx.fillRect(bx0, ys, bx1 - bx0, top - ys); ctx.restore(); }
+  if (g1 < 1) { ctx.save(); ctx.globalAlpha = 1 - g1 * 0.9; const lift = eo(g1) * 70; ctx.fillStyle = 'rgba(45,94,140,.3)'; ctx.fillRect(bx0, ys - lift, bx1 - bx0, cutPx); ctx.strokeStyle = C.down; ctx.lineWidth = 1.5; ctx.strokeRect(bx0, ys - lift, bx1 - bx0, cutPx); txt('削る ' + num(pr.cut) + ' m', (bx0 + bx1) / 2, ys - lift + cutPx / 2, { a: 'center', c: C.down, f: note(14) }); ctx.restore(); }
+  ctx.strokeStyle = C.down; ctx.lineWidth = 1; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.moveTo(bx0, ys + cutPx); ctx.lineTo(bx1, ys + cutPx); ctx.stroke(); ctx.setLineDash([]);
+  if (g2 > 0 && g2 < 1 || (g2 >= 1 && !RM)) for (const xx of [bx0 + 90, (bx0 + bx1) / 2, bx1 - 90]) { const b = bob(t + xx * 0.003, 1, 5); arrow(xx, ys + cutPx + 140, xx, top + 12 + b, C.up, 2.5); }
+  if (g2 > 0) txt('浮いた +' + num((pr.cut - pr.drop) * g2) + ' m', (bx0 + bx1) / 2, top + (ys + cutPx - top) / 2 + 30, { a: 'center', c: C.up, f: note(15), bg: 'rgba(236,229,209,.85)' });
+  // 根の形（深さは縮めて描く）も一緒に浮く
+  const rb = y + 600, rr = rise * 0.5, rpath = [[x + 240, rb], [bx0 - 20, rb - 150 - rr], [bx1 + 20, rb - 150 - rr], [x + 800, rb]];
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x + 40, rb); rpath.forEach(([px, py]) => ctx.lineTo(px, py)); ctx.lineTo(x + w - 40, rb); ctx.stroke();
+  ctx.save(); ctx.globalAlpha = 0.5; ctx.fillStyle = PAT.mantle; ctx.beginPath(); ctx.moveTo(x + 40, rb); rpath.forEach(([px, py]) => ctx.lineTo(px, py)); ctx.lineTo(x + w - 40, rb); ctx.lineTo(x + w - 40, y + h - 40); ctx.lineTo(x + 40, y + h - 40); ctx.fill(); ctx.restore();
+  for (const xx of [bx0 + 120, bx1 - 120]) if (g2 > 0) arrow(xx, rb + 10, xx, rb - 130 - rr + bob(t, 1, 4), C.up, 2);
+  txt('地殻', x + 60, ys + 60, { f: note(13) }); txt('根も浮き上がる（深さは縮めて描く）', x + 60, rb - 170, { f: note(12) }); txt('もとのモホ面', x + 60, rb + 22, { f: note(12) });
+  txt('もとの地表', bx1 + 14, ys - 8, { f: note(12) });
+  txt('削った深さ −' + num(pr.cut) + ' m', bx1 + 14, ys + cutPx + 5, { c: C.down, f: mono(12) });
+  if (g2 > 0) txt('いまの地表 −' + num(pr.cut - (pr.cut - pr.drop) * g2) + ' m', bx1 + 14, top + 5, { f: mono(12, 600) });
+  const ph = f < 0.3 ? '① 幅 80 km を上から ' + num(pr.cut) + ' m 削る' : f < 0.65 ? '② 軽くなった分、根がマントルに押し上げられて浮く' : '③ 削った ' + num(pr.cut) + ' m のうち ' + Math.round((1 - pr.drop / pr.cut) * 100) + '% を浮き上がりが取り戻す';
+  txt(ph, x + 40, y + 90, { f: note(15) });
+  if (g3 > 0) { ctx.save(); ctx.globalAlpha = g3; const nx = x + 760, ny = y + 40; ctx.fillStyle = C.paper; ctx.fillRect(nx, ny, 240, 120); ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.strokeRect(nx + .5, ny + .5, 240, 120);
+    txt('幅 2 km の谷', nx + 10, ny + 20, { f: note(12) }); txt('浮くのは ' + (pr.narrow * 100).toFixed(1) + '% だけ', nx + 10, ny + 38, { c: C.up, f: note(12) });
+    ctx.beginPath(); ctx.moveTo(nx, ny + 60); ctx.lineTo(nx + 100, ny + 60); ctx.lineTo(nx + 120, ny + 108); ctx.lineTo(nx + 140, ny + 60); ctx.lineTo(nx + 240, ny + 60); ctx.stroke(); txt('板が支える', nx + 230, ny + 110, { a: 'right', f: note(11) }); ctx.restore(); }
+  txt('縦：地上 1000 m ＝ ' + (1000 * kp) + ' px · 押す・削るの時計は止めている', x + 40, y + h - 20, { f: note(12) });
+  txt('中央 80 km を広く削った場合（アプリの PROOF と同じ）', x + w - 40, y + h - 20, { a: 'right', c: C.up, f: note(12) });
+  railLive = 'r ≈ 5.6 h → 削った 1000 m の ' + Math.round((1 - pr.drop / pr.cut) * 100) + '% が浮く';
+};
+// 06 風と分水嶺
+FIG[6] = (a, t) => {
+  const { x, y, w, h } = PL; if (D.W.length < 17) return wait();
+  const idx = Math.round(ease(a / 0.85) * 16), sn = D.W[idx], x0 = x + 40, x1 = x + w - 40, yb = y + 610, k = 0.075, pmax = Math.max(...sn.P);
+  profile(D.W[0].h, { x0, x1, yb, k, fill: false, c: 'rgba(42,37,31,.35)', w: 1, dash: [4, 4] });
+  const g = profile(sn.h, { x0, x1, yb, k, det: i => { const e = sn.E[i] * 1e3, r = sn.P[i] / pmax, hh = Math.max(0, sn.h[i]); return hh > 30 ? 0.4 * (Math.min(hh, 3000) * 0.1 + Math.min(e, 8) * 60) * (vnoise(i / 5) + 1.2 * r * vnoise(i / 1.3 + 3) + 0.8 * r * vnoise(i / 0.55 + 7)) : 0; } });
+  const xo = g.X(100), xn = g.X(sn.div);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(xo, y + 250); ctx.lineTo(xo, yb + 20); ctx.stroke(); ctx.setLineDash([]);
+  ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(xn, g.Y(sn.h[sn.div]) - 4); ctx.lineTo(xn, yb + 20); ctx.stroke();
+  txt('もとの分水嶺', xo - 8, yb + 40, { a: 'right', f: note(12) }); txt('いまの分水嶺', xn + 8, yb + 40, { f: note(12) });
+  if (sn.div !== 100) { arrow(xo, yb + 58, xn, yb + 58, C.up, 2); txt((sn.div - 100) + ' km', (xo + xn) / 2, yb + 80, { a: 'center', c: C.up, f: mono(13, 600) }); }
+  // 風（右へ流れる矢羽）
+  const ax0 = x + 70, ax1 = x + 330; arrow(ax0, y + 140, ax1, y + 140, C.ink, 2.5); txt('風 ← 左から', ax0, y + 124, { f: note(13) });
+  if (!RM) { ctx.strokeStyle = 'rgba(42,37,31,.5)'; ctx.lineWidth = 1.2; for (let j = 0; j < 4; j++) { const ph = (t * 0.6 + j / 4) % 1, xx = ax0 + ph * (ax1 - ax0 + 200); ctx.beginPath(); ctx.moveTo(xx, y + 152); ctx.lineTo(xx + 26, y + 152); ctx.stroke(); } }
+  cloud(g.X(60), y + 220, 40, 9, t); txt('風上 雨 ×1.6', g.X(60), y + 172, { a: 'center', c: C.down, f: note(13) });
+  cloud(g.X(150), y + 220, 40, 2, t); txt('風下 雨 ×0.4', g.X(150), y + 172, { a: 'center', c: C.down, f: note(13) });
+  txt('谷が深く細かい', g.X(35), g.Y(sn.h[35]) - 30, { a: 'center', f: note(12) }); txt('谷がゆるい', g.X(165), g.Y(sn.h[165]) - 30, { a: 'center', f: note(12) });
+  txt('風を当てて ' + (idx * 0.5).toFixed(1) + ' 百万年（点線＝風なしで止まった山）', x + 40, y + 90, { f: note(13) });
+  txt('風上 ×1.6 · 風下 ×0.4 は目安 · 谷の細部はまね △', x + 40, y + h - 20, { f: note(12) });
+  txt('縦 ×' + (k * 1000 / ((x1 - x0) / 200)).toFixed(0) + ' · 横 200 km', x + w - 40, y + h - 20, { a: 'right', f: mono(11) });
+  railLive = '風上で Q が大きい → E が大きい → 分水嶺 ' + (sn.div - 100 >= 0 ? '+' : '') + (sn.div - 100) + ' km';
+};
+// 07 山の一生
+FIG[7] = (a, t) => {
+  const { x, y, w, h } = PL; if (D.rec.length < 100 || D.B.length < 81) return wait();
+  const A = ease(a / 0.85);
+  // 左：50 万年ごとの線を積む
+  const pr = D.prof, n = pr.length, m = Math.max(1, Math.ceil(A * n)), lx0 = x + 70, lx1 = x + 470, top = y + 120, bot = y + 640, dy = (bot - top - 60) / Math.max(1, n - 1), kh = 60 / 4000;
+  txt('50 万年ごとの地表の線（新しいほど上）', x + 40, y + 90, { f: note(13) });
+  for (let j = 0; j < m; j++) { const r = pr[j], base = bot - j * dy; ctx.strokeStyle = r.s === 'GROW' ? C.up : r.s === 'DECAY' ? C.down : C.ink; ctx.globalAlpha = j === m - 1 ? 1 : 0.8; ctx.lineWidth = j === m - 1 ? 1.8 : 0.9; ctx.beginPath(); for (let i = 0; i < L.NX; i += 2) { const X = lx0 + i / (L.NX - 1) * (lx1 - lx0), Y = base - Math.max(0, r.h[i]) * kh; i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); } ctx.stroke(); }
+  ctx.globalAlpha = 1;
+  for (let j = 0; j < m; j++) { const tt = pr[j].t / 1e6; if (Math.abs(tt % 5) < 0.01) txt(tt.toFixed(0), lx0 - 8, bot - j * dy + 4, { a: 'right', f: mono(10) }); }
+  txt('赤 育つ · 黒 止まる · 青 低くなる', lx0, bot + 26, { f: note(12) });
+  // 右：最高点の高さ
+  const gx0 = x + 560, gx1 = x + 990, gy0 = y + 130, gy1 = y + 600, tmax = 1e7, pmx = 4200, GX = tt => gx0 + tt / tmax * (gx1 - gx0), GY = p => gy1 - p / pmx * (gy1 - gy0), tc = A * tmax;
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(gx0, gy0 - 10); ctx.lineTo(gx0, gy1); ctx.lineTo(gx1, gy1); ctx.stroke();
+  txt('最高点の高さ', gx0, gy0 - 20, { f: note(13) }); txt('時間 →', gx1, gy1 + 22, { a: 'right', f: note(12) });
+  for (let p = 1000; p <= 4000; p += 1000) txt(p / 1000 + ' km', gx0 - 8, GY(p) + 4, { a: 'right', f: mono(10) });
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(GX(0), GY(0)); let last = null;
+  for (const r of D.rec) { if (r.t > tc || r.t > tmax) break; ctx.lineTo(GX(r.t), GY(r.peak)); last = r; } ctx.stroke();
+  if (tc > 6e6) { ctx.setLineDash([4, 4]); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(GX(6e6), GY(D.S6.stat.peak)); for (const b of D.B) { if (6e6 + b.t > tc) break; ctx.lineTo(GX(6e6 + b.t), GY(b.peak)); } ctx.lineTo(GX(Math.min(tc, 8e6)), GY(D.B[D.B.length - 1].peak)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(GX(6e6), gy0); ctx.lineTo(GX(6e6), gy1); ctx.stroke(); ctx.setLineDash([]); txt('押すのをやめる', GX(6e6) + 6, gy0 + 4, { f: note(12) }); }
+  if (last) { ctx.fillStyle = C.up; ctx.beginPath(); ctx.arc(GX(last.t), GY(last.peak), 5, 0, 7); ctx.fill(); }
+  if (tc > 1.2e6) txt('育つ', GX(0.7e6), GY(2600), { c: C.up, f: note(13) });
+  if (tc > 3.6e6) txt('止まる', GX(3.4e6), GY(3700) - 14, { f: note(13) });
+  if (tc > 7e6 && D.half) txt('浮き沈みあり：半分まで ' + num(D.half / 1e4) + ' 万年', GX(6.9e6), GY(2300), { f: note(12), bg: 'rgba(236,229,209,.9)' });
+  if (tc > 6.6e6 && D.halfNo) txt('なし：' + num(D.halfNo / 1e4) + ' 万年', GX(6.25e6), GY(500), { f: note(12), bg: 'rgba(236,229,209,.9)' });
+  txt('線の色はその時の状態（アプリの GAUGE · LIFE と同じ）', x + 40, y + h - 20, { f: note(12) });
+  txt('押す 1.5 → 0 → 1.5 cm/年 · 雨 1 m/年 · 点線＝根なし', x + w - 40, y + h - 20, { a: 'right', f: note(12) });
+  railLive = '押すのをやめても dh/dt は小さい：根が浮いて U が残る';
+};
+// 08 BREAK
+FIG[8] = (a, t) => {
+  const { x, y, w, h } = PL; if (D.M.length < 31 || D.B.length < 81) return wait();
+  const A = ease(a / 0.85);
+  // 左：雨 0（月）
+  const m = D.M[Math.round(A * 30)], ySea = y + 500;
+  section(m.cols, { x0: x + 40, x1: x + 490, ySea, k: 0.07, yt: y + 140, yb: y + h - 60 });
+  txt('雨 0（月）', x + 50, y + 100, { f: jp(18, 500) }); txt('削られない＝地層が切れず、背斜のまま伸び続ける', x + 50, y + 124, { f: note(12) });
+  const py = ySea - m.peak * 0.07; arrow(x + 265, py - 18, x + 265, py - 110 + bob(t, 1, 6), C.up, 3); txt('止まらない ' + num(m.peak) + ' m', x + 280, py - 70, { c: C.up, f: note(13) });
+  txt('押して ' + (A * 3).toFixed(1) + ' 百万年', x + 50, y + 150, { f: mono(12, 600) });
+  ctx.strokeStyle = 'rgba(42,37,31,.5)'; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(x + 520, y + 80); ctx.lineTo(x + 520, y + h - 50); ctx.stroke(); ctx.setLineDash([]);
+  // 右：根なし
+  const bi = Math.round(Math.pow(A, 1.6) * 32), b = D.B[bi], gx0 = x + 550, gx1 = x + 1000, yg = y + 420, kk = 0.06, kr = 0.009, X = i => gx0 + i / (L.NX - 1) * (gx1 - gx0);
+  txt('根なし', x + 550, y + 100, { f: jp(18, 500) }); txt('根をその時の形で止める＝軽い山', x + 550, y + 124, { f: note(12) });
+  ctx.save(); ctx.globalAlpha = 0.5; ctx.fillStyle = PAT.mantle; ctx.fillRect(gx0, yg + 10, gx1 - gx0, 260); ctx.restore();
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(gx0, yg + 10); ctx.lineTo(gx1, yg + 10); ctx.stroke();
+  ctx.strokeStyle = C.down; ctx.setLineDash([5, 4]); ctx.beginPath(); for (let i = 0; i < L.NX; i++) { const Y = yg + 10 + D.S6.root[i] * kr; i ? ctx.lineTo(X(i), Y) : ctx.moveTo(X(i), Y); } ctx.stroke(); ctx.setLineDash([]);
+  txt('あるはずの根（止めてある）', X(100), yg + 10 + D.S6.root[100] * kr + 22, { a: 'center', c: C.down, f: note(12) });
+  profile(D.S6.h, { x0: gx0, x1: gx1, yb: yg, k: kk, fill: false, c: 'rgba(42,37,31,.35)', w: 1, dash: [4, 4] });
+  profile(b.h, { x0: gx0, x1: gx1, yb: yg, k: kk, fd: 10 });
+  const pct = b.peak / D.S6.stat.peak * 100; txt('押すのをやめて ' + num(b.t / 1e4) + ' 万年 · 高さ ' + pct.toFixed(0) + '%', gx0, y + 160, { f: mono(12, 600) });
+  if (bi > 0) { arrow(X(128), yg - 20, X(128), yg - 20 - (b.UR || 0) * 1e3 * 14 + bob(t, 1, 3), C.up, 2); arrow(X(140), yg - 150 + bob(t + .5, 1, 3), X(140), yg - 150 + (b.E || 0) * 1e3 * 14, C.down, 2); txt('浮く側がいない → 崩れるのが速い', gx0, y + 184, { f: note(12) }); }
+  txt('BREAK のときだけ形式を崩す（窓の縁は破線）', x + 40, y + h - 20, { f: note(12) });
+  txt('根を戻すと一気に浮く', x + w - 40, y + h - 20, { a: 'right', f: note(12) });
+  railLive = '';
+};
+function wait() { const { x, y, w, h } = PL; const pc = Math.min(99, D.done / D.total * 100); txt('法則で記録中… ' + pc.toFixed(0) + '%', x + w / 2, y + h / 2, { a: 'center', f: mono(16, 600), c: C.dim }); }
+// 09：アプリの見本（小さな窓）
+let thumbDone = false;
+function thumb() { const s = D.S6; if (!s || thumbDone) return; thumbDone = true; const ctx = $('tc').getContext('2d'); ctx.setTransform(2, 0, 0, 2, 0, 0); const x = 0, y = 0, w = 300, h = 150; ctx.fillStyle = '#0B0B0A'; ctx.fillRect(x, y, w, h); ctx.fillStyle = C.acc; ctx.fillRect(x + 12, y + 12, 120, 20); ctx.fillStyle = C.paper; ctx.fillRect(x + 40, y + 44, 244, 92);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.4; ctx.beginPath(); for (let i = 0; i < L.NX; i++) { const X = x + 40 + i / (L.NX - 1) * 244, Y = y + 118 - Math.max(0, s.h[i]) * 0.012; i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); } ctx.stroke();
+  ctx.setLineDash([3, 3]); ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(x + 40, y + 126); ctx.lineTo(x + 284, y + 126); ctx.stroke(); ctx.setLineDash([]); ctx.strokeStyle = '#0B0B0A'; ctx.lineWidth = 3; ctx.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3); ctx.strokeStyle = C.acc; ctx.lineWidth = 1; ctx.strokeRect(x + 8, y + 8, w - 16, h - 16); }
+
+/* ================= 画面の部品 ================= */
+const stl = $('stl'); ST.forEach((s, i) => { const li = document.createElement('li'); li.innerHTML = '<u>' + String(i).padStart(2, '0') + '</u><b>' + s.name + '</b><s>' + s.en + '</s>'; li.addEventListener('click', () => goTo(i)); stl.appendChild(li); });
+const rail = $('rail');
+RAIL.forEach((r, j) => { const d = document.createElement('div'); d.className = 'rb'; d.innerHTML = '<div class="rt"><span>' + r.k + '<b>' + r.ja + '</b></span><i></i></div><div class="rf">' + r.f + '</div><div class="dots">···</div><div class="rd"></div>'; rail.appendChild(d); });
+const labA = document.createElement('a'); labA.className = 'rb lab'; labA.href = LAB + '#t=1'; labA.innerHTML = '<div class="rt"><span>⑤ LAB<b>終点</b></span><i></i></div><div class="rf">OPEN THE LAB →</div><div class="rd">いつでもアプリへ飛べる</div>'; rail.appendChild(labA);
+function frame() { const svg = $('frame'), M = 'rgba(232,230,223,0.55)', S = 'rgba(232,230,223,0.10)'; let s = '';
+  for (const p of ['52,24 24,24 24,52', '1868,24 1896,24 1896,52', '52,1056 24,1056 24,1028', '1868,1056 1896,1056 1896,1028']) s += '<polyline points="' + p + '" fill="none" stroke="' + M + '" stroke-width="1.5"/>';
+  for (const yy of [124, 870]) s += '<line x1="24" y1="' + yy + '" x2="1896" y2="' + yy + '" stroke="' + S + '"/>';
+  s += '<line x1="372" y1="44" x2="372" y2="108" stroke="#F3D21C" stroke-width="2"/><line x1="1090" y1="78" x2="1110" y2="78" stroke="#F3D21C"/><line x1="1100" y1="68" x2="1100" y2="88" stroke="#F3D21C"/>';
+  svg.innerHTML = s; }
+frame();
+
+let cur = -1, kvAnim = { t0: 0 };
+function setStation(i) {
+  if (i === cur) return; cur = i; const s = ST[i], two = String(i).padStart(2, '0');
+  $('o_stn').textContent = two + ' / 09'; $('o_tab').textContent = 'LP · ' + two + ' / 09'; $('noise').textContent = s.noise; $('bigTop').textContent = s.big;
+  const kj = $('kanji'); kj.textContent = s.kanji; kj.classList.toggle('num', /\d/.test(s.kanji));
+  Object.assign(kj.style, i === 0 ? { left: '1300px', top: '806px' } : /\d/.test(s.kanji) ? { left: '30px', top: '900px' } : { left: '-6px', top: '560px' });
+  $('L0').classList.toggle('on', i === 0); $('LS').classList.toggle('on', i > 0); $('L1').classList.toggle('on', i > 0 && i < 9); $('L9').classList.toggle('on', i === 9);
+  [...stl.children].forEach((li, k) => { li.className = k < i ? 'done' : k === i ? 'now' : ''; });
+  $('o_read').textContent = two + ' / 09'; $('o_bar').style.width = (i / 9 * 100) + '%';
+  if (i > 0 && i < 9) { $('o_fig').textContent = s.fig; $('o_figt').textContent = s.figt; $('r_num').textContent = s.num; $('r_en').textContent = s.ren; $('r_h').innerHTML = s.h; $('r_body').textContent = s.body; $('r_kl').textContent = s.kl; $('r_ku').textContent = s.ku; $('r_kn').innerHTML = s.kn; $('r_wow').textContent = s.wow; $('r_next').textContent = s.next; }
+  $('brkchip').style.display = i === 8 ? 'flex' : 'none';
+  $('foot').textContent = 'ARCHIVE/EARTH/E1/0907/LP — ' + (i === 9 ? 'END OF RECORD' : 'STATION ' + two + (s.fig ? ' · ' + s.fig.replace('. ', '.') : ''));
+  // 式の線路
+  [...rail.children].forEach((d, j) => {
+    if (j === 4) { d.className = 'rb lab' + (i === 9 ? ' now' : ''); d.querySelector('.rt i').textContent = i === 9 ? 'NOW' : ''; d.querySelector('.rd').textContent = i === 9 ? '4 つの式を、つまみで確かめる' : 'いつでもアプリへ飛べる'; d.href = LAB + ST[i].lab; return; }
+    const r = RAIL[j], ref = (REF[i] || []).includes(j + 1), st = i < r.at ? 'fut' : i === r.at ? 'now' : ref ? 'ref' : 'done';
+    d.className = 'rb ' + st; d.querySelector('.rt i').textContent = st === 'fut' ? '— 未着' : st === 'now' ? 'NOW' : st === 'ref' ? 'REF · 再登場' : '✓';
+    d.querySelector('.rd').textContent = st === 'fut' ? String(r.at).padStart(2, '0') + ' の駅で入線' : r.d; d.dataset.st = st;
+  });
+  document.querySelector('.cta').href = LAB + '#t=1';
+  // 文字の入り方をやり直す
+  for (const id of ['L0', 'L1', 'L9']) { const el = $(id); el.classList.remove('go'); void el.offsetWidth; if (el.classList.contains('on')) el.classList.add('go'); }
+  kvAnim.t0 = performance.now();
+}
+function keyNumber() {   // KEY NUMBER は 0 から数え上げる（0.6 秒）
+  const s = ST[cur]; if (!s || !s.kv) return; const v = s.kv(), el = $('r_kv');
+  if (v == null) { el.textContent = '—'; return; } if (typeof v === 'string') { el.textContent = v; return; }
+  const f = RM ? 1 : eo((performance.now() - kvAnim.t0 - 300) / 600); el.textContent = (s.kp || '') + num(v * f, s.kf);
+}
+function railLiveSet() { const r = RAIL.findIndex(r => r.at === cur); [...rail.children].forEach((d, j) => { if (j < 4 && d.dataset.st === 'now' && railLive) d.querySelector('.rd').textContent = railLive; }); }
+
+/* ================= スクロール（1 駅＝画面 1 枚・なめらかに追いかける） ================= */
+const track = $('track'); let vh = innerHeight; function size() { vh = innerHeight; track.style.height = (NST * vh) + 'px'; }
+size(); addEventListener('resize', () => { size(); resize(); });
+let P = 0, last = performance.now(), tSec = 0;
+let FIX = null;   // 検証用：#s=..&fix=1 でスクロールせずにその位置で止める
+const target = () => FIX != null ? FIX : clamp(scrollY / vh, 0, NST - 1);
+function goTo(i) { scrollTo({ top: i * vh + 2, behavior: RM ? 'auto' : 'smooth' }); }
+addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); goTo(Math.min(NST - 1, Math.floor(P + 0.02) + 1)); } if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); goTo(Math.max(0, Math.ceil(P - 0.02) - 1)); } });
+PHShell.onScale(resize); resize();
+function render(P) {
+  const i = Math.min(NST - 1, Math.floor(P + 1e-6)), a = P - i; setStation(i);
+  ctx.setTransform(SC, 0, 0, SC, 0, 0); ctx.clearRect(0, 0, 1920, 1080);
+  if (i === 0) FIG[0](a, tSec);
+  else if (i < 9) { plate(PL.x, PL.y, PL.w, PL.h, i === 8); ctx.save(); ctx.beginPath(); ctx.rect(PL.x, PL.y, PL.w, PL.h); ctx.clip(); railLive = ''; FIG[i](a, tSec); ctx.restore(); }
+  thumb();
+  keyNumber(); railLiveSet();
+}
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now; tSec += dt;
+  work(9);
+  const T = target(); P = RM ? T : P + (T - P) * Math.min(1, dt * 9); if (Math.abs(T - P) < 1e-4) P = T;
+  render(P);
+  requestAnimationFrame(loop);
+}
+// 直リンク：#s=駅&p=駅の中の進み（例 #s=4&p=0.5）
+{ const Q = new URLSearchParams(location.hash.slice(1)); if (Q.has('dbg')) setTimeout(() => { const e = document.elementFromPoint(innerWidth / 2, innerHeight / 2); document.body.setAttribute('data-dbg', JSON.stringify({ sy: scrollY, P, cur, el: e && (e.id || e.className || e.tagName) })); }, +Q.get('dbg') || 3000); if (Q.has('s')) { const s = clamp(+Q.get('s') + (+Q.get('p') || 0), 0, NST - 1); if (Q.get('fix') === '1') { FIX = s; P = s; } else requestAnimationFrame(() => { scrollTo(0, s * vh); P = s; }); } }
+if (document.fonts) ["13px 'M PLUS 1 Code'", "13px 'IBM Plex Sans JP'", "19px Michroma", "12px 'JetBrains Mono'"].forEach(f => document.fonts.load(f));
+window.__LP = { D, ST, get P() { return P; }, render, work: b => work(b), get jobDone() { return jobDone; }, setP: v => { P = v; render(v); } };   // 検証用
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

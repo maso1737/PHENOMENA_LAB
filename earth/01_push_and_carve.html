@@ -88,7 +88,7 @@
   </div>
 
   <!-- 07 FORMAT -->
-  <div class="ph-format"><span class="k">FORMAT</span><span class="ja">地質断面図</span><span class="en">GEOLOGICAL CROSS-SECTION</span></div>
+  <div class="ph-format"><span class="k">FORMAT</span><span class="ja">地質断面図</span><span class="en">GEOLOGICAL CROSS-SECTION</span><a href="scroll/SCROLL_PUSHCARVE_LP.html" style="margin-top:8px;font:600 11px/1 var(--f-thin);letter-spacing:.16em;color:var(--accent-line);text-decoration:none">SCROLL LP <span style="font:500 12px var(--f-jp);letter-spacing:0">解説を読む →</span></a></div>
 
   <!-- 08 READOUT（主役の操作つき） -->
   <div class="ph-readout">
@@ -255,7 +255,7 @@ function draw() {
   ctx.font = note(11); ctx.fillStyle = C.dim; ctx.textBaseline = 'top';
   if (S.wind) { const wetL = S.wind < 0, y = yLT + 52; ctx.textAlign = 'left'; ctx.fillText(wetL ? '雨の多い側（風上）' : '乾いた側（風下）', x0 + 14, y); ctx.textAlign = 'right'; ctx.fillText(wetL ? '乾いた側（風下）' : '雨の多い側（風上）', x1 - 14, y); }
   ctx.font = mono(9); ctx.textAlign = 'right'; ctx.fillStyle = C.dim; ctx.fillText('縦 ×' + (G.kLook / ((x1 - x0) / 200000)).toFixed(1) + ' ・ 細部の凸凹はまね △', x1 - 8, yLB - 12);
-  if (G.z > 1.03) { ctx.font = mono(10, 600); ctx.textAlign = 'left'; const t = '◢ 山が高いので引いて表示（縦 1/' + G.z.toFixed(1) + '）', tw = ctx.measureText(t).width; ctx.fillStyle = C.ink; ctx.fillRect(x0 + 1, yLB - 22, tw + 12, 16); ctx.fillStyle = C.paper; ctx.fillText(t, x0 + 7, yLB - 14); }
+  if (G.z > 1.03) { ctx.font = mono(10, 600); ctx.textAlign = 'left'; const t = '◢ 山が高いので引いて表示（縦 1/' + G.z.toFixed(1) + '）', tw = ctx.measureText(t).width; ctx.fillStyle = C.ink; ctx.fillRect(x0 + 1, yLB - 22, tw + 12, 16); ctx.fillStyle = C.paper; ctx.textBaseline = 'middle'; ctx.fillText(t, x0 + 7, yLB - 14); }
   if (S.seek) { ctx.font = mono(11, 600); ctx.textAlign = 'center'; ctx.fillStyle = C.ink; ctx.fillText('▶▶ 高さが止まるまで早送り中', (x0 + x1) / 2, yLT + 70); }
 
   /* ======== CAUSE：地下まで切った断面 ======== */
