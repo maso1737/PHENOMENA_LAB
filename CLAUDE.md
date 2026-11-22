@@ -38,6 +38,19 @@
 - **ユーザーが見る・聴く番**：実機での音（ヘッドホン推奨・音量は小さめから）、なぞる手応え、色の見え方。
 - 残り：解説 LP `wave/scroll/SCROLL_ONEOCTAVE_LP.html`／STAGE LINK 登録。
 
+## 🆕 RELIGHT POSTER v0.1（2026-11-22・W1 × POSTER BG の橋・実装済み）
+
+- `wave/relight_poster.html`（本体・サーバ経由 `http://localhost:8231/wave/relight_poster.html`＝ルート launch.json の `phenomena`。file:// でも動くはず＝未確認）＋ `wave/_law/ph_pigment.js`（**絵具の分光反射率・クベルカ–ムンク・光源 7 種・目の慣れの正本**）＋ `wave/_tools/fit_pigments.cjs`（形を POSTER BG の hex に昼光で合わせ直して FIT / RECIPES を書き換える）＋ `wave/_tools/check_relight.cjs`（照合 25 項目）＋ `wave/_assets/papers.js`（POSTER BG の紙の複製）。
+- 仕組み：POSTER BG の筆（毛の束・1 回分の重なり・濡れ・引きずり・にじみ）を**ほぼそのまま移植**し、色 RGB の代わりに「絵具 12 色の量」（RGBA32F × 3 枚・掛けた量のまま＝合計が被覆）を持つ。POSTER BG の合成の式はどれも色の 1 次式なので量の並びにそのまま効く。表示で画素ごとに KM（32 帯）→ 光の重み → XYZ → 目の慣れ → 画面。
+- 絵具：POSTER BG の 16 色のうち 12 色を顔料（段・山・坂の形）、SKY・LAVENDER・INDIGO・OLIVE は 2〜3 色の混色の見本。昼光で hex との差 ΔE 0.06 以下（CERULEAN だけ 2.3＝画面の外）。混色の見本は INDIGO 5.5・OLIVE 9.2（3 色までの混ぜ方の限界）。**実測の顔料データではない（目安）**。
+- 光源：昼光（6500 K 黒体）・夕日（太陽の高さ 0〜60°・レイリー＋もや）・電球・白色 LED・3 波長蛍光灯・水銀灯・ナトリウム灯・描いた光（グラフをなぞる）。目の慣れ 0（カメラ）〜100%。「RGB × で比べる」＝CG の掛け算（昼光の色 × 光の白）。「1 日を回す」48 秒。
+- 実測の結論：水銀灯でバーミリオンが茶に（色相 40°→69°、CG の掛け算は 43° のまま）／ナトリウム灯で目が慣れると全絵具の彩度 0（CG なら 75）／CG の掛け算は白く合わせると昼光と同じ（ΔE 0）。32 帯と 1 nm の差は最大 ΔE 0.67。
+- 動作チェック：全コントロールを内蔵ブラウザで数値確認（光源 8・太陽の高さ・目の慣れ・RGB×・1 日・白を混ぜる・道具 4・太さ・水・量・混ざり（青＋黄で緑 105,185,101）・速さ・SCENE/SKY/CLOUD/CLEAR/UNDO/PNG・スポイト・キー）。見本 `_out/relight/lights_sheet.jpg`。
+- 地雷：表示の読み出し（readPixels）は**上下反転しない**（描いた先の行＝文書の行）。テスト用の `__RELIGHT.stroke` は手ぶれ補正 0（補正があると終点まで届かない）。SCENE は白い紙から（濡れた上に描くと前の絵と混ざって灰色になった）。
+- 検証の出口 `window.__RELIGHT`（`step`・`setLight`・`setAdapt`・`setRgb`・`setCycle`・`setSun`・`readDisplay(x,y,w,h)`・`pickMixAt`・`stroke`・`autoScene(true)`）。直リンク `#light=SODIUM&adapt=1&rgb=1&cycle=1&sun=0&blank=1`。
+- **ユーザーが見る番**：絵の見え方（特に夕日で空が緑がかる＝青い絵具 × 橙の光、は物理どおりだが絵として好きか）、筆の手応え。
+- 次の候補：POSTER BG 本体に「絵具の量」で持つモードを入れる（今は別ファイル）／実測の顔料データ（ニッカーのポスターカラーを分光測色）に差し替える／W4 空の色の光を直接この絵に当てる。
+
 ## 🆕 A1 CLOUD BASE v0.1（2026-11-11・実装済み）
 
 - 🆕 2026-11-21 外枠 ARCHIVE SHELL をかぶせた（見た目だけ。法則・S／derive／step／draw・`__PH` は同じ。境界の値は変更前と全一致）。窓の色は SHELL_TOKENS「A1 窓」（紙 #E4EEF2・墨 #22323A・上がる空気 #9A4A2A・露点 #2C7A76・雲 #F7FAFB・主役の 2 本 3 px）。つまみ：気温・湿り気は READOUT の値の下、BREAK のばらつきは PROOF／AUTO／BREAK の下（BREAK のときだけ）。
@@ -69,7 +82,7 @@
 
 ## いまの状態（2026-11-11）
 
-- 実装は ZOOM CORE・A1 CLOUD BASE・W1 ONE OCTAVE（11-22）・ほかは仕様のみ・STAGE LINK 未登録。
+- 実装は ZOOM CORE・A1 CLOUD BASE・W1 ONE OCTAVE（11-22）・RELIGHT POSTER（11-22・W1 × POSTER BG）・ほかは仕様のみ・STAGE LINK 未登録。
 - 🆕 11-22 git init 済み（ローカルのみ・リモートなし）。`.gitignore` で `/fonts/`（OFL でない書体を含む）・`/_out/`・zip を除外。
 - 🆕 11-21 共通の外枠 ARCHIVE SHELL（`_shell/`）を作り A1 に適用。E1・W1 の見本も `wave/styleframe/` にある（本体は未着手）。
 - ✅ 決定：見た目は統一しない（内容に合った形式）・カード追加（虹・オーロラ・溶岩・布・髪）。
