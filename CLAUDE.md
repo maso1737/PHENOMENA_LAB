@@ -183,7 +183,7 @@
 
 ## いまの状態（2026-11-11）
 
-- 実装は ZOOM CORE・A1 CLOUD BASE・W1 ONE OCTAVE（11-22）・RELIGHT POSTER（11-22・W1 × POSTER BG）・ほかは仕様のみ・STAGE LINK 未登録。
+- 実装は ZOOM CORE・A1 CLOUD BASE・W1 ONE OCTAVE（11-22）・RELIGHT POSTER（11-22・W1 × POSTER BG）・ほかは仕様のみ・STAGE LINK：PHENOMENA LAB（入口）・RELIGHT POSTER・RELIGHT LP を 11-23 に登録（ほかの作品は未登録）。
 - 🆕 11-22 git init 済み（ローカルのみ・リモートなし）。`.gitignore` で `/fonts/`（OFL でない書体を含む）・`/_out/`・zip を除外。
 - 🆕 11-21 共通の外枠 ARCHIVE SHELL（`_shell/`）を作り A1 に適用。E1・W1 の見本も `wave/styleframe/` にある（本体は未着手）。
 - ✅ 決定：見た目は統一しない（内容に合った形式）・カード追加（虹・オーロラ・溶岩・布・髪）。
