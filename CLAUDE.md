@@ -15,6 +15,8 @@
 
 型の正準：`WORLD TO EXPRESSION/sound-patterns/`（法則ファイル `_law`・アプリ＋解説 LP の 1 組・PROOF・AUTO）。
 
+**解説 LP はスキル `phenomena-scroll-lp`（`.claude/skills/phenomena-scroll-lp/`・2026-11-23）で作る。** ひな形 `references/LP_TEMPLATE.html`（★の所だけ差し替え）・駅の並べ方・間合いの数（LEN・余韻 12%/18%・smootherstep・dt×4.5）・ヘッドレス撮影の手順。E1・RELIGHT・A1 の 3 本から抜いた。
+
 ## 🆕 ARCHIVE SHELL v0.1（2026-11-21・共通の外枠）
 
 - `_shell/shell.css`（色・線・書体の変数＋18 部品の位置）＋ `_shell/shell.js`（画面に合わせて拡大縮小・枠線・物差し／境界の道具）＋ `_shell/fonts/`（Michroma・Jura・IBM Plex Sans JP・JetBrains Mono・M PLUS 1 Code。すべて OFL・`FONTS.md`）。決まりは [SPEC_02 §4](SPEC_02_LOOK_FORMATS.md)。
