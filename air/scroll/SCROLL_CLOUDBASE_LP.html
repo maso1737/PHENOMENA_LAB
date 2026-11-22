@@ -286,7 +286,7 @@ const ST = [
     num: '06', ren: 'BOUNDARY · 湿り気', h: '湿るほど底は下がり、<br>地面に着けば霧。', body: '湿り気を上げると露点が気温に近づき、差が縮む。差が 0.5 ℃ を切ると底は 60 m より低く、地面が雲の中＝霧になる。乾かすと底は 4 km の枠の上へ抜ける。',
     kl: 'KEY NUMBER · 霧になる湿り気（気温 28 ℃）', kv: () => fogRH * 100, kf: 0, ku: '% 以上', kn: '底 60 m 未満 FOG ／ 4 km まで CLOUD ／ その上 CLEAR（アプリの BOUNDARY と同じ区切り）', wow: '雨上がりの朝の霧は、地面すれすれに出来た雲。', next: '07 一日の雲',
     noise: '0731 > STATION 06 HUMID · BOUNDARY\nFOG <60 M · CLOUD ≤4 KM · CLEAR\nT 28 · RH 98% → FOG' },
-  { name: '一日の雲', en: 'DAY', big: '2,000 M', kanji: '昼', lab: '#T=30&rh=40', fig: 'FIG. 07', figt: '— 一日 · 朝の霧から昼の雲へ',
+  { name: '一日の雲', en: 'DAY', big: '2,000 M', kanji: '昼', lab: '#auto=day', fig: 'FIG. 07', figt: '— 一日 · 朝の霧から昼の雲へ',
     num: '07', ren: 'DIURNAL · 一日の雲', h: '朝の霧が、<br>昼には雲の底になる。', body: '晴れた日、空気の中の水の量（露点）はあまり変わらないまま、気温だけが上がっていく。差が開くので、雲の底は朝から昼へ持ち上がる。',
     kl: 'KEY NUMBER · 14 時の雲の底（露点 14 ℃ のまま）', kv: () => L.lcl(day(14), TD_DAY), kf: 0, ku: 'm', kn: '朝 5 時 14.3 ℃ で霧 → 14 時 30 ℃ で 2,000 m。気温の形と露点一定は目安', wow: 'アプリで気温の点を引くと、露点はそのまま。一日の空と同じ動かし方になっている。', next: '08 BREAK',
     noise: '0731 > STATION 07 DAY · TD CONST 14 C\n05H 14.3 C FOG · 14H 30.0 C 2000 M\nDIURNAL HEATING · APPROX' },
@@ -405,7 +405,7 @@ FIG[0] = (a, t) => {
 // 01 上がる：泡が上がり、膨らみ、冷える
 FIG[1] = (a, t) => {
   const { x, y, w, h } = PL, top = 2000, yT = y + 130, yG = y + h - 70, Y = z => yG - z / top * (yG - yT);
-  const zc = ease(a / 0.8) * (ZB0 - 20), p = L.parcel(T0, TD0, zc), vol = (p.T + 273.15) / (T0 + 273.15) * L.pressure(0) / L.pressure(zc);
+  const zc = a * (ZB0 - 20), p = L.parcel(T0, TD0, zc), vol = (p.T + 273.15) / (T0 + 273.15) * L.pressure(0) / L.pressure(zc);
   // 左：空の柱
   const cx0 = x + 60, cx1 = x + 440, bx = (cx0 + cx1) / 2;
   ctx.fillStyle = C.sky; ctx.fillRect(cx0, yT, cx1 - cx0, yG - yT);
@@ -436,7 +436,7 @@ FIG[1] = (a, t) => {
 };
 // 02 抱える水：冷えるほど入れ物が小さくなり、露点で満杯
 FIG[2] = (a, t) => {
-  const { x, y, w, h } = PL, e = L.es(TD0), Tc = T0 - ease(a / 0.8) * (T0 - TD0), full = Tc - TD0 < 0.05;
+  const { x, y, w, h } = PL, e = L.es(TD0), Tc = T0 - a * (T0 - TD0), full = Tc - TD0 < 0.05;
   const gx0 = x + 110, gx1 = x + 640, gy0 = y + 150, gy1 = y + h - 90, emax = 80, GX = T => gx0 + T / 40 * (gx1 - gx0), GY = v => gy1 - v / emax * (gy1 - gy0);
   // 抱えられる量の曲線
   ctx.fillStyle = 'rgba(58,116,160,.08)'; ctx.beginPath(); ctx.moveTo(GX(0), gy1); for (let T = 0; T <= 40; T += 0.5) ctx.lineTo(GX(T), GY(Math.min(emax, L.es(T)))); ctx.lineTo(GX(40), gy1); ctx.fill();
@@ -469,7 +469,7 @@ FIG[2] = (a, t) => {
 };
 // 03 出会う：2 本の線を下から引き、出会った所から左の空へ
 FIG[3] = (a, t) => {
-  const { x, y, w, h } = PL, top = 2500, yT = y + 130, yG = y + h - 90, zc = ease(a / 0.72) * top;
+  const { x, y, w, h } = PL, top = 2500, yT = y + 130, yG = y + h - 90, zc = clamp(a / 0.85) * top;
   const lx0 = x + 60, lx1 = x + 320;
   const g = chart({ x0: x + 400, x1: x + w - 40, yT, yG, top, tmin: 0, tmax: 35 });
   const r = parcelLine(g, T0, TD0, zc), met = zc >= ZB0;
@@ -500,7 +500,7 @@ FIG[3] = (a, t) => {
 };
 // 04 なぜ平ら：同じ空気の泡が、同じ高さで白くなる
 FIG[4] = (a, t) => {
-  const { x, y, w, h } = PL, top = 2500, yT = y + 130, yG = y + h - 120, Y = z => yG - z / top * (yG - yT), yb = Y(ZB0), A = ease(a / 0.85);
+  const { x, y, w, h } = PL, top = 2500, yT = y + 130, yG = y + h - 120, Y = z => yG - z / top * (yG - yT), yb = Y(ZB0), A = a;
   ctx.fillStyle = C.sky; ctx.fillRect(x + 40, yT, w - 80, yG - yT);
   ctx.strokeStyle = C.rule; ctx.lineWidth = 0.4; for (let z = 500; z < top; z += 500) { ctx.beginPath(); ctx.moveTo(x + 40, Y(z)); ctx.lineTo(x + w - 40, Y(z)); ctx.stroke(); }
   const N = 6;
@@ -527,7 +527,7 @@ FIG[4] = (a, t) => {
 };
 // 05 粒になると：雲の中で線が折れる・乾いたままとの差
 FIG[5] = (a, t) => {
-  const { x, y, w, h } = PL, top = 4000, yT = y + 130, yG = y + h - 70, zc = ease(a / 0.85) * top;
+  const { x, y, w, h } = PL, top = 4000, yT = y + 130, yG = y + h - 70, zc = a * top;
   const g = chart({ x0: x + 380, x1: x + w - 40, yT, yG, top, tmin: -15, tmax: 35 });
   // 乾いたままなら（破線）
   ctx.strokeStyle = 'rgba(154,74,42,.55)'; ctx.lineWidth = 1.6; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.moveTo(g.X(T0 - L.DRY * ZB0 / 1000), g.Y(ZB0)); ctx.lineTo(g.X(T0 - L.DRY * Math.max(ZB0, zc) / 1000), g.Y(Math.max(ZB0, zc))); ctx.stroke(); ctx.setLineDash([]);
@@ -558,7 +558,7 @@ FIG[5] = (a, t) => {
 };
 // 06 湿り気：湿り気を上げると底が下がり、霧になる（アプリの STATE と BOUNDARY）
 FIG[6] = (a, t) => {
-  const { x, y, w, h } = PL, A = ease(a / 0.85), rh = 0.1 + A * 0.89, Td = L.dewPoint(T0, rh), zb = L.lcl(T0, Td), top = 4000, yT = y + 130, yG = y + h - 200, Y = z => yG - z / top * (yG - yT);
+  const { x, y, w, h } = PL, A = a, rh = 0.1 + A * 0.89, Td = L.dewPoint(T0, rh), zb = L.lcl(T0, Td), top = 4000, yT = y + 130, yG = y + h - 200, Y = z => yG - z / top * (yG - yT);
   const st = zb < 60 ? 0 : zb <= top ? 1 : 2;
   // 左：空
   const lx0 = x + 60, lx1 = x + 520;
@@ -594,7 +594,7 @@ FIG[6] = (a, t) => {
 };
 // 07 一日：露点はそのまま、気温が上がって底が持ち上がる
 FIG[7] = (a, t) => {
-  const { x, y, w, h } = PL, A = ease(a / 0.85), hr = 5 + A * 12, T = day(hr), zb = L.lcl(T, TD_DAY);
+  const { x, y, w, h } = PL, A = a, hr = 5 + A * 12, T = day(hr), zb = L.lcl(T, TD_DAY);
   // 上：空の帯（いまの時刻）
   const sy0 = y + 120, sy1 = y + 390, top = 3500, Y = z => sy1 - z / top * (sy1 - sy0), sx0 = x + 60, sx1 = x + w - 60;
   ctx.fillStyle = C.sky; ctx.fillRect(sx0, sy0, sx1 - sx0, sy1 - sy0);
@@ -629,7 +629,7 @@ FIG[7] = (a, t) => {
 };
 // 08 BREAK：本物（底がそろう）と、作り物（底がばらばら）
 FIG[8] = (a, t) => {
-  const { x, y, w, h } = PL, A = ease(a / 0.85), top = 3000, yT = y + 150, yG = y + h - 90, Y = z => yG - z / top * (yG - yT);
+  const { x, y, w, h } = PL, A = a, top = 3000, yT = y + 150, yG = y + h - 90, Y = z => yG - z / top * (yG - yT);
   const half = (w - 120) / 2;
   [[x + 40, 0, '本物の空', '同じ空気 → 同じ高さ'], [x + 80 + half, A * 0.6, 'BREAK の空', '底のばらつき SPREAD ' + (A * 0.6).toFixed(2)]].forEach(([px, spread, ttl, sub], side) => {
     ctx.fillStyle = C.sky; ctx.fillRect(px, yT, half, yG - yT);
@@ -695,29 +695,35 @@ function keyNumber() {
 function railLiveSet() { [...rail.children].forEach((d, j) => { if (j < 4 && d.dataset.st === 'now' && railLive) d.querySelector('.rd').textContent = railLive; }); }
 
 /* ================= スクロール（1 駅＝画面 1 枚・なめらかに追いかける） ================= */
-const track = $('track'); let vh = innerHeight; function size() { vh = innerHeight; track.style.height = (NST * vh) + 'px'; }
+/* 駅ごとの長さ（画面の枚数）。WAVE の RELIGHT LP と同じくらいの間（11-23 ユーザー「早すぎる・駅の間に余韻を」） */
+const LEN = [1.6, 3, 3, 3, 2.4, 3.4, 3, 3, 2.4, 1.4], OFF = LEN.reduce((o, l, i) => (o.push(o[i] + l), o), [0]);
+const track = $('track'); let vh = innerHeight; function size() { vh = innerHeight; track.style.height = (OFF[NST] * vh) + 'px'; }
+function toP(y) { const u = y / vh; for (let i = 0; i < NST; i++) if (u < OFF[i + 1] || i === NST - 1) return Math.min(NST - 0.001, i + clamp((u - OFF[i]) / LEN[i], 0, 0.999)); }
+const fromP = v => { const i = Math.min(NST - 1, Math.floor(v)); return (OFF[i] + (v - i) * LEN[i]) * vh; };
+/* 余韻：駅に入ってすぐ（12%）と終わり（18%）は図を止め、その間を加速・減速でつなぐ（smootherstep） */
+const hold = a => { const t = clamp((a - 0.12) / 0.7); return t * t * t * (t * (t * 6 - 15) + 10); };
 size(); addEventListener('resize', () => { size(); resize(); });
 let P = 0, last = performance.now(), tSec = 0;
 let FIX = null;   // 検証用：#s=..&fix=1 でスクロールせずにその位置で止める
-const target = () => FIX != null ? FIX : clamp(scrollY / vh, 0, NST - 1);
-function goTo(i) { scrollTo({ top: i * vh + 2, behavior: RM ? 'auto' : 'smooth' }); }
+const target = () => FIX != null ? FIX : toP(scrollY);
+function goTo(i) { scrollTo({ top: OFF[i] * vh + 2, behavior: RM ? 'auto' : 'smooth' }); }
 addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); goTo(Math.min(NST - 1, Math.floor(P + 0.02) + 1)); } if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); goTo(Math.max(0, Math.ceil(P - 0.02) - 1)); } });
 PHShell.onScale(resize); resize();
 function render(P) {
   const i = Math.min(NST - 1, Math.floor(P + 1e-6)), a = P - i; setStation(i);
   ctx.setTransform(SC, 0, 0, SC, 0, 0); ctx.clearRect(0, 0, 1920, 1080);
   if (i === 0) FIG[0](a, tSec);
-  else if (i < 9) { plate(PL.x, PL.y, PL.w, PL.h, i === 8); ctx.save(); ctx.beginPath(); ctx.rect(PL.x, PL.y, PL.w, PL.h); ctx.clip(); railLive = ''; FIG[i](a, tSec); ctx.restore(); }
+  else if (i < 9) { plate(PL.x, PL.y, PL.w, PL.h, i === 8); ctx.save(); ctx.beginPath(); ctx.rect(PL.x, PL.y, PL.w, PL.h); ctx.clip(); railLive = ''; FIG[i](RM ? a : hold(a), tSec); ctx.restore(); }
   thumb(); keyNumber(); railLiveSet();
 }
 function loop(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now; tSec += dt;
-  const T = target(); P = RM ? T : P + (T - P) * Math.min(1, dt * 9); if (Math.abs(T - P) < 1e-4) P = T;
+  const T = target(); P = RM ? T : P + (T - P) * Math.min(1, dt * 4.5); if (Math.abs(T - P) < 1e-4) P = T;
   render(P);
   requestAnimationFrame(loop);
 }
 // 直リンク：#s=駅&p=駅の中の進み（例 #s=3&p=0.5）・&fix=1（検証用）
-{ const Q = new URLSearchParams(location.hash.slice(1)); if (Q.has('s')) { const s = clamp(+Q.get('s') + (+Q.get('p') || 0), 0, NST - 1); if (Q.get('fix') === '1') { FIX = s; P = s; } else requestAnimationFrame(() => { scrollTo(0, s * vh); P = s; }); } }
+{ const Q = new URLSearchParams(location.hash.slice(1)); if (Q.has('s')) { const s = clamp(+Q.get('s') + (+Q.get('p') || 0), 0, NST - 1); if (Q.get('fix') === '1') { FIX = s; P = s; } else requestAnimationFrame(() => { scrollTo(0, fromP(s)); P = s; }); } }
 if (document.fonts) ["13px 'M PLUS 1 Code'", "13px 'IBM Plex Sans JP'", "19px Michroma", "12px 'JetBrains Mono'"].forEach(f => document.fonts.load(f));
 window.__LP = { ST, FIG, get P() { return P; }, render, setP: v => { P = v; FIX = v; render(v); }, setFix: v => { FIX = v; } };   // 検証用
 requestAnimationFrame(loop);

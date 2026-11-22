@@ -90,7 +90,7 @@
 
   <!-- 09 LOOK ⇄ CAUSE の窓 -->
   <div class="ph-winhead"><i class="sq"></i><span class="t">LOOK ⇄ CAUSE</span><span class="s">SIDE BY SIDE · SHARED Y-AXIS = 0–4 km</span><span class="read">読み方：左＝空を横から／右＝同じ高さで、上がる空気の気温と露点。2 本が出会う高さ＝雲の底。空をなぞると値が読める。</span>
-    <div class="r"><b>SOUNDING</b><span id="sfc"></span></div></div>
+    <div class="r"><b>AUTO</b><div class="ph-chips" id="amodes"><button class="ph-chip" data-m="rh" title="60 秒で 霧 ⇄ 乾いた日（湿り気だけを動かす）">湿り気 ⇄</button><button class="ph-chip" data-m="day" title="48 秒で 1 日。露点（空気の中の水）はそのまま、気温だけが朝→昼→夜と動く">1 日を回す</button></div><b>SOUNDING</b><span id="sfc"></span></div></div>
   <div class="ph-window" id="win">
     <canvas id="cv"></canvas>
     <div class="ph-tag" id="tagLook" style="left:82px;top:8px"><i></i><b>LOOK</b><span>— 実物の姿 · 横 約 10 km</span><small>VISUAL OBSERVATION</small></div>
@@ -129,7 +129,7 @@
 'use strict';
 const L = PH_A1, TOP = 4000, TMIN = -30, TMAX = 40;
 const C = { paper: '#E4EEF2', sky: '#EDF3F6', ink: '#22323A', dim: '#5E7F8E', rule: 'rgba(94,127,142,.55)', par: '#9A4A2A', dew: '#2C7A76', cloud: '#F7FAFB', brk: '#22323A' };   // 窓の色＝SHELL_TOKENS「A1 窓」
-const S = { T: 28, rh: 0.5, go: null, proof: false, auto: false, brk: false, brkAmt: 0.6, t: 0, probe: null, drag: null };
+const S = { T: 28, rh: 0.5, go: null, autoMode: 'rh', dayH: 5, dayTd: 14, proof: false, auto: false, brk: false, brkAmt: 0.6, t: 0, probe: null, drag: null };
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d'), $ = id => document.getElementById(id);
 let W = 1, H = 1, G = {};
 
@@ -143,6 +143,12 @@ const CLOUDS = [0.11, 0.3, 0.5, 0.7, 0.89].map((u, i) => {
   return { u, w: [0.1, 0.075, 0.12, 0.085, 0.095][i], depth: [520, 400, 680, 450, 560][i], off: rnd(i * 7 + 3) * 2 - 1, puffs };
 });
 
+/* 1 日を回す（目安）：明け方 5 時がいちばん冷えて露点 +0.2 ℃（霧）・14 時がいちばん暑くて +16 ℃。夜は放射でゆっくり冷える */
+const DAY_SEC = 48, DAY_AMP = 16;
+const dayT = h => { const u = ((h - 5) % 24 + 24) % 24, base = S.dayTd + 0.2, k = u <= 9 ? Math.sin(u / 9 * Math.PI / 2) : Math.pow((24 - u) / 15, 1.6); return Math.max(0, Math.min(40, base + DAY_AMP * k)); };
+const sunUp = h => h > 5.5 && h < 18.5;
+const nightOf = h => sunUp(h) ? Math.max(0, 1 - Math.min(h - 5.5, 18.5 - h) / 1.5) : 1;
+function setAuto(m) { if (S.auto && S.autoMode === m) { S.auto = false; return; } S.go = null; S.proof = false; S.autoMode = m; S.auto = true; if (m === 'day') { S.dayTd = Math.max(0, Math.min(24, derive().Td)); S.dayH = 5; } }
 const derive = () => { const Td = L.dewPoint(S.T, S.rh), base = L.lcl(S.T, Td); return { Td, base, gap: S.T - Td, state: base < 60 ? 'FOG' : base <= TOP ? 'CLOUD' : 'DRY' }; };
 
 function layout() {
@@ -175,11 +181,12 @@ function draw() {
   ctx.fillStyle = C.sky; ctx.fillRect(x0, yT, x1 - x0, yG - yT);
   ctx.strokeStyle = C.rule; ctx.lineWidth = 0.4; for (let z = 500; z < TOP; z += 500) { const y = Math.round(Y(z)) + .5; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke(); }
   const lw = x1 - x0;
+  const nightK = S.auto && S.autoMode === 'day' ? nightOf(S.dayH) : 0;   // 夜は地面が温まらず泡が上がらない＝積雲は消えていく（雲の底の線は残す）
   // 上がる空気の泡（透明な空気。数字はその高さでの気温）
   ctx.font = mono(9); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   CLOUDS.forEach((c, i) => {
     for (let k = 0; k < 2; k++) {
-      const ph = (S.t / 11 + i * 0.37 + k * 0.5) % 1, z = ph * Math.min(d.base, TOP + 300); if (d.base < 60) return;
+      const ph = (S.t / 11 + i * 0.37 + k * 0.5) % 1, z = ph * Math.min(d.base, TOP + 300); if (d.base < 60 || nightK > 0.5) return;
       const x = x0 + c.u * lw + Math.sin(ph * 5 + i) * 4, y = Y(z), a = Math.min(1, ph * 6) * Math.min(1, (1 - ph) * 5);
       ctx.globalAlpha = a; ctx.strokeStyle = C.par; ctx.lineWidth = 0.9; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(x, y, 10, 0, 7); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle = C.par; ctx.fillText(Math.round(L.parcel(S.T, d.Td, z).T) + '°', x, y + .5); ctx.globalAlpha = 1;
@@ -197,7 +204,15 @@ function draw() {
     ctx.restore();
     ctx.strokeStyle = C.ink; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(cx - hw * 1.12, by); ctx.lineTo(cx + hw * 1.12, by); ctx.stroke();
   });
+  if (nightK > 0) { ctx.fillStyle = 'rgba(237,243,246,' + (0.88 * nightK).toFixed(3) + ')'; ctx.fillRect(x0, yT, lw, yG - yT); }   // 夜：積雲は空にとけて消える
   if (d.base < 250) { ctx.fillStyle = 'rgba(255,255,255,' + (0.55 * (1 - d.base / 250)).toFixed(3) + ')'; ctx.fillRect(x0, Y(300), lw, yG - Y(300)); }   // 霧
+  if (S.auto && S.autoMode === 'day') {   // 1 日を回す：時刻・太陽／月・夜は少し暗く
+    const h = S.dayH, up = sunUp(h), f = up ? (h - 5.5) / 13 : ((h - 18.5 + 24) % 24) / 11, sx = x0 + 40 + f * (lw - 260), sy = yT + 112 - Math.sin(f * Math.PI) * 50;
+    const night = nightOf(h); ctx.fillStyle = 'rgba(34,50,58,' + (0.16 * night).toFixed(3) + ')'; ctx.fillRect(x0, yT, lw, yG - yT);
+    ctx.strokeStyle = up ? C.par : C.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(sx, sy, 11, 0, 7); ctx.stroke(); if (!up) { ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(sx + 5, sy - 3, 9, 0, 7); ctx.fill(); }
+    ctx.font = mono(20); ctx.textAlign = 'right'; ctx.textBaseline = 'top'; ctx.fillStyle = C.ink; ctx.fillText(String(Math.floor(h)).padStart(2, '0') + ':' + String(Math.floor(h % 1 * 60)).padStart(2, '0'), x1 - 12, yT + 36);
+    ctx.font = serif(11); ctx.fillStyle = C.dim; ctx.fillText('1 日を回す · 露点 ' + S.dayTd.toFixed(1) + ' ℃ のまま' + (night > 0.5 ? ' · 夜は泡が上がらない' : ''), x1 - 12, yT + 62);
+  }
   ctx.restore();
   ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0 + .5, yT); ctx.lineTo(x0 + .5, yG); ctx.stroke();   // 高さの軸
   ctx.strokeStyle = 'rgba(34,50,58,.45)'; ctx.beginPath();   // LOOK の枠は四隅の角だけ（BRACKET）
@@ -285,11 +300,12 @@ function readout() {
   $('o_base').textContent = num(d.base); $('o_gap').textContent = '差 ' + d.gap.toFixed(1) + '℃ × 125'; $('o_temp').textContent = S.T.toFixed(1); $('o_dew').textContent = d.Td.toFixed(1);
   $('v_humid').textContent = 'RH ' + Math.round(S.rh * 100) + ' %'; $('v_brkAmt').textContent = S.brkAmt.toFixed(2);
   $('humid').value = Math.round(S.rh * 100); $('temp').value = S.T;
+  document.querySelectorAll('#amodes .ph-chip').forEach(b => b.classList.toggle('on', S.auto && b.dataset.m === S.autoMode));
   $('bProof').classList.toggle('on', S.proof); $('bAuto').classList.toggle('on', S.auto); $('bBreak').classList.toggle('on', S.brk);
   $('r_brk').classList.toggle('ph-off', !S.brk); $('brkAmt').disabled = !S.brk; $('win').classList.toggle('broken', S.brk);
   setScale(Math.min(d.base, TOP) / 1000); setBound(bx(d.base), si);
   $('bigBase').textContent = num(d.base) + ' M';
-  $('sfc').textContent = 'SFC ' + S.T.toFixed(1) + ' / ' + d.Td.toFixed(1) + ' ℃ · 125 m/℃';
+  $('sfc').textContent = 'SFC ' + S.T.toFixed(1) + ' / ' + d.Td.toFixed(1) + ' ℃';
   $('nz1').textContent = 'T ' + S.T.toFixed(1) + '  TD ' + d.Td.toFixed(1) + '  RH ' + Math.round(S.rh * 100) + '%'; $('nz2').textContent = 'LCL ' + Math.round(d.base) + ' m  (T-TD)x125';
   $('tagLook').style.left = (G.x0 + 22) + 'px'; $('tagCause').style.left = (G.c0 + 6) + 'px';
   const ctl = $('ctl'); ctl.style.left = Math.max(G.c0 + 6, X(d.Td) - 224) + 'px'; ctl.style.top = (G.yG - 54) + 'px';
@@ -300,7 +316,8 @@ function step(dt) {
     const g = S.go; g.a = Math.min(1, g.a + dt / 0.9); const e = g.a * g.a * (3 - 2 * g.a);
     S.T = g.T0 + (g.T1 - g.T0) * e; S.rh = g.rh0 + (g.rh1 - g.rh0) * e; if (g.a >= 1) { S.T = g.T1; S.rh = g.rh1; S.go = null; }
   }
-  if (S.auto) S.rh = Math.max(0.1, Math.min(1, 0.62 + 0.4 * Math.sin(S.t * 2 * Math.PI / 60)));   // 60 秒で 霧 ⇄ 乾いた日 を往復
+  if (S.auto && S.autoMode === 'day') { S.dayH = (S.dayH + dt * 24 / DAY_SEC) % 24; S.T = dayT(S.dayH); S.rh = Math.max(0.1, Math.min(1, L.humidity(S.T, Math.min(S.T, S.dayTd)))); }   // 1 日を回す：露点はそのまま、気温だけ
+  else if (S.auto) S.rh = Math.max(0.1, Math.min(1, 0.62 + 0.4 * Math.sin(S.t * 2 * Math.PI / 60)));   // 60 秒で 霧 ⇄ 乾いた日 を往復
   readout(); draw();
 }
 
@@ -319,10 +336,11 @@ function goState(k) {
 document.querySelectorAll('#states > div').forEach(b => b.addEventListener('click', () => goState(b.dataset.s)));
 $('bound').addEventListener('click', e => { const r = $('bound').getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 212; goState(x < 63.6 ? 'FOG' : x > 148.4 ? 'DRY' : 'CLOUD'); });
 $('humid').addEventListener('input', e => { S.auto = false; S.go = null; S.rh = +e.target.value / 100; });
-$('temp').addEventListener('input', e => { S.go = null; S.T = +e.target.value; });
+$('temp').addEventListener('input', e => { S.go = null; if (S.autoMode === 'day') S.auto = false; S.T = +e.target.value; });
 $('brkAmt').addEventListener('input', e => { S.brkAmt = +e.target.value; });
 $('bProof').addEventListener('click', () => { S.proof = !S.proof; });
-$('bAuto').addEventListener('click', () => { S.auto = !S.auto; });
+$('bAuto').addEventListener('click', () => { if (S.auto) S.auto = false; else setAuto(S.autoMode); });
+document.querySelectorAll('#amodes .ph-chip').forEach(b => b.addEventListener('click', () => setAuto(b.dataset.m)));
 $('bBreak').addEventListener('click', () => { S.brk = !S.brk; });
 const pos = e => { const r = cv.getBoundingClientRect(), k = r.width / Math.max(1, cv.clientWidth); return [(e.clientX - r.left) / k, (e.clientY - r.top) / k]; };   // 画面の px → 外枠の座標
 cv.addEventListener('pointerdown', e => {
@@ -348,8 +366,8 @@ if (document.fonts) ["11px 'JetBrains Mono'", "11px 'M PLUS 1 Code'", "13px 'IBM
 /* ---- 直リンク：#T=28&rh=50（%）&proof=1&auto=1&brk=1（解説 LP の駅から開く） ---- */
 { const Q = new URLSearchParams(location.hash.slice(1));
   if (Q.has('T')) S.T = Math.max(0, Math.min(40, +Q.get('T') || 0)); if (Q.has('rh')) S.rh = Math.max(0.1, Math.min(1, (+Q.get('rh') || 50) / 100));
-  if (Q.get('proof') === '1') S.proof = true; if (Q.get('auto') === '1') S.auto = true; if (Q.get('brk') === '1') S.brk = true; }
-window.__PH = { goState, readout, S, L, get G() { return G; }, derive, step, draw, layout, X, Y, Tof, Zof };   // 検証用
+  if (Q.get('proof') === '1') S.proof = true; if (Q.get('auto') === '1') S.auto = true; if (Q.get('auto') === 'day') setAuto('day'); if (Q.has('h')) S.dayH = (+Q.get('h') || 0) % 24; if (Q.get('brk') === '1') S.brk = true; }
+window.__PH = { setAuto, dayT, goState, readout, S, L, get G() { return G; }, derive, step, draw, layout, X, Y, Tof, Zof };   // 検証用
 layout(); let last = performance.now();
 (function loop(now) { step(Math.min(0.05, (now - last) / 1000)); last = now; requestAnimationFrame(loop); })(last);
 </script>
