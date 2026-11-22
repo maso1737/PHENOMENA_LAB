@@ -120,6 +120,21 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
     </div>
 
     <div class="sec">
+      <div class="hd"><span class="en">TARGET</span><span class="jp">この光で、この色に見せたい → 何を混ぜる？（逆算）</span></div>
+      <div class="row" style="align-items:stretch">
+        <input type="color" id="tg-color" value="#C8402E" title="見せたい色" style="width:48px;height:auto;min-height:40px;border:1px solid var(--line-sub);background:transparent;padding:2px">
+        <button class="bt" id="b-solve" style="flex:1">逆算する<span class="k">いまの光・目の慣れで解く（光を替えると解き直す）</span></button>
+        <button class="bt" id="b-tgA" style="flex:1">色 A にする<span class="k">その配合で描く</span></button>
+      </div>
+      <div id="target" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px">
+        <div class="c"><div class="s" id="tg-want" style="height:30px;margin-bottom:4px"></div><div class="l">見せたい色</div><div class="v" id="tgv-want"></div></div>
+        <div class="c"><div class="s" id="tg-now" style="height:30px;margin-bottom:4px"></div><div class="l">この光での仕上がり</div><div class="v" id="tgv-now"></div></div>
+        <div class="c"><div class="s" id="tg-day" style="height:30px;margin-bottom:4px"></div><div class="l">昼に見ると（塗る色）</div><div class="v" id="tgv-day"></div></div>
+      </div>
+      <div id="targetTxt" style="font-size:11.5px;line-height:1.7;margin-top:6px">色を選んで「逆算する」。ナトリウム灯で赤を選ぶと「作れない」と出る（その光に赤の波長が無い）。</div>
+    </div>
+
+    <div class="sec">
       <div class="hd"><span class="en">PAINT</span><span class="jp">ポスターカラー（左クリック A／右クリック B）</span></div>
       <div id="swatches"></div>
       <div id="swName"></div>
@@ -148,6 +163,7 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
         <button class="bt" id="b-image">IMAGE<span class="k">画像を絵具に分解</span></button>
       </div>
       <input type="file" id="f-image" accept="image/*" style="display:none">
+      <div class="row" style="margin-top:6px"><button class="bt" id="tg-imgnow" style="flex:1">画像をいまの光で解く<span class="k" id="imgnow-k">昼光で解く（画像の色の作り方）</span></button></div>
       <div class="note">IMAGE：写真や絵を読み込むと、画素ごとに「どの絵具をどれだけ混ぜればその色になるか」（昼光で）を解いて紙に置く。光を替えると、その絵が絵具として変わる。キャンバスへドロップでも読める。<b>Alt+クリックで、その場所の配合が出る。</b>黒の絵具は無いので、いちばん暗いのはウルトラマリン＋バーントシェンナ。</div>
       <div class="ctl" data-c="speed"><label>描く速さ</label><input type="range" id="s-speed"><output id="v-speed"></output></div>
     </div>
@@ -942,68 +958,101 @@ function autoSky () { const items = []; skyItems(items, mixV(colA, W_, P.whiteMi
 function autoCloud () { const rnd = mulberry32((Math.random() * 1e9) | 0), items = [{ action: () => dryAll() }], cw = E.W * lerp(0.2, 0.32, rnd());
   cloudItems(items, rnd, E.W * lerp(0.22, 0.78, rnd()), E.H * lerp(0.4, 0.6, rnd()), cw, cw * lerp(0.5, 0.78, rnd()), 0, V({ CERULEAN: 0.62, COBALT: 0.08, WHITE: 0.3 }), W_); Robot.run(items); }
 
-/* ════════════════ 画像 → 絵具の配合 ════════════════
-   画素の色（sRGB）ごとに「12 色をどれだけ混ぜれば、昼光の下でその色になるか」を解く。
-   1. ランダムな配合（1〜3 色＋白）を 4 万通り作り、昼光での Lab を計算（32 帯・画面と同じ式）
-   2. RGB を 17³ の格子にして、各点にいちばん近い配合を選び、その色だけでネルダー–ミードで詰める
-   3. 画素は格子から 3 次元の直線補間（配合どうしを混ぜる＝絵具を混ぜるのと同じ）
-   絵具を替えたら（実測⇄目安）作り直す。 */
-const IMG = { lut: null, lutSrc: null, src: null, G: 17, busy: false, lastErr: null, lutErr: null };
+/* ════════════════ 色 → 絵具の配合（どの光でも解ける） ════════════════
+   「光 E・目の慣れ adapt の下で、この色に見える配合」を解く。昼光で解けば「その色の絵具の作り方」、
+   ナトリウム灯で解けば「夜にこう見せたいなら、昼に何を塗るか」（逆算）。
+   1. ランダムな配合（1〜3 色＋白）を 4 万通り作る（絵具を替えたら作り直す）
+   2. その光での Lab を全部計算（32 帯・画面と同じ式）→ いちばん近い配合を選び、その色だけでネルダー–ミードで詰める
+   3. 画像は RGB を 17³ の格子にして各点を 2 で解き、画素は格子の 3 次元補間（配合どうしを混ぜる＝絵具を混ぜるのと同じ） */
+const IMG = { lut: null, lutKey: '', src: null, G: 17, busy: false, lastErr: null, lutErr: null, useNow: false, bank: null, bankSrc: '' };
 const srgbLin = v => v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-function dayLab () {
-  const B = PG.bands(PG.E_DAY), M = PG.viewMatrix(PG.E_DAY, 0), KS = B.KS, W = B.W, RP = B.RP;
+/* 光 E・目の慣れ adapt の下での Lab（画面と同じ 32 帯の式） */
+function labUnder (E_, adapt) {
+  const B = PG.bands(E_), M = PG.viewMatrix(E_, adapt), KS = B.KS, W = B.W, RP = B.RP;
   return w => { let a = 0; for (let j = 0; j < NP; j++) a += w[j]; const xyz = [0, 0, 0];
     for (let b = 0; b < NB; b++) { let r = RP[b]; if (a > 1e-6) { let k = 0; for (let j = 0; j < NP; j++) if (w[j]) k += w[j] * KS[j][b]; k /= a; r = 1 + k - Math.sqrt(k * k + 2 * k); }
       xyz[0] += r * W[b][0]; xyz[1] += r * W[b][1]; xyz[2] += r * W[b][2]; }
     return PG.labOfLin(PG.mv(M, xyz).map(v => Math.max(0, v))); };
 }
 const tick = () => new Promise(r => setTimeout(r, 0));
-async function buildLut (progress) {
-  const lab = dayLab(), rnd = mulberry32(4711), WI = PG.PID.WHITE, others = [...Array(NP).keys()].filter(j => j !== WI);
-  const NS = 40000, SW_ = new Float32Array(NS * NP), SL_ = new Float32Array(NS * 3);
+function getBank () {
+  if (IMG.bank && IMG.bankSrc === PG.SOURCE) return IMG.bank;
+  const rnd = mulberry32(4711), WI = PG.PID.WHITE, others = [...Array(NP).keys()].filter(j => j !== WI), NS = 40000, SW_ = new Float32Array(NS * NP);
   for (let s = 0; s < NS; s++) {
     const w = new Array(NP).fill(0), k = s < NP ? 0 : 1 + Math.floor(rnd() * 3);
     if (s < NP) w[s] = 1;
     else { for (let q = 0; q < k; q++) w[others[Math.floor(rnd() * others.length)]] += 0.05 + rnd(); const sum = w.reduce((p, v) => p + v, 0), t = Math.pow(rnd(), 1.3);
       for (let j = 0; j < NP; j++) w[j] = w[j] / sum * (1 - t); w[WI] += t; }
-    const L = lab(w); SW_.set(w, s * NP); SL_[s * 3] = L[0]; SL_[s * 3 + 1] = L[1]; SL_[s * 3 + 2] = L[2];
-    if (s % 4000 === 0) { progress('配合の見本 ' + Math.round(s / NS * 100) + '%'); await tick(); }
+    SW_.set(w, s * NP);
   }
+  IMG.bank = { NS, SW: SW_ }; IMG.bankSrc = PG.SOURCE; return IMG.bank;
+}
+/* 見本 4 万通りの、その光での Lab */
+async function bankLab (lab, progress) {
+  const { NS, SW: SW_ } = getBank(), SL_ = new Float32Array(NS * 3), w = new Array(NP);
+  for (let s = 0; s < NS; s++) { for (let j = 0; j < NP; j++) w[j] = SW_[s * NP + j]; const L = lab(w); SL_[s * 3] = L[0]; SL_[s * 3 + 1] = L[1]; SL_[s * 3 + 2] = L[2];
+    if (progress && s % 8000 === 0) { progress('配合の見本 ' + Math.round(s / NS * 100) + '%'); await tick(); } }
+  return SL_;
+}
+/* 目標の Lab T にいちばん近い配合（色の数は増やさない＝絵描きが混ぜる数のまま） */
+/* K＞1：近い見本を K 個（顔料の組み合わせが違うもの）から詰めて、いちばん良いものを取る（1 色の逆算用・格子は K＝1） */
+function solveNear (T, lab, SL_, K = 1) {
+  const { NS, SW: SW_ } = getBank(), top = [];
+  for (let s = 0; s < NS; s++) { const d = (SL_[s * 3] - T[0]) ** 2 + (SL_[s * 3 + 1] - T[1]) ** 2 + (SL_[s * 3 + 2] - T[2]) ** 2;
+    if (top.length < K * 6 || d < top[top.length - 1][0]) { top.push([d, s]); top.sort((p, q) => p[0] - q[0]); if (top.length > K * 6) top.pop(); } }
+  const seen = new Set(), picks = [];
+  for (const [d, s] of top) { let sig = ''; for (let j = 0; j < NP; j++) if (SW_[s * NP + j] > 1e-4) sig += j + ','; if (seen.has(sig)) continue; seen.add(sig); picks.push([d, s]); if (picks.length >= K) break; }
+  let out = null; for (const [d, s] of picks) { const q = refineFrom(T, lab, Array.from(SW_.subarray(s * NP, s * NP + NP)), Math.sqrt(d)); if (!out || q.f < out.f) out = q; }
+  return out;
+}
+function refineFrom (T, lab, w0, f0) {
+  const idx = []; for (let j = 0; j < NP; j++) if (w0[j] > 1e-4) idx.push(j);
+  let w = w0, f = f0;
+  if (idx.length > 1 && f > 0.5) {
+    const toW = x => { const e = x.map(v => Math.exp(Math.max(-30, Math.min(30, v)))), sm = e.reduce((p, v) => p + v, 0), o = new Array(NP).fill(0); idx.forEach((j, i) => { o[j] = e[i] / sm; }); return o; };
+    const fn = x => { const L = lab(toW(x)); return Math.hypot(L[0] - T[0], L[1] - T[1], L[2] - T[2]); };
+    const n = idx.length; let P_ = [idx.map(j => Math.log(w0[j]))]; for (let i = 0; i < n; i++) { const x = P_[0].slice(); x[i] += 0.7; P_.push(x); }
+    let F = P_.map(fn);
+    for (let it = 0; it < 70 * n; it++) {
+      const o = F.map((_, i) => i).sort((a, b) => F[a] - F[b]); P_ = o.map(i => P_[i]); F = o.map(i => F[i]);
+      const c = new Array(n).fill(0); for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) c[j] += P_[i][j] / n;
+      const at = t => c.map((v, j) => v + t * (P_[n][j] - v)), xr = at(-1), fr = fn(xr);
+      if (fr < F[0]) { const xe = at(-2), fe = fn(xe); if (fe < fr) { P_[n] = xe; F[n] = fe; } else { P_[n] = xr; F[n] = fr; } }
+      else if (fr < F[n - 1]) { P_[n] = xr; F[n] = fr; }
+      else { const xc = at(0.5), fc = fn(xc); if (fc < F[n]) { P_[n] = xc; F[n] = fc; } else for (let i = 1; i <= n; i++) { P_[i] = P_[i].map((v, j) => P_[0][j] + 0.5 * (v - P_[0][j])); F[i] = fn(P_[i]); } }
+    }
+    if (F[0] < f) { w = toW(P_[0]); f = F[0]; }
+  }
+  return { w, f };
+}
+async function buildLut (progress, E_, adapt) {
+  const lab = labUnder(E_, adapt), SL_ = await bankLab(lab, progress);
   const G = IMG.G, lut = new Float32Array(G * G * G * NP); let errSum = 0, errMax = 0;
-  const toW = (x, idx) => { const e = x.map(v => Math.exp(Math.max(-30, Math.min(30, v)))), sm = e.reduce((p, v) => p + v, 0), w = new Array(NP).fill(0); idx.forEach((j, i) => { w[j] = e[i] / sm; }); return w; };
   for (let bi = 0; bi < G; bi++) {
     for (let gi = 0; gi < G; gi++) for (let ri = 0; ri < G; ri++) {
-      const T = PG.labOfLin([srgbLin(ri / (G - 1)), srgbLin(gi / (G - 1)), srgbLin(bi / (G - 1))]);
-      let best = 0, bd = 1e9; for (let s = 0; s < NS; s++) { const d = (SL_[s * 3] - T[0]) ** 2 + (SL_[s * 3 + 1] - T[1]) ** 2 + (SL_[s * 3 + 2] - T[2]) ** 2; if (d < bd) { bd = d; best = s; } }
-      const w0 = Array.from(SW_.subarray(best * NP, best * NP + NP)), idx = []; for (let j = 0; j < NP; j++) if (w0[j] > 1e-4) idx.push(j);
-      let w = w0, f = Math.sqrt(bd);
-      if (idx.length > 1 && f > 0.5) {   // その配合の色だけで詰める（色の数は増やさない＝絵描きが混ぜる数のまま）
-        const fn = x => { const L = lab(toW(x, idx)); return Math.hypot(L[0] - T[0], L[1] - T[1], L[2] - T[2]); };
-        const n = idx.length; let P_ = [idx.map(j => Math.log(w0[j]))]; for (let i = 0; i < n; i++) { const x = P_[0].slice(); x[i] += 0.7; P_.push(x); }
-        let F = P_.map(fn);
-        for (let it = 0; it < 70 * n; it++) {
-          const o = F.map((_, i) => i).sort((a, b) => F[a] - F[b]); P_ = o.map(i => P_[i]); F = o.map(i => F[i]);
-          const c = new Array(n).fill(0); for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) c[j] += P_[i][j] / n;
-          const at = t => c.map((v, j) => v + t * (P_[n][j] - v)), xr = at(-1), fr = fn(xr);
-          if (fr < F[0]) { const xe = at(-2), fe = fn(xe); if (fe < fr) { P_[n] = xe; F[n] = fe; } else { P_[n] = xr; F[n] = fr; } }
-          else if (fr < F[n - 1]) { P_[n] = xr; F[n] = fr; }
-          else { const xc = at(0.5), fc = fn(xc); if (fc < F[n]) { P_[n] = xc; F[n] = fc; } else for (let i = 1; i <= n; i++) { P_[i] = P_[i].map((v, j) => P_[0][j] + 0.5 * (v - P_[0][j])); F[i] = fn(P_[i]); } }
-        }
-        if (F[0] < f) { w = toW(P_[0], idx); f = F[0]; }
-      }
-      lut.set(w, ((bi * G + gi) * G + ri) * NP); errSum += f; errMax = Math.max(errMax, f);
+      const T = PG.labOfLin([srgbLin(ri / (G - 1)), srgbLin(gi / (G - 1)), srgbLin(bi / (G - 1))]), q = solveNear(T, lab, SL_);
+      lut.set(q.w, ((bi * G + gi) * G + ri) * NP); errSum += q.f; errMax = Math.max(errMax, q.f);
     }
     progress('配合を解く ' + Math.round((bi + 1) / G * 100) + '%'); await tick();
   }
   IMG.lutErr = { mean: errSum / (G * G * G), max: errMax };
   return lut;
 }
+/* 解く光：既定は昼光（＝画像の色の絵具の作り方）。useNow のときは「いまの光での見え方」として解く（逆算） */
+function solveLight () {
+  if (!IMG.useNow || S.rgb) return { E: PG.E_DAY, adapt: 0, key: 'DAY', label: '昼光' };
+  const E_ = Float32Array.from(S.E), lab = S.cycle ? (S.cycleLabel || 'CYCLE') : S.light, L = PG.LIGHTS[lab];
+  let h = 0; for (let i = 0; i < E_.length; i += 7) h = (h * 31 + Math.round(E_[i] * 1e4)) | 0;
+  return { E: E_, adapt: P.adapt, key: lab + ':' + h + ':' + P.adapt.toFixed(2), label: (L ? L.jp : '描いた光') + '・目の慣れ ' + Math.round(P.adapt * 100) + '%' };
+}
 /* 画像を紙いっぱいに（はみ出す所は切る）置く */
 async function loadImage (img) {
   if (IMG.busy) return; IMG.busy = true; Robot.stop(); finishStroke();
   const badge = $('#robot'), say = t => { badge.textContent = t; badge.classList.add('on'); };
   try {
-    if (!IMG.lut || IMG.lutSrc !== PG.SOURCE) { IMG.lut = await buildLut(say); IMG.lutSrc = PG.SOURCE; }
+    const sl = solveLight(), key = PG.SOURCE + '|' + sl.key;
+    if (!IMG.lut || IMG.lutKey !== key) { IMG.lut = await buildLut(say, sl.E, sl.adapt); IMG.lutKey = key; }
+    IMG.solvedUnder = sl.label;
     say('画像を絵具に置き換え中'); await tick();
     const W = E.W, H = E.H, c = document.createElement('canvas'); c.width = W; c.height = H;
     const cx = c.getContext('2d', { willReadFrequently: true }), s = Math.max(W / img.width, H / img.height);
@@ -1026,10 +1075,44 @@ async function loadImage (img) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, E.cur.one[3]); gl.clearBufferfv(gl.COLOR, 0, [0, 0, 0, 0]); clearLayer(E.tmp);
     E.wetUntil = 0; E.dryZeroed = true; IMG.src = img;
   } catch (err) { console.error(err); IMG.lastErr = String(err.message || err); }
-  badge.textContent = 'AUTO PAINTING'; badge.classList.remove('on'); IMG.busy = false;
+  badge.textContent = 'AUTO PAINTING'; badge.classList.remove('on'); IMG.busy = false; syncImgUI();
+}
+function syncImgUI () {
+  const b = $('#tg-imgnow'); if (!b) return; b.classList.toggle('on', IMG.useNow);
+  $('#imgnow-k').textContent = (IMG.useNow ? 'いまの光で解く（夜にこう見せたい絵 → 昼に塗る配合）' : '昼光で解く（画像の色の作り方）') + (IMG.solvedUnder ? '・いまの絵＝' + IMG.solvedUnder + 'で解いた' : '');
 }
 function loadImageFile (file) { if (!file || !/^image\//.test(file.type)) return; const u = URL.createObjectURL(file), im = new Image(); im.onload = () => { loadImage(im).then(() => URL.revokeObjectURL(u)); }; im.src = u; }
 const loadImageUrl = url => new Promise((res, rej) => { const im = new Image(); im.onload = () => loadImage(im).then(res); im.onerror = rej; im.src = url; });
+
+/* ════════════════ TARGET：この光で、この色に見せたい → 何を混ぜる？（逆算） ════════════════ */
+const TG = { hex: '#C8402E', res: null, timer: 0, slKey: '', SL: null, on: false };
+function solveTarget () {
+  if (!S.E) return; TG.on = true;
+  const E_ = S.E, ad = P.adapt, lab = labUnder(E_, ad);
+  let h = 0; for (let i = 0; i < E_.length; i += 7) h = (h * 31 + Math.round(E_[i] * 1e4)) | 0;
+  const key = PG.SOURCE + '|' + h + '|' + ad.toFixed(3);
+  if (TG.slKey !== key) {   // 見本 4 万通りのこの光での Lab（同期で 0.1〜0.2 秒）
+    const { NS, SW: SW_ } = getBank(), SL_ = new Float32Array(NS * 3), w = new Array(NP);
+    for (let q = 0; q < NS; q++) { for (let j = 0; j < NP; j++) w[j] = SW_[q * NP + j]; const L = lab(w); SL_[q * 3] = L[0]; SL_[q * 3 + 1] = L[1]; SL_[q * 3 + 2] = L[2]; }
+    TG.SL = SL_; TG.slKey = key;
+  }
+  const T = PG.labOfLin(PG.hexLin(TG.hex)), q = solveNear(T, lab, TG.SL, 8), R = PG.mixRefl(q.w);
+  const now = PG.render(R, E_, ad), day = PG.render(R, PG.E_DAY, 0), labN = PG.labOfLin(now.lin.map(v => Math.max(0, v)));
+  TG.res = { w: q.w, f: q.f, now: now.hex, day: day.hex };
+  $('#tg-want').style.background = TG.hex; $('#tgv-want').textContent = TG.hex + ' L' + T[0].toFixed(0) + ' C' + PG.chromaOf(T).toFixed(0);
+  $('#tg-now').style.background = now.hex; $('#tgv-now').textContent = now.hex + ' L' + labN[0].toFixed(0) + ' C' + PG.chromaOf(labN).toFixed(0);
+  $('#tg-day').style.background = day.hex; $('#tgv-day').textContent = day.hex;
+  const lname = S.cycle ? 'この光' : ((PG.LIGHTS[S.light] || { jp: '描いた光' }).jp);
+  let msg = '<b>配合</b>：' + mixText(q.w) + '<br>' + lname + '・目の慣れ ' + Math.round(ad * 100) + '% での差 ΔE ' + q.f.toFixed(1);
+  const dc = PG.chromaOf(T) - PG.chromaOf(labN), dl = T[0] - labN[0];
+  const why = dc > 8 ? '<b>彩度が足りない</b>（その色を返す波長が光に無い）' : dl > 8 ? '<b>明るくできない</b>（その光の下で返せる光が足りない）' : dl < -8 ? '<b>暗くできない</b>（黒の絵具が無い）' : '色相がずれる';
+  if (q.f <= 6) msg += '　→ <b>作れる</b>。右の「昼に見ると」の色を塗っておけば、この光でねらいの色に見える';
+  else if (q.f <= 12) msg += '　→ <b>ほぼ作れる</b>（少しずれる：' + why + '）';
+  else msg += '　→ <b>この光ではこの色は作れない</b>（いちばん近い色）。' + why;
+  if (S.rgb) msg += '<br>（逆算は波長で計算。RGB × の表示とは別）';
+  $('#targetTxt').innerHTML = msg;
+}
+const solveTargetSoon = () => { if (!TG.on) return; clearTimeout(TG.timer); TG.timer = setTimeout(solveTarget, S.cycle ? 400 : 60); };
 /* 配合を言葉に（多い順に 4 つまで） */
 const mixText = w => { const a = w.reduce((p, q) => p + q, 0) || 1; return w.map((v, j) => [j, v / a]).filter(q => q[1] >= 0.01).sort((p, q) => q[1] - p[1]).slice(0, 4).map(([j, v]) => PG.PIGMENTS[j].jp + ' ' + Math.round(v * 100) + '%').join(' ＋ '); };
 
@@ -1113,8 +1196,12 @@ $('#f-image').addEventListener('change', e => { loadImageFile(e.target.files[0])
 main.addEventListener('dragover', e => { e.preventDefault(); });
 main.addEventListener('drop', e => { e.preventDefault(); const f = e.dataTransfer && e.dataTransfer.files[0]; if (f) loadImageFile(f); });
 /* 実測の顔料 ⇄ 目安の形 */
-function setSource (src) { PG.setSource(src); S.dirtyLight = true; IMG.lut = null; syncUI(); applyLight(); drawSwatches(); }
+function setSource (src) { PG.setSource(src); S.dirtyLight = true; IMG.lut = null; syncUI(); applyLight(); drawSwatches(); solveTargetSoon(); }
 $('#tg-src').addEventListener('click', () => setSource(PG.SOURCE === 'measured' ? 'shape' : 'measured'));
+$('#tg-color').addEventListener('input', e => { TG.hex = e.target.value.toUpperCase(); solveTarget(); });
+$('#b-solve').addEventListener('click', solveTarget);
+$('#b-tgA').addEventListener('click', () => { if (!TG.res) solveTarget(); setA(normV(TG.res.w), '逆算＝' + mixText(TG.res.w)); });
+$('#tg-imgnow').addEventListener('click', () => { IMG.useNow = !IMG.useNow; syncImgUI(); if (IMG.src) loadImage(IMG.src); });
 /* 条件つきのつまみ：効かないときは薄くして理由を書く */
 function syncUI () {
   $$('#lights .bt').forEach(b => b.classList.toggle('on', !S.cycle && b.dataset.light === S.light));
@@ -1207,7 +1294,7 @@ function updateLightUI (label) {
   const L = PG.LIGHTS[label] || { jp: '描いた光', en: 'CUSTOM', note: 'グラフをなぞって作った光' };
   let note = L.note; if (label === 'SUNSET') note = '太陽の高さ ' + (S.cycle && S.cycleSun != null ? S.cycleSun : P.sunAlt).toFixed(1) + '°（' + note + '）';
   $('#lightTag').innerHTML = '<span class="en">' + (S.cycle ? 'CYCLE · ' : '') + L.en + '</span>' + L.jp + '　' + note + (S.rgb ? '　<b style="color:#F2C27A">［RGB × 表示中＝CG の掛け算］</b>' : '');
-  drawSpec(); updateCheck();
+  drawSpec(); updateCheck(); solveTargetSoon();
   const now = performance.now(); if (!S.cycle || now - swTimer > 250) { swTimer = now; drawSwatches(); }
 }
 window.addEventListener('keydown', e => {
@@ -1247,7 +1334,7 @@ window.__RELIGHT = {
   setCycle: (v, t) => { S.cycle = !!v; if (t != null) S.cycleT = t; S.dirtyLight = true; syncUI(); },
   setSun: h => { P.sunAlt = h; S.dirtyLight = true; syncUI(); },
   stroke: (pts, cfg) => { beginStroke(pts[0][0], pts[0][1], 1, Object.assign(userCfg(), { stab: 0 }, cfg)); for (const p of pts.slice(1)) moveStroke(p[0], p[1], 1); finishStroke(); },
-  clear: () => { Robot.stop(); clearCanvas(); }, view, IMG, loadImageUrl, loadImage, setSource, mixText, streakK, reliefK
+  clear: () => { Robot.stop(); clearCanvas(); }, view, IMG, loadImageUrl, loadImage, setSource, mixText, streakK, reliefK, TG, solveTarget, setUseNow: v => { IMG.useNow = !!v; syncImgUI(); }
 };
 })();
 </script>
