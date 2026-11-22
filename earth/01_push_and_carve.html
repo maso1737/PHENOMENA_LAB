@@ -153,7 +153,7 @@
 'use strict';
 const L = PH_E1, YR = 1e5;   // 1 秒 ＝ 10 万年
 const C = { paper: '#ECE5D1', sky: '#F0EADA', ink: '#2A251F', dim: '#6B6357', rule: 'rgba(42,37,31,.16)', mud: '#A57B52', sand: '#D2B06A', lime: '#A3A099', granite: '#E6DECA', mantle: '#C8C2B2', up: '#B0392B', down: '#2D5E8C' };   // 窓の色＝SHELL_TOKENS「E1 窓」
-const S = { v: 1.5, P: 1, wind: 0, fast: false, proof: false, auto: false, brk: false, brkMode: 'rain', t: 0, probe: null, drag: null, pf: 0, tv: 0, sm: { up: 0, down: 0 }, z: 1, seek: false };
+const S = { v: 1.5, P: 1, wind: 0, fast: false, proof: false, auto: false, brk: false, brkMode: 'rain', t: 0, probe: null, drag: null, pf: 0, tv: 0, sm: { up: 0, down: 0 }, z: 1, seek: false, hist: [], nextRec: 5e5 };
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d'), $ = id => document.getElementById(id);
 let W = 1, H = 1, G = {}, sim = L.create(), proofObj = null;
 
@@ -364,7 +364,7 @@ function drawGauge(src) {
   ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillStyle = C.ink; ctx.font = mono(10, 600); ctx.fillText('GAUGE', bx + 7, by + 6);
   ctx.font = note(10); ctx.fillStyle = C.dim; ctx.fillText('縦を一つの縮尺で', bx + 7, by + 19);
   const st = src.stat, pk = Math.max(0, st.peak), rm = st.rootMax || 0;
-  const ax = bx + 30, aw = bx + bw - 8 - ax, py0 = by + 44, py1 = G.yC1 - 120;
+  const ax = bx + 30, aw = bx + bw - 8 - ax, py0 = by + 44, py1 = G.yC1 - 236;
   const topG = Math.max(4000, pk * 1.12), botG = Math.min(-40000, -(L.C0 + rm) * 1.05), kg = (py1 - py0) / (topG - botG), Y = z => py0 + (topG - z) * kg, Xg = i => ax + i / (L.NX - 1) * aw;
   ctx.save(); ctx.beginPath(); ctx.rect(ax, py0, aw, py1 - py0); ctx.clip();
   ctx.fillStyle = C.sky; ctx.fillRect(ax, py0, aw, Y(0) - py0);
@@ -393,8 +393,26 @@ function drawGauge(src) {
   if (rm > 150) { ctx.strokeStyle = C.down; ctx.beginPath(); ctx.moveTo(xr, Y(-L.C0)); ctx.lineTo(xr, Y(-L.C0 - rm)); ctx.stroke(); ctx.font = mono(9, 600); ctx.fillStyle = C.down; ctx.textAlign = 'right'; ctx.textBaseline = 'top'; ctx.fillText('根 ' + (rm / 1000).toFixed(1), xr - 3, Y(-L.C0) + 2); }
   ctx.font = note(9); ctx.fillStyle = C.dim; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText('ゲージの縦 ×' + (kg / (aw / 200000)).toFixed(1) + '（上下とも）', bx + 7, py1 + 32);
   // 縦横 1:1（本当の形）
-  const sy0 = py1 + 64, sh = G.yC1 - 6 - sy0, k1 = Math.min((bw - 16) / 200000, sh / (pk + L.C0 + rm + 1000)), w1 = 200000 * k1, sx = bx + (bw - w1) / 2, s0 = sy0 + pk * k1 + 2;
-  ctx.font = note(10); ctx.fillStyle = C.ink; ctx.fillText('縦横 1:1（本当の形）', bx + 7, py1 + 47);
+  // LIFE：50 万年ごとの地表を積み重ねる（新しいほど上・新しい層が古い層の山を覆う＝地層のしま）
+  { const Hs = S.hist, n = Hs.length, wx0 = bx + 30, ww = bx + bw - 8 - wx0, wy0 = py1 + 64, wy1 = py1 + 168, bump = 30, dy = (wy1 - wy0 - bump) / (HIST_N - 1);
+    const maxP = Math.max(3000, pk, ...Hs.map(r => r.pk)), kh = bump / maxP, base = j => wy0 + bump + (n - 1 - j) * dy;
+    ctx.font = mono(10, 600); ctx.fillStyle = C.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText('LIFE', bx + 7, py1 + 48);
+    ctx.font = note(9); ctx.fillStyle = C.dim; ctx.fillText('50 万年ごとの地表', bx + 38, py1 + 49);
+    ctx.save(); ctx.beginPath(); ctx.rect(wx0 - 1, wy0 - 12, ww + 2, wy1 - wy0 + 13); ctx.clip();
+    const line = (h, y0, step) => { const pth = new Path2D(); for (let i = 0; i < h.length; i++) { const x = wx0 + i / (h.length - 1) * ww, y = y0 - Math.max(0, h[i]) * kh; i ? pth.lineTo(x, y) : pth.moveTo(x, y); } return pth; };
+    const draw1 = (h, y0, col, lw, a) => { ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.stroke(line(h, y0)); ctx.globalAlpha = 1; };   // 塗らずに重ねる：古い山も透けて、頂の並び＝高さの歴史が読める
+    for (let j = 0; j < n; j++) draw1(Hs[j].h, base(j), Hs[j].s === 'GROW' ? C.up : Hs[j].s === 'DECAY' ? C.down : C.ink, 0.8, 0.75);
+    const live = new Float32Array(101); for (let i = 0; i < 101; i++) live[i] = src.h[i * 2];
+    draw1(live, base(n - 1) - dy, C.ink, 1.6, 1);
+    ctx.restore();
+    ctx.font = mono(8); ctx.fillStyle = C.dim; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.fillText('いま', wx0 - 3, base(n - 1) - dy);
+    for (let j = 0; j < n; j++) { const t = Hs[j].t / 1e6; if (Math.abs(t - Math.round(t / 5) * 5) < 0.01 && n - 1 - j > 2) ctx.fillText(t.toFixed(0), wx0 - 3, base(j)); }
+    ctx.font = note(9); ctx.textAlign = 'left'; ctx.textBaseline = 'top'; let lx = bx + 7; const ly = wy1 + 3;
+    for (const [col, t] of [[C.up, '育つ'], [C.ink, '止まる'], [C.down, '低くなる']]) { ctx.fillStyle = col; ctx.fillRect(lx, ly + 5, 8, 2); ctx.fillText(t, lx + 10, ly); lx += 14 + ctx.measureText(t).width; }
+    ctx.fillStyle = C.dim; ctx.fillText('左の数＝百万年 ・ 縦 ×' + (kh / (ww / 200000)).toFixed(0), bx + 7, ly + 12); }
+  const sy0 = py1 + 214, sh = G.yC1 - 6 - sy0, k1 = Math.min((bw - 16) / 200000, sh / (pk + L.C0 + rm + 1000)), w1 = 200000 * k1, sx = bx + (bw - w1) / 2, s0 = sy0 + pk * k1 + 2;
+  ctx.font = note(10); ctx.fillStyle = C.ink; ctx.fillText('縦横 1:1（本当の形）', bx + 7, py1 + 199);
   const p1 = new Path2D(); for (let i = 0; i < L.NX; i++) { const x = sx + i / (L.NX - 1) * w1, y = s0 - src.h[i] * k1; i ? p1.lineTo(x, y) : p1.moveTo(x, y); } for (let i = L.NX - 1; i >= 0; i--) p1.lineTo(sx + i / (L.NX - 1) * w1, s0 - (src.h[i] - src.c[i]) * k1); p1.closePath();
   ctx.fillStyle = C.granite; ctx.fill(p1); ctx.strokeStyle = C.ink; ctx.lineWidth = 0.8; ctx.stroke(p1);
 }
@@ -448,7 +466,9 @@ function readout() {
 }
 
 /* ---- 時間（1 秒 ＝ 10 万年・早送り ×10） ---- */
-function advance(yr) { const st = L.step(sim, yr, params()); S.t += yr; const a = Math.min(1, yr / 3e4); S.sm.up += (st.up - S.sm.up) * a; S.sm.down += (st.down - S.sm.down) * a; return st; }
+const HIST_N = 36;   // LIFE に残す本数（50 万年 × 36 ＝ 1800 万年）
+function record(st) { const h = new Float32Array(101); for (let i = 0; i < 101; i++) h[i] = sim.h[i * 2]; S.hist.push({ t: S.t, h, pk: st.peak, s: L.state(st.up, st.down) }); if (S.hist.length > HIST_N) S.hist.shift(); }
+function advance(yr) { const st = L.step(sim, yr, params()); S.t += yr; if (S.t >= S.nextRec - 1) { record(st); S.nextRec = (Math.floor((S.t + 1) / 5e5) + 1) * 5e5; } const a = Math.min(1, yr / 3e4); S.sm.up += (st.up - S.sm.up) * a; S.sm.down += (st.down - S.sm.down) * a; return st; }
 function step(dt) {
   if (S.auto) S.v = Math.round((2 + 2 * Math.sin(S.t / 1e6 * 2 * Math.PI / 8)) * 10) / 10;   // 800 万年（80 秒）で 押す 0 ⇄ 4 cm/年
   if (S.proof) S.pf = (S.pf + dt / 10) % 1;   // 10 秒で ①②③
@@ -469,7 +489,7 @@ function goState(k) {
   else if (k === 'DECAY') { if (sim.stat.peak < 300) { S.v = Math.max(S.v, 1.5); reset(3); } S.v = 0; }
   else if (k === 'STEADY') { if (S.brk && S.brkMode === 'rain') return; S.seek = true; S.seekT = 0; }
 }
-function reset(myr) { sim = L.create(); S.t = 0; S.sm.up = S.sm.down = 0; L.isostasy(sim, true); sim.stat = { up: 0, down: 0, peak: 0, peakI: 100, rootMax: 0, meanH: 0, ratio: 0 }; for (let k = 0; k < Math.round((myr || 0) * 10); k++) advance(YR); S.z = zTarget(); fit(); }
+function reset(myr) { sim = L.create(); S.t = 0; S.sm.up = S.sm.down = 0; L.isostasy(sim, true); sim.stat = { up: 0, down: 0, peak: 0, peakI: 100, rootMax: 0, meanH: 0, ratio: 0 }; S.hist = []; S.nextRec = 5e5; record(sim.stat); for (let k = 0; k < Math.round((myr || 0) * 10); k++) advance(YR); S.z = zTarget(); fit(); }
 
 /* ---- 操作 ---- */
 $('push').addEventListener('input', e => { S.auto = false; S.v = +e.target.value; });
@@ -509,12 +529,13 @@ new ResizeObserver(() => { layout(); draw(); }).observe(cv);
 PHShell.onScale(() => { layout(); draw(); });   // 外枠の拡大率が変わったら絵の解像度を合わせる
 if (document.fonts) ["11px 'JetBrains Mono'", "11px 'M PLUS 1 Code'", "13px 'IBM Plex Sans JP'"].forEach(f => document.fonts.load(f));
 
-/* ---- 直リンク：#v=1.5&rain=1&wind=-1&t=3（百万年すすめて開く）&fast=1&brk=rain|iso&proof=1&auto=1 ---- */
+/* ---- 直リンク：#v=1.5&rain=1&wind=-1&t=3（百万年すすめて開く）&fast=1&brk=rain|iso&proof=1&auto=1&seq=2:7,0:6（押す:百万年 を順に） ---- */
 const Q = new URLSearchParams(location.hash.slice(1));
 if (Q.has('v')) S.v = Math.max(0, Math.min(4, +Q.get('v'))); if (Q.has('rain')) S.P = Math.max(0.2, Math.min(3, +Q.get('rain'))); if (Q.has('wind')) S.wind = Math.sign(+Q.get('wind'));
 if (Q.has('brk')) { S.brk = true; S.brkMode = Q.get('brk') === 'iso' ? 'iso' : 'rain'; }
 if (Q.get('fast') === '1') S.fast = true; if (Q.get('auto') === '1') S.auto = true;
 layout(); reset(Q.has('t') ? Math.max(0, Math.min(30, +Q.get('t'))) : 1);
+if (Q.has('seq')) { reset(0); for (const part of Q.get('seq').split(',')) { const [v, my] = part.split(':').map(Number); if (!(v >= 0 && my > 0)) continue; S.v = Math.min(4, v); for (let k = 0; k < Math.round(Math.min(20, my) * 10); k++) advance(YR); } S.z = zTarget(); fit(); }   // 例 seq=2:7,0:6,1:4（押す:百万年 を順に）
 if (Q.get('proof') === '1') { S.proof = true; proofObj = makeProof(); S.pf = Q.has('pf') ? +Q.get('pf') : 0; }
 
 window.__PH = { goState, fit, zTarget, S, L, get sim() { return sim; }, get G() { return G; }, derive, step, draw, layout, readout, reset, advance, params, makeProof, get proofObj() { return proofObj; } };   // 検証用
