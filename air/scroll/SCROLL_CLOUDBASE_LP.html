@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A1 CLOUD BASE 解説 LP — PHENOMENA LAB</title>
+<link rel="stylesheet" href="../../_shell/shell.css">
+<style>
+  /* A1 のアクセント＝空の青。型は E1 の解説 LP（earth/scroll/SCROLL_PUSHCARVE_LP.html）をそのまま使う */
+  :root { --accent: #3A74A0; --accent-ink: #FFFFFF; --accent-line: #8DB8D8; }
+  html, body { height: auto; overflow-x: hidden; overflow-y: auto; }
+  #track { position: relative; width: 1px; pointer-events: none; }
+  .ph-viewport { z-index: 1; }
+  #cv { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; }
+  .ab { position: absolute; }
+  .lay { position: absolute; inset: 0; pointer-events: none; transition: opacity .25s; opacity: 0; }
+  .lay.on { opacity: 1; }
+  .lay.on .hit { pointer-events: auto; }
+
+  /* ヘッダ */
+  .brand b { display: block; width: 300px; font: 400 22px/1.35 var(--f-wide); letter-spacing: .24em; color: var(--ink); }
+  .brand span { display: block; margin-top: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .2em; color: var(--accent-line); }
+  .ids { display: grid; grid-template-columns: 96px 1fr; row-gap: 6px; width: 340px; font-size: 11px; }
+  .ids dt { font-family: var(--f-thin); letter-spacing: .18em; color: var(--ink-2); }
+  .ids dd { margin: 0; font-family: var(--f-num); color: var(--ink); }
+  .tab { left: 1704px; top: 24px; width: 176px; height: 152px; background: var(--accent); color: var(--accent-ink); padding: 18px 18px 0; }
+  .tab .k { display: flex; justify-content: space-between; font: 600 13px/1 var(--f-thin); letter-spacing: .24em; }
+  .tab .n { font: 400 62px/1 var(--f-wide); margin-top: 12px; }
+  .tab .s { font: 400 12px/1 var(--f-num); margin-top: 10px; }
+  .noise { left: 1130px; top: 44px; font: 400 8.5px/13px var(--f-num); color: var(--ink); opacity: .2; white-space: pre; }
+  #bigTop { left: 1100px; top: 36px; width: 590px; text-align: right; font: 400 72px/1 var(--f-wide); color: var(--accent); opacity: .16; white-space: nowrap; }
+  #kanji { font: 500 300px/1 var(--f-jp); color: var(--accent); opacity: .12; white-space: nowrap; }
+  #kanji.num { font: 400 200px/1 var(--f-wide); }
+
+  /* 00 問い */
+  .band { left: 32px; top: 136px; width: 1316px; height: 330px; background: var(--accent); color: var(--accent-ink); padding: 34px 48px; }
+  .band .f { font: 600 13px/1 var(--f-thin); letter-spacing: .42em; }
+  .band h1 { margin: 26px 0 0; font: 400 128px/118px var(--f-wide); letter-spacing: -.01em; }
+  .q { left: 1376px; top: 190px; width: 480px; }
+  .q .k { font: 600 12px/1 var(--f-thin); letter-spacing: .3em; color: var(--accent-line); }
+  .q p { margin: 22px 0 0; font: 500 28px/1.55 var(--f-jp); color: var(--ink); }
+  .howto { left: 40px; top: 486px; width: 212px; }
+  .howto h3, .stl h3 { margin: 0; display: flex; align-items: center; gap: 10px; font: 400 15px/1 var(--f-wide); letter-spacing: .16em; color: var(--ink); }
+  .howto h3 i, .stl h3 i, .railk i { width: 10px; height: 10px; background: var(--accent); }
+  .howto .st { border-bottom: 1px solid var(--line-sub); padding: 18px 0 14px; }
+  .howto .st span { display: block; font: 600 10px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .howto .st b { font: 400 28px/1 var(--f-num); color: var(--ink); margin-right: 10px; }
+  .howto .st small { font: 400 12px/1 var(--f-jp); color: var(--ink-2); }
+  .hint { font: 600 11px/1 var(--f-thin); letter-spacing: .24em; color: var(--accent-line); }
+  .hint em, .nextk em { font-style: normal; display: inline-block; animation: bob 1.2s ease-in-out infinite; }
+  @keyframes bob { 0%, 100% { transform: translateY(-2px); } 50% { transform: translateY(3px); } }
+
+  /* 駅の一覧 */
+  .stl { left: 40px; top: 140px; width: 212px; }
+  .stl ol { list-style: none; margin: 16px 0 0; padding: 0; }
+  .stl li { display: flex; align-items: center; height: 45px; padding: 0 10px; border-bottom: 1px solid var(--line-sub); cursor: pointer; color: var(--ink-3); }
+  .stl li u { text-decoration: none; font: 400 12px/1 var(--f-num); width: 32px; }
+  .stl li b { font: 400 14px/1 var(--f-jp); flex: 1; }
+  .stl li s { text-decoration: none; font: 600 9px/1 var(--f-thin); letter-spacing: .14em; }
+  .stl li.done { color: var(--ink); }
+  .stl li.done s::before { content: '✓'; font-size: 11px; color: var(--ink-2); }
+  .stl li.done s { font-size: 0; }
+  .stl li.now { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .stl li.now b { font-weight: 500; }
+  .stl li.now s { font-size: 0; }
+  .stl li.now s::after { content: '◀ NOW'; font-size: 9px; }
+  .stl li:hover:not(.now) { color: var(--ink); background: rgba(232,230,223,.04); }
+  .read { margin-top: 26px; display: flex; justify-content: space-between; font: 600 10px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .read b { font: 400 12px/1 var(--f-num); color: var(--ink); }
+  .bar { margin-top: 8px; height: 5px; background: rgba(232,230,223,.1); }
+  .bar i { display: block; height: 100%; background: var(--accent); width: 0; }
+
+  /* 図の札 */
+  .figtag { left: 302px; top: 168px; height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: #0B0B0A; color: var(--ink); }
+  .figtag i { width: 10px; height: 10px; background: var(--accent); }
+  .figtag b { font: 400 15px/1 var(--f-wide); letter-spacing: .1em; }
+  .figtag span { font: 500 12px/1 var(--f-jp); }
+  .brkchip { left: 1166px; top: 168px; height: 30px; padding: 0 12px; display: flex; align-items: center; gap: 8px; background: #0B0B0A; color: var(--ink); font: 600 11px/1 var(--f-thin); letter-spacing: .2em; }
+  .brkchip b { font: 500 12px/1 var(--f-jp); letter-spacing: 0; }
+
+  /* 右の欄 */
+  .rc { left: 1360px; top: 158px; width: 520px; display: flex; flex-direction: column; }
+  .rc .hd { display: flex; align-items: baseline; gap: 22px; }
+  .rc .num { font: 400 82px/1 var(--f-wide); color: var(--accent-line); }
+  .rc .en { font: 600 12px/1 var(--f-thin); letter-spacing: .24em; color: var(--ink-2); }
+  .rc h2 { margin: 18px 0 0; font: 500 40px/1.38 var(--f-jp); color: var(--ink); letter-spacing: .02em; }
+  .rc .body { margin: 20px 0 0; font: 400 16px/1.78 var(--f-jp); color: var(--ink); padding-bottom: 20px; border-bottom: 1px solid var(--line-main); }
+  .rc .kl { margin-top: 20px; font: 600 10px/1 var(--f-thin); letter-spacing: .22em; color: var(--ink-2); }
+  .rc .kv { margin-top: 10px; display: flex; align-items: baseline; gap: 12px; }
+  .rc .kv b { font: 400 64px/1 var(--f-num); color: var(--accent-line); }
+  .rc .kv span { font: 400 18px/1 var(--f-num); color: var(--ink-2); }
+  .rc .kn { margin-top: 12px; font: 400 13px/1.6 var(--f-jp); color: var(--ink-2); }
+  .rc .kn sup { font-size: 9px; }
+  .rc .wow { margin-top: 18px; display: flex; gap: 12px; font: 400 14px/1.65 var(--f-jp); color: var(--ink); }
+  .rc .wow i { flex: none; font: 600 10px/1 var(--f-jp); background: var(--ink); color: #0B0B0A; padding: 5px 8px; height: 20px; margin-top: 2px; font-style: normal; }
+  .nextk { left: 1360px; top: 838px; width: 520px; display: flex; align-items: center; gap: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .24em; color: var(--ink-2); }
+  .nextk hr { flex: 1; border: 0; border-top: 1px solid var(--line-sub); margin: 0; }
+  .nextk span { font: 500 13px/1 var(--f-jp); letter-spacing: 0; color: var(--ink); }
+  .nextk span small { font-size: 12px; color: var(--ink-2); margin-right: 10px; }
+
+  /* 文字の入り方：左から（0.26〜0.34 秒） */
+  .in { clip-path: inset(0 100% 0 0); }
+  .go .in { animation: wipe .32s cubic-bezier(.2,.8,.2,1) forwards; animation-delay: calc(var(--d, 0) * 60ms); }
+  @keyframes wipe { from { clip-path: inset(0 100% 0 0); transform: translateX(-10px); } to { clip-path: inset(0 0 0 0); transform: none; } }
+
+  /* 09 持ち出す */
+  .endh { left: 284px; top: 160px; display: flex; align-items: baseline; gap: 26px; }
+  .endh b { font: 400 96px/1 var(--f-wide); color: var(--accent-line); }
+  .endh span { font: 400 32px/1 var(--f-wide); letter-spacing: .08em; color: var(--ink); }
+  .endh em { font: 500 22px/1 var(--f-jp); font-style: normal; color: var(--ink); }
+  .endn { left: 1300px; top: 230px; width: 580px; text-align: right; font: 600 11px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .cards { left: 280px; top: 272px; width: 1600px; height: 332px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .cards > div { border-left: 2px solid var(--accent); padding: 16px 16px; color: var(--ink); transition: background .2s, color .2s; }
+  .cards > div:hover { background: var(--accent); color: var(--accent-ink); }
+  .cards h4 { margin: 0; font: 400 15px/1 var(--f-wide); letter-spacing: .08em; }
+  .cards h4 u { text-decoration: none; font: 400 12px/1 var(--f-num); color: var(--accent-line); margin-right: 8px; }
+  .cards h4 small { font: 400 11px/1 var(--f-jp); color: var(--ink-2); margin-left: 8px; letter-spacing: 0; }
+  .cards > div:hover h4 u, .cards > div:hover h4 small { color: var(--accent-ink); }
+  .cards p { margin: 26px 0 0; font: 400 15px/1.85 var(--f-jp); }
+  .cards p em { display: block; margin-top: 12px; font: 400 11px/1.5 var(--f-num); font-style: normal; color: var(--ink-2); }
+  .cards > div:hover p em { color: var(--accent-ink); }
+  .cards > div { transform: translateY(16px); opacity: 0; transition: transform .4s cubic-bezier(.2,.8,.2,1), opacity .4s, background .2s, color .2s; }
+  .go .cards > div { transform: none; opacity: 1; }
+  .cta { left: 280px; top: 628px; width: 1254px; height: 200px; background: var(--accent); color: var(--accent-ink); padding: 44px 36px; display: block; text-decoration: none; }
+  .cta .k { font: 600 12px/1 var(--f-thin); letter-spacing: .32em; }
+  .cta b { display: block; margin-top: 18px; font: 400 58px/1 var(--f-wide); }
+  .cta b em { font-style: normal; display: inline-block; transition: transform .2s; }
+  .cta:hover b em { transform: translateX(10px); }
+  .cta span { display: block; margin-top: 16px; font: 500 16px/1 var(--f-jp); }
+  .ctaf { left: 1208px; top: 812px; font: 400 10px/1 var(--f-num); color: var(--accent-ink); }
+  .nextc { left: 1550px; top: 628px; width: 330px; height: 200px; border: 1px solid var(--line-main); padding: 26px; }
+  .nextc .k { font: 600 11px/1 var(--f-thin); letter-spacing: .26em; color: var(--ink-2); }
+  .nextc b { display: block; margin-top: 16px; font: 400 28px/1 var(--f-wide); color: var(--ink); }
+  .nextc p { margin: 14px 0 0; font: 400 14px/1.6 var(--f-jp); color: var(--ink); }
+  .nextc small { display: block; margin-top: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .14em; color: var(--ink-2); }
+
+  /* 式の線路 */
+  .railk { left: 40px; top: 882px; display: flex; align-items: center; gap: 12px; }
+  .railk i { width: 24px; height: 8px; }
+  .railk b { font: 400 15px/1 var(--f-wide); letter-spacing: .16em; color: var(--ink); }
+  .railk span { font: 400 12px/1 var(--f-jp); color: var(--ink-2); }
+  .rail { left: 40px; top: 912px; width: 1840px; height: 120px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .rb { border: 1px solid var(--line-sub); padding: 16px 16px; position: relative; color: var(--ink-3); transition: background .3s, color .3s, border-color .3s; }
+  .rb .rt { display: flex; justify-content: space-between; font: 600 11px/1 var(--f-thin); letter-spacing: .14em; }
+  .rb .rt b { font: 500 11px/1 var(--f-jp); letter-spacing: 0; margin-left: 4px; }
+  .rb .rt i { font-style: normal; }
+  .rb .rf { margin-top: 18px; font: 400 24px/1 var(--f-num); white-space: nowrap; }
+  .rb .rf sup { font-size: 13px; }
+  .rb .rd { margin-top: 14px; font: 400 12px/1.35 var(--f-jp); }
+  .rb .dots { display: none; margin-top: 18px; font: 400 18px/1 var(--f-num); letter-spacing: .9em; }
+  .rb.fut .rf { display: none; }
+  .rb.fut .dots { display: block; }
+  .rb.done { border-color: var(--line-main); color: var(--ink); }
+  .rb.done .rd { color: var(--ink-2); }
+  .rb.ref { border-color: var(--accent-line); color: var(--ink); }
+  .rb.ref .rt i, .rb.ref .rf { color: var(--accent-line); }
+  .rb.now { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); animation: grow .3s cubic-bezier(.2,.8,.2,1); transform-origin: left; }
+  @keyframes grow { from { transform: scaleX(.3); } to { transform: none; } }
+  .rb.lab { border: 1px dashed var(--accent-line); color: var(--accent-line); text-decoration: none; display: block; }
+  .rb.lab .rf { font: 400 25px/1 var(--f-wide); }
+  .rb.lab .rd { color: var(--ink); }
+  .rb.lab:hover, .rb.lab.now { background: var(--accent); color: var(--accent-ink); border-style: solid; }
+  .rb.lab:hover .rd, .rb.lab.now .rd { color: var(--accent-ink); }
+  .foot { left: 300px; top: 1050px; font: 400 9px/1 var(--f-num); letter-spacing: .14em; color: var(--ink-3); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .in, .go .in { clip-path: none; animation: none; }
+    .hint em, .nextk em { animation: none; }
+    .cards > div { transform: none; opacity: 1; transition: none; }
+    .rb.now { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div class="ph-viewport"><div class="ph-shell" id="shell">
+  <div class="ph-grid"></div>
+  <div class="ab" id="kanji"></div>
+  <div class="ab" id="bigTop"></div>
+  <div class="ab noise" id="noise"></div>
+  <svg class="ab" id="frame" width="1920" height="1080" viewBox="0 0 1920 1080" aria-hidden="true" style="left:0;top:0;pointer-events:none"></svg>
+  <canvas id="cv"></canvas>
+
+  <!-- ヘッダ（全駅共通） -->
+  <div class="ab brand" style="left:48px;top:46px"><b>PHENOMENA LAB</b><span>EARTH SURVEY ARCHIVE · EXPLAINER</span></div>
+  <dl class="ab ids" style="left:392px;top:62px;margin:0"><dt>OBS.No</dt><dd>A-001-0731</dd><dt>DOC</dt><dd>SCROLL-A1-LP</dd><dt>TIMESTAMP</dt><dd>2125-07-31T13:42:05Z</dd></dl>
+  <dl class="ab ids" style="left:760px;top:62px;margin:0"><dt>FIELD</dt><dd>AIR</dd><dt>CARD</dt><dd>A1 / 22</dd><dt>STATION</dt><dd id="o_stn">00 / 09</dd></dl>
+  <div class="ab tab"><div class="k"><span>SCROLL</span><span>/</span></div><div class="n">A1</div><div class="s" id="o_tab">LP · 00 / 09</div></div>
+
+  <!-- 00 問い -->
+  <div class="lay" id="L0">
+    <div class="ab band"><div class="f in">A1 — AIR · LIFTING CONDENSATION LEVEL · SCROLL EXPLAINER</div><h1 class="in" style="--d:1">CLOUD<br>BASE</h1></div>
+    <div class="ab q"><div class="k in" style="--d:2">QUESTION</div><p class="in" style="--d:3">雲はなぜそこに出来て、<br>なぜ底が<br>平らなのか。</p></div>
+    <div class="ab howto"><h3><i></i>HOW TO READ</h3>
+      <div class="st"><span>STATIONS</span><b>9</b><small>の駅</small></div>
+      <div class="st"><span>READING</span><b>≈ 5</b><small>分</small></div>
+      <div class="st"><span>FORMULAS</span><b>4</b><small>本の式</small></div></div>
+    <div class="ab figtag" style="left:302px;top:504px"><i></i><b>LOOK</b><span>— 実物の姿 · 空を横から</span></div>
+    <div class="ab hint" style="left:40px;top:842px">SCROLL <em>▼</em>　01 上がる</div>
+  </div>
+
+  <!-- 01〜09 共通：駅の一覧 -->
+  <div class="lay" id="LS">
+    <div class="ab stl hit"><h3><i></i>STATIONS <small style="font:400 12px var(--f-jp);color:var(--ink-2)">駅</small></h3><ol id="stl"></ol>
+      <div class="read"><span>READ</span><b id="o_read">01 / 09</b></div><div class="bar"><i id="o_bar"></i></div></div>
+  </div>
+
+  <!-- 01〜08：図と本文 -->
+  <div class="lay" id="L1">
+    <div class="ab figtag in" id="figtag"><i></i><b id="o_fig">FIG. 01</b><span id="o_figt"></span></div>
+    <div class="ab brkchip" id="brkchip" style="display:none">BREAK <b>現実の外</b></div>
+    <div class="ab rc" id="rc">
+      <div class="hd"><span class="num in" id="r_num">01</span><span class="en in" style="--d:1" id="r_en"></span></div>
+      <h2 class="in" style="--d:2" id="r_h"></h2>
+      <p class="body in" style="--d:3" id="r_body"></p>
+      <div class="kl in" style="--d:4" id="r_kl"></div>
+      <div class="kv in" style="--d:5"><b id="r_kv"></b><span id="r_ku"></span></div>
+      <div class="kn in" style="--d:6" id="r_kn"></div>
+      <div class="wow in" style="--d:7"><i>驚き</i><span id="r_wow"></span></div>
+    </div>
+    <div class="ab nextk">SCROLL <em>▼</em><hr><span><small>次の駅</small><b id="r_next"></b></span></div>
+  </div>
+
+  <!-- 09 持ち出す -->
+  <div class="lay" id="L9">
+    <div class="ab endh"><b class="in">09</b><span class="in" style="--d:1">TRANSFER</span><em class="in" style="--d:2">表現に持ち出す</em></div>
+    <div class="ab endn in" style="--d:3">NOTES FOR CG / ANIMATION · カードに触れると青になる</div>
+    <div class="ab cards hit">
+      <div style="transition-delay:0ms"><h4><u>01</u>LOOK RULES<small>絵の決まり</small></h4><p>同じ空の積雲は、底の高さがそろう。底は平らで暗く、上はもこもこで明るい。湿った日ほど底が低い。</p></div>
+      <div style="transition-delay:60ms"><h4><u>02</u>CG</h4><p>ボリュームの密度の下端を 1 つの高さで切り、上だけノイズで崩す。高さは「気温 − 露点」× 125 m から決める。</p></div>
+      <div style="transition-delay:120ms"><h4><u>03</u>GEN CHECK<small>嘘の見つけ方</small></h4><p>雲ごとに底の高さがばらばらなら嘘。朝より昼のほうが底が低い晴れの日も怪しい。<em>flat cloud base / cumulus at uniform altitude</em></p></div>
+      <div style="transition-delay:180ms"><h4><u>04</u>BREAK<small>わざと外す</small></h4><p>底を地面すれすれに＝霧の海。底を波打たせる＝不穏、作り物の空。</p></div>
+      <div style="transition-delay:240ms"><h4><u>05</u>FIELD NOTE<small>宿題</small></h4><p>晴れた昼に空を見上げ、雲の底が 1 枚の見えない床に乗っているのを確かめる。朝と午後で床の高さを比べる。</p></div>
+    </div>
+    <a class="ab cta hit in" style="--d:4" href="../01_cloud_base.html"><span class="k" style="margin:0">END OF SCROLL · 終点</span><b>OPEN THE LAB <em>→</em></b><span>湿り気を動かして、雲の底が上がり下がりするのを確かめる</span></a>
+    <canvas class="ab" id="tc" width="600" height="300" style="left:1198px;top:652px;width:300px;height:150px"></canvas>
+    <div class="ab ctaf">01_cloud_base.html</div>
+    <div class="ab nextc in" style="--d:5"><div class="k">NEXT CARD</div><b>A2 RISE</b><p>雲はどこまで伸びるか。粒になる熱を燃料に、上端が決まる。</p><small>COMING · 仕様のみ</small></div>
+  </div>
+
+  <!-- 式の線路（全駅共通） -->
+  <div class="ab railk"><i></i><b>FORMULA RAIL</b><span>— 式の線路 · 駅を通るたびに式が入線する · アプリと同じ式（ph_a1_law.js）</span></div>
+  <div class="ab rail hit" id="rail" style="pointer-events:auto"></div>
+  <div class="ab foot" id="foot">ARCHIVE/EARTH/A1/0731/LP — CLASSIFICATION: NONE · STATION 00</div>
+</div></div>
+<div id="track"></div>
+
+<script src="../../_shell/shell.js"></script>
+<script src="../_law/ph_a1_law.js"></script>
+<script>
+'use strict';
+const L = PH_A1, $ = id => document.getElementById(id);
+const C = { paper: '#E4EEF2', sky: '#EDF3F6', ink: '#22323A', dim: '#5E7F8E', rule: 'rgba(94,127,142,.55)', par: '#9A4A2A', dew: '#2C7A76', cloud: '#F7FAFB', water: '#3A74A0', acc: '#8DB8D8' };   // 窓の色＝アプリと同じ「A1 窓」
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const NST = 10, LAB = '../01_cloud_base.html';
+/* 基準の空（アプリの既定と同じ）：気温 28 ℃・湿り気 50% */
+const T0 = 28, RH0 = 0.5, TD0 = L.dewPoint(T0, RH0), ZB0 = L.lcl(T0, TD0);
+const bAt = rh => L.lcl(T0, L.dewPoint(T0, rh));
+const fogRH = (() => { for (let r = 0.9; r <= 1; r += 0.001) if (bAt(r) < 60) return r; return 1; })();
+const day = h => { const u = clamp((h - 5) / 9); return 14.3 + 15.7 * Math.sin(u * Math.PI / 2) - (h > 14 ? (h - 14) * 0.6 : 0); };   // 晴れの日の気温（目安）
+const TD_DAY = 14;
+
+/* ================= 駅の中身 ================= */
+const ST = [
+  { name: '問い', en: '', big: 'LCL', kanji: '底', lab: '', noise: '0731 > SCROLL-A1 LOAD 9 STATIONS OK\nRAIL 4 FORMULA · LAW ph_a1_law.js\nLINK 01_cloud_base.html ACK' },
+  { name: '上がる', en: 'RISE', big: '9.8 ℃/KM', kanji: '冷', lab: '#proof=1', fig: 'FIG. 01', figt: '— 上がる · 膨らんで冷える',
+    num: '01', ren: 'ADIABATIC · 上がる', h: '空気は、上がるだけで<br>冷える。', body: '地面で温まった空気の泡が上がると、まわりの気圧が下がって泡は膨らむ。膨らむときに自分の熱を使うので、外から冷やされなくても冷える。',
+    kl: 'KEY NUMBER · 乾いた空気の冷え方', kv: () => L.DRY, kf: 1, ku: '℃ / km', kn: 'g ÷ cp ＝ 9.81 ÷ 1004。雲の底まで上がると、泡の体積は約 1.13 倍', wow: '自転車の空気入れを押すと筒が熱くなる。その逆で、膨らむ空気は冷える。', next: '02 抱える水',
+    noise: '0731 > STATION 01 RISE · DRY ADIABAT\nΓd 9.8 C/KM · g 9.81 · cp 1004\nP 1013 → 853 HPA · VOL ×1.13' },
+  { name: '抱える水', en: 'HOLD', big: 'Td', kanji: '露', lab: '#rh=50', fig: 'FIG. 02', figt: '— 抱える水 · 気温と入れ物の大きさ',
+    num: '02', ren: 'SATURATION · 抱える水', h: '冷えるほど、<br>空気は水を抱えきれない。', body: '空気が抱えられる水の量は、気温で決まる。冷えると入れ物が小さくなり、やがて今の水の量でいっぱいになる。その温度が露点。',
+    kl: 'KEY NUMBER · 気温 28 ℃・湿り気 50% の露点', kv: () => TD0, kf: 1, ku: '℃', kn: 'Magnus の式（WMO の係数）。湿り気 ＝ いまの水 ÷ 抱えられる量', wow: '10 ℃ 冷えると、抱えられる水は約 55% に減る。冷えた缶の外側が濡れるのも同じ。', next: '03 2 本が出会う',
+    noise: '0731 > STATION 02 HOLD · MAGNUS\nES(T) 6.112 EXP(17.62T/(243.12+T))\nT 28.0 RH 50 → TD 16.6 C' },
+  { name: '2 本が出会う', en: 'MEET', big: '×125 M', kanji: '会', lab: '', fig: 'FIG. 03', figt: '— 出会う · 気温の線と露点の線',
+    num: '03', ren: 'LCL · 2 本が出会う', h: '2 本の線が出会う高さが、<br>雲の底。', body: '上がる空気の気温は 1 km で 9.8 ℃、露点は 1.8 ℃ ずつ下がる。差は 1 km ごとに 8 ℃ 縮み、0 になった高さで水が粒になる。',
+    kl: 'KEY NUMBER · 差 1 ℃ あたりの高さ', kv: () => L.PER_DEG, kf: 0, ku: 'm', kn: '1000 ÷（9.8 − 1.8）＝ 125。28 ℃・露点 16.6 ℃ なら 11.4 × 125 ＝ 1,424 m', wow: () => '地上の温度計と湿度計だけで、雲の底がわかる。厳密な計算との差はこの例で ' + num(ZB0 - L.exactLCL(T0, TD0)) + ' m。', next: '04 なぜ平ら',
+    noise: '0731 > STATION 03 MEET · ESPY\nLCL = (T-TD) × 125 M\nGAP 11.4 C → 1424 M · EXACT 1382 M' },
+  { name: 'なぜ平ら', en: 'FLAT', big: 'FLAT', kanji: '平', lab: '', fig: 'FIG. 04', figt: '— なぜ平ら · 同じ空気の泡たち',
+    num: '04', ren: 'UNIFORM BASE · なぜ平ら', h: '同じ空気は、<br>同じ高さで粒になる。', body: '泡はどれも、同じ地面の空気から上がってくる。気温も露点も同じなので、どの泡も同じ高さで露点に届く。だから底は、見えない 1 枚の床のようにそろう。',
+    kl: 'KEY NUMBER · 湿り気が ±1% ずれたとき', kv: () => (bAt(0.49) - bAt(0.51)) / 2, kf: 0, kp: '±', ku: 'm', kn: '同じ空の中の小さな違いなら、底の差は数十 m。雲の大きさ（数百 m〜）より小さい', wow: '雲の上はもこもこなのに底だけ平らなのは、底が「形」ではなく「温度の線」だから。', next: '05 粒になると',
+    noise: '0731 > STATION 04 FLAT · SAME PARCEL\nRH ±1% → BASE ±40 M\nCLOUDS 6 · BASE SHARED' },
+  { name: '粒になると', en: 'PROOF', big: '+12.7 ℃', kanji: '熱', lab: '#proof=1', fig: 'FIG. 05', figt: '— PROOF · 粒になると冷え方がゆるむ',
+    num: '05', ren: 'LATENT HEAT · 粒になると', h: '粒になると、<br>冷え方がゆるむ。', body: '水が粒になるとき、蒸発のときに使った熱が戻ってくる。そのぶん泡は冷えにくくなり、赤茶の線は雲の底で折れて立ち上がる。',
+    kl: 'KEY NUMBER · 4 km で、乾いたままの泡との差', kv: () => L.parcel(T0, TD0, 4000).T - (T0 - L.DRY * 4), kf: 1, kp: '+', ku: '℃', kn: () => '雲の底のすぐ上で約 ' + L.moistLapse(T0 - L.DRY * ZB0 / 1000, L.pressure(ZB0)).toFixed(1) + ' ℃/km（湿潤断熱減率）。乾いたままなら −11.2 ℃、粒になると +1.5 ℃', wow: 'この温かさが、雲をさらに上へ押し上げる燃料になる（雲の上端は次のカード A2 RISE）。', next: '06 湿り気',
+    noise: '0731 > STATION 05 PROOF · MOIST ADIABAT\nΓm 4.5 C/KM @ BASE · LV 2.5E6\n4 KM: +1.5 C vs DRY -11.2 C' },
+  { name: '湿り気', en: 'HUMID', big: 'FOG', kanji: '霧', lab: '#rh=99', fig: 'FIG. 06', figt: '— 湿り気 · 霧・雲・枠の上',
+    num: '06', ren: 'BOUNDARY · 湿り気', h: '湿るほど底は下がり、<br>地面に着けば霧。', body: '湿り気を上げると露点が気温に近づき、差が縮む。差が 0.5 ℃ を切ると底は 60 m より低く、地面が雲の中＝霧になる。乾かすと底は 4 km の枠の上へ抜ける。',
+    kl: 'KEY NUMBER · 霧になる湿り気（気温 28 ℃）', kv: () => fogRH * 100, kf: 0, ku: '% 以上', kn: '底 60 m 未満 FOG ／ 4 km まで CLOUD ／ その上 CLEAR（アプリの BOUNDARY と同じ区切り）', wow: '雨上がりの朝の霧は、地面すれすれに出来た雲。', next: '07 一日の雲',
+    noise: '0731 > STATION 06 HUMID · BOUNDARY\nFOG <60 M · CLOUD ≤4 KM · CLEAR\nT 28 · RH 98% → FOG' },
+  { name: '一日の雲', en: 'DAY', big: '2,000 M', kanji: '昼', lab: '#T=30&rh=40', fig: 'FIG. 07', figt: '— 一日 · 朝の霧から昼の雲へ',
+    num: '07', ren: 'DIURNAL · 一日の雲', h: '朝の霧が、<br>昼には雲の底になる。', body: '晴れた日、空気の中の水の量（露点）はあまり変わらないまま、気温だけが上がっていく。差が開くので、雲の底は朝から昼へ持ち上がる。',
+    kl: 'KEY NUMBER · 14 時の雲の底（露点 14 ℃ のまま）', kv: () => L.lcl(day(14), TD_DAY), kf: 0, ku: 'm', kn: '朝 5 時 14.3 ℃ で霧 → 14 時 30 ℃ で 2,000 m。気温の形と露点一定は目安', wow: 'アプリで気温の点を引くと、露点はそのまま。一日の空と同じ動かし方になっている。', next: '08 BREAK',
+    noise: '0731 > STATION 07 DAY · TD CONST 14 C\n05H 14.3 C FOG · 14H 30.0 C 2000 M\nDIURNAL HEATING · APPROX' },
+  { name: 'そろわない空', en: 'BREAK', big: 'SPREAD', kanji: '乱', lab: '#brk=1', fig: 'FIG. 08', figt: '— BREAK · 現実の外',
+    num: '08', ren: 'BREAK · わざと外す', h: '底がそろわない空は、<br>作り物に見える。', body: '雲ごとに底の高さをばらばらにすると、すぐに嘘っぽく見える。本当にそうなるには雲ごとに違う空気が要るが、同じ空の中ではまず起こらない。',
+    kl: 'KEY NUMBER · 底のばらつき（アプリの SPREAD 0.6）', kv: () => 540, kf: 0, kp: '±', ku: 'm', kn: '本物の空の同じ雲の列なら ±数十 m（04 の目安）', wow: '不穏な空・夢の中の空を作りたいときは、わざとここを崩す。', next: '09 持ち出す',
+    noise: '0731 > STATION 08 BREAK · OUT OF REALITY\nSPREAD 0.6 × 900 M → ±540 M\nGEN CHECK: UNIFORM BASE' },
+  { name: '持ち出す', en: 'TRANSFER', big: '→ LAB', kanji: '渡', lab: '', noise: '0731 > STATION 09 TRANSFER · 5 NOTES\nRAIL COMPLETE 4/4 · LAB LINK READY\nNEXT A2 RISE · STATUS SPEC' },
+];
+const RAIL = [
+  { k: '① RISE', ja: '冷える', f: 'Γ<sub>d</sub> = 9.8 ℃/km', d: 'g ÷ cp：膨らむ分だけ冷える', at: 1 },
+  { k: '② HOLD', ja: '抱える', f: 'e<sub>s</sub> = 6.11·e<sup>17.6T/(243+T)</sup>', d: '気温で決まる、抱えられる水の量（Magnus）', at: 2 },
+  { k: '③ MEET', ja: '出会う', f: 'z = (T − T<sub>d</sub>) × 125', d: '気温と露点の差 × 125 m ＝ 雲の底', at: 3 },
+  { k: '④ LATENT', ja: '粒の熱', f: 'Γ<sub>m</sub> ≈ 4.5 ℃/km', d: '粒になると熱が出て、冷え方がゆるむ', at: 5 },
+];
+const REF = { 4: [3], 6: [3], 7: [3], 8: [3] };
+
+/* ================= 描く道具 ================= */
+const cv = $('cv'), ctx = cv.getContext('2d');
+let SC = 1;
+function resize() { SC = Math.min(2, (PHShell.scale || 1) * (window.devicePixelRatio || 1)); cv.width = Math.round(1920 * SC); cv.height = Math.round(1080 * SC); }
+const mono = (px, w) => (w || 400) + ' ' + px + 'px "JetBrains Mono",monospace', note = px => px + 'px "M PLUS 1 Code","IBM Plex Sans JP",monospace', jp = (px, w) => (w || 400) + ' ' + px + 'px "IBM Plex Sans JP",sans-serif';
+function clamp(v, a = 0, b = 1) { return Math.max(a, Math.min(b, v)); }
+const ease = v => { v = clamp(v); return v * v * (3 - 2 * v); }, eo = v => 1 - Math.pow(1 - clamp(v), 3);
+function num(v, d) { return v == null ? '—' : (+v).toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+function txt(s, x, y, o) { o = o || {}; ctx.font = o.f || note(12); ctx.fillStyle = o.c || C.ink; ctx.textAlign = o.a || 'left'; ctx.textBaseline = o.b || 'alphabetic'; if (o.bg) { const w = ctx.measureText(s).width, x0 = o.a === 'center' ? x - w / 2 : o.a === 'right' ? x - w : x; ctx.save(); ctx.fillStyle = o.bg; ctx.fillRect(x0 - 3, y - 13, w + 6, 17); ctx.restore(); ctx.fillStyle = o.c || C.ink; } ctx.fillText(s, x, y); }
+function arrow(x0, y0, x1, y1, col, w) {
+  const a = Math.atan2(y1 - y0, x1 - x0), L2 = Math.hypot(x1 - x0, y1 - y0); if (L2 < 3) return;
+  ctx.strokeStyle = ctx.fillStyle = col; ctx.lineWidth = w || 2.5; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1 - Math.cos(a) * 9, y1 - Math.sin(a) * 9); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x1 - Math.cos(a) * 13 + Math.sin(a) * 6, y1 - Math.sin(a) * 13 - Math.cos(a) * 6); ctx.lineTo(x1 - Math.cos(a) * 13 - Math.sin(a) * 6, y1 - Math.sin(a) * 13 + Math.cos(a) * 6); ctx.closePath(); ctx.fill();
+}
+const bob = (t, f, a) => RM ? 0 : Math.sin(t * Math.PI * 2 * (f || 0.9)) * (a || 4);
+function plate(x, y, w, h, dashed) {
+  ctx.fillStyle = C.paper; ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath();
+  for (const [bx, by, sx, sy] of [[x + 10, y + 10, 1, 1], [x + w - 10, y + 10, -1, 1], [x + 10, y + h - 10, 1, -1], [x + w - 10, y + h - 10, -1, -1]]) { ctx.moveTo(bx + sx * 20, by); ctx.lineTo(bx, by); ctx.lineTo(bx, by + sy * 20); }
+  ctx.stroke();
+  if (dashed) { ctx.strokeStyle = '#E8E6DF'; ctx.setLineDash([6, 5]); ctx.lineWidth = 2; ctx.strokeRect(x - 7, y - 7, w + 14, h + 14); ctx.setLineDash([]); }
+}
+/* 雲（アプリと同じ作り方：底の列＋上のもこもこ。形はまね △・底の高さだけが法則） */
+const PUFFS = [0, 1, 2, 3, 4, 5, 6, 7].map(i => {
+  const p = [];
+  for (let j = 0; j < 7; j++) { const x = j / 6 * 2 - 1; p.push({ x: x * 0.86, v: 0.16 * (1 - x * x * 0.6), r: 0.26 + 0.08 * hash(i * 57 + j) }); }
+  for (let j = 0; j < 5; j++) { const x = (hash(i * 31 + j) * 2 - 1) * 0.55; p.push({ x, v: (0.34 + 0.3 * hash(i * 13 + j + 5)) * (1 - x * x), r: 0.3 + 0.12 * hash(i * 91 + j) }); }
+  p.push({ x: (hash(i * 5) - 0.5) * 0.3, v: 0.8, r: 0.3 }); return p;
+});
+function cloudAt(cx, by, hw, dp, kind, grow) {   // by＝底の y・hw＝半幅・dp＝厚み・grow 0〜1
+  const pf = PUFFS[kind % PUFFS.length], g = grow == null ? 1 : grow; if (g <= 0.01) return;
+  const vis = p => p.v <= g * 0.9 + 0.1;
+  ctx.save(); ctx.beginPath(); ctx.rect(cx - hw * 3, by - dp * 2, hw * 6, dp * 2); ctx.clip();
+  for (const pass of [1.4, 0]) { ctx.fillStyle = pass ? C.ink : C.cloud; for (const p of pf) { if (!vis(p)) continue; ctx.beginPath(); ctx.arc(cx + p.x * hw, by - p.v * dp * g, p.r * hw * 1.25 * (0.5 + 0.5 * g) + pass, 0, 7); ctx.fill(); } }
+  const gr = ctx.createLinearGradient(0, by - dp * 0.45, 0, by); gr.addColorStop(0, 'rgba(94,127,142,0)'); gr.addColorStop(1, 'rgba(94,127,142,.5)');
+  const shape = new Path2D(); for (const p of pf) { if (!vis(p)) continue; const r = p.r * hw * 1.25 * (0.5 + 0.5 * g); shape.moveTo(cx + p.x * hw + r, by - p.v * dp * g); shape.arc(cx + p.x * hw, by - p.v * dp * g, r, 0, 7); }
+  ctx.clip(shape); ctx.fillStyle = gr; ctx.fillRect(cx - hw * 1.8, by - dp * 0.45, hw * 3.6, dp * 0.45);
+  ctx.restore();
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(cx - hw * 1.12 * (0.5 + 0.5 * g), by); ctx.lineTo(cx + hw * 1.12 * (0.5 + 0.5 * g), by); ctx.stroke();
+}
+function bubble(x, y, r, Tlab, col, cloudy) {   // 上がる空気の泡（数字はその高さの気温）
+  ctx.fillStyle = cloudy ? C.cloud : 'rgba(154,74,42,.08)'; ctx.strokeStyle = cloudy ? C.ink : col || C.par; ctx.lineWidth = 1.2; if (!cloudy) ctx.setLineDash([3, 3]);
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+  if (Tlab != null) txt(Tlab, x, y + 4, { a: 'center', f: mono(Math.max(9, Math.min(13, r * 0.55))), c: cloudy ? C.ink : C.par });
+}
+/* 高さ × 温度の図（アプリの CAUSE と同じ形式）。o={x0,x1,yT,yG,top,tmin,tmax} */
+function chart(o) {
+  const X = T => o.x0 + (T - o.tmin) / (o.tmax - o.tmin) * (o.x1 - o.x0), Y = z => o.yG - z / o.top * (o.yG - o.yT);
+  ctx.fillStyle = C.sky; ctx.fillRect(o.x0, o.yT, o.x1 - o.x0, o.yG - o.yT);
+  ctx.save(); ctx.beginPath(); ctx.rect(o.x0, o.yT, o.x1 - o.x0, o.yG - o.yT); ctx.clip();
+  ctx.strokeStyle = C.rule; ctx.lineWidth = 0.4;
+  for (let T = Math.ceil(o.tmin / 10) * 10; T <= o.tmax; T += 10) { const x = Math.round(X(T)) + .5; ctx.beginPath(); ctx.moveTo(x, o.yT); ctx.lineTo(x, o.yG); ctx.stroke(); }
+  for (let z = 500; z < o.top; z += 500) { const y = Math.round(Y(z)) + .5; ctx.beginPath(); ctx.moveTo(o.x0, y); ctx.lineTo(o.x1, y); ctx.stroke(); }
+  ctx.strokeStyle = 'rgba(154,74,42,.25)'; ctx.lineWidth = 0.7;
+  for (let T = o.tmin; T <= o.tmax + 50; T += 5) { ctx.beginPath(); ctx.moveTo(X(T), o.yG); ctx.lineTo(X(T - L.DRY * o.top / 1000), o.yT); ctx.stroke(); }
+  ctx.restore();
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.strokeRect(o.x0 + .5, o.yT + .5, o.x1 - o.x0, o.yG - o.yT);
+  for (let T = Math.ceil(o.tmin / 10) * 10; T <= o.tmax; T += 10) txt(T + '℃', X(T), o.yG + 18, { a: 'center', f: mono(10) });
+  if (!o.noZ) for (let z = 0; z <= o.top; z += 1000) txt(z / 1000 + ' km', o.x0 - 8, Y(z) + 4, { a: 'right', f: mono(10) });
+  return { X, Y };
+}
+function parcelLine(g, T, Td, zTo, o) {   // 赤茶＝上がる空気の気温・緑＝露点（雲の底まで）
+  o = o || {}; const zb = L.lcl(T, Td), zc = Math.min(zb, zTo);
+  ctx.lineWidth = o.w || 3; ctx.lineJoin = 'round';
+  ctx.strokeStyle = C.dew; ctx.beginPath(); ctx.moveTo(g.X(Td), g.Y(0)); ctx.lineTo(g.X(Td - L.DEW * zc / 1000), g.Y(zc)); ctx.stroke();
+  ctx.strokeStyle = C.par; ctx.beginPath(); for (let z = 0; z <= zTo; z += 50) { const p = L.parcel(T, Td, z); z ? ctx.lineTo(g.X(p.T), g.Y(z)) : ctx.moveTo(g.X(p.T), g.Y(z)); }
+  const pe = L.parcel(T, Td, zTo); ctx.lineTo(g.X(pe.T), g.Y(zTo)); ctx.stroke();
+  return { zb, pe };
+}
+
+/* ================= 駅ごとの図（a＝駅の中の進み 0〜1・t＝秒） ================= */
+const PL = { x: 280, y: 150, w: 1040, h: 706 };
+let railLive = '';
+const FIG = [];
+// 00 問い：空を横から（どの雲も底がそろう・泡が上がってくる）
+FIG[0] = (a, t) => {
+  const x = 280, y = 486, w = 1600, h = 370; plate(x, y, w, h);
+  const yG = y + h - 40, top = 3000, k = (h - 80) / top, Y = z => yG - z * k, yb = Y(ZB0);
+  ctx.save(); ctx.beginPath(); ctx.rect(x + 1, y + 1, w - 2, h - 2); ctx.clip();
+  ctx.fillStyle = C.sky; ctx.fillRect(x, y, w, yG - y);
+  ctx.strokeStyle = C.rule; ctx.lineWidth = 0.4; for (let z = 500; z < top; z += 500) { ctx.beginPath(); ctx.moveTo(x, Y(z)); ctx.lineTo(x + w, Y(z)); ctx.stroke(); }
+  const off = RM ? 0 : (a - 0.2) * 40;
+  const CL = [[0.07, 60, 0], [0.2, 46, 1], [0.34, 74, 2], [0.5, 52, 3], [0.63, 66, 4], [0.77, 44, 5], [0.9, 70, 6]];
+  CL.forEach(([u, hw, kd], i) => {
+    const cx = x + u * w + off * (0.6 + hash(i) * 0.6);
+    for (let kk = 0; kk < 2; kk++) { const ph = (t / 9 + i * 0.37 + kk * 0.5) % 1, z = ph * ZB0, al = Math.min(1, ph * 6) * Math.min(1, (1 - ph) * 6); ctx.globalAlpha = al; bubble(cx + Math.sin(ph * 5 + i) * 4, Y(z), 9 * Math.cbrt(1 + ph * 0.13), Math.round(L.parcel(T0, TD0, z).T) + '°'); ctx.globalAlpha = 1; }
+    cloudAt(cx, yb, hw, 50 + hw * 1.2, kd, 1);
+  });
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.moveTo(x, yb); ctx.lineTo(x + w, yb); ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 0.6; ctx.beginPath(); for (let xx = x - 8; xx < x + w; xx += 7) { ctx.moveTo(xx + 8, yG + 1); ctx.lineTo(xx, yG + 8); } ctx.stroke();
+  ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, yG); ctx.lineTo(x + w, yG); ctx.stroke();
+  ctx.restore();
+  txt('雲の底 ' + num(ZB0) + ' m — どの雲も同じ高さ', x + 36, yb - 10, { f: mono(12, 600), bg: 'rgba(237,243,246,.9)' });
+  for (let z = 0; z <= top; z += 1000) txt(z / 1000 + ' km', x + w - 20, Y(z) - 5, { a: 'right', f: mono(10), c: C.dim });
+  txt('横 約 20 km · 縦 0〜3 km', x + 36, y + h - 14, { f: mono(11, 600), c: C.paper });
+  txt('◎ 底の高さは法則 ／ 雲の形はまね △ · 気温 28 ℃・湿り気 50%', x + w - 36, y + h - 14, { f: note(12), a: 'right', c: C.paper });
+};
+// 01 上がる：泡が上がり、膨らみ、冷える
+FIG[1] = (a, t) => {
+  const { x, y, w, h } = PL, top = 2000, yT = y + 130, yG = y + h - 70, Y = z => yG - z / top * (yG - yT);
+  const zc = ease(a / 0.8) * (ZB0 - 20), p = L.parcel(T0, TD0, zc), vol = (p.T + 273.15) / (T0 + 273.15) * L.pressure(0) / L.pressure(zc);
+  // 左：空の柱
+  const cx0 = x + 60, cx1 = x + 440, bx = (cx0 + cx1) / 2;
+  ctx.fillStyle = C.sky; ctx.fillRect(cx0, yT, cx1 - cx0, yG - yT);
+  ctx.strokeStyle = C.rule; ctx.lineWidth = 0.4; for (let z = 250; z < top; z += 250) { ctx.beginPath(); ctx.moveTo(cx0, Y(z)); ctx.lineTo(cx1, Y(z)); ctx.stroke(); }
+  for (let z = 0; z <= top; z += 500) { txt(num(z) + ' m', cx0 - 8, Y(z) + 4, { a: 'right', f: mono(10) }); txt(num(L.pressure(z)) + ' hPa', cx1 + 8, Y(z) + 4, { f: mono(10), c: C.dim }); }
+  txt('高さ', cx0 - 8, yT - 14, { a: 'right', f: note(12) }); txt('まわりの気圧', cx1 + 8, yT - 14, { f: note(12), c: C.dim });
+  ctx.strokeStyle = C.ink; ctx.setLineDash([6, 4]); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx0, Y(ZB0)); ctx.lineTo(cx1, Y(ZB0)); ctx.stroke(); ctx.setLineDash([]); txt('雲の底（03 で出会う高さ）', cx0 + 8, Y(ZB0) - 8, { f: note(11), c: C.dim });
+  const r0 = 46, r = r0 * Math.cbrt(vol);
+  ctx.strokeStyle = C.rule; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.arc(bx, Y(0) - r0, r0, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+  bubble(bx, Y(zc) - r0, r, p.T.toFixed(1) + '℃');
+  // 膨らむ矢印（外向き・ゆれる）
+  if (zc > 80) for (let k = 0; k < 4; k++) { const an = k * Math.PI / 2 + Math.PI / 4, b = bob(t + k * 0.2, 1, 3); arrow(bx + Math.cos(an) * (r + 6), Y(zc) - r0 + Math.sin(an) * (r + 6), bx + Math.cos(an) * (r + 22 + b), Y(zc) - r0 + Math.sin(an) * (r + 22 + b), C.par, 1.6); }
+  txt('体積 × ' + vol.toFixed(3), bx + r + 30, Y(zc) - r0 - 6, { f: mono(12, 600), c: C.par, bg: 'rgba(237,243,246,.9)' });
+  txt('気圧 ' + num(L.pressure(zc)) + ' hPa', bx + r + 30, Y(zc) - r0 + 14, { f: mono(11), c: C.dim, bg: 'rgba(237,243,246,.9)' });
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 0.6; ctx.beginPath(); for (let xx = cx0 - 8; xx < cx1; xx += 7) { ctx.moveTo(xx + 8, yG + 1); ctx.lineTo(xx, yG + 8); } ctx.stroke();
+  // 右：高さ × 温度（赤茶の線を泡と一緒に引く）
+  const g = chart({ x0: x + 600, x1: x + w - 50, yT, yG, top, tmin: 0, tmax: 35, noZ: true });
+  ctx.strokeStyle = C.par; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(g.X(T0), g.Y(0)); ctx.lineTo(g.X(p.T), g.Y(zc)); ctx.stroke();
+  ctx.fillStyle = C.par; ctx.beginPath(); ctx.arc(g.X(p.T), g.Y(zc), 6, 0, 7); ctx.fill();
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 0.6; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(bx + r, Y(zc) - r0); ctx.lineTo(g.X(p.T), g.Y(zc)); ctx.stroke(); ctx.setLineDash([]);
+  // 1 km で 9.8 ℃ の階段
+  if (zc > 1000) { const xa = g.X(T0), xb = g.X(T0 - L.DRY), ya = g.Y(0), yb2 = g.Y(1000); ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(xa, ya + 30); ctx.lineTo(xb, ya + 30); ctx.moveTo(xb - 40, yb2); ctx.lineTo(xb - 40, ya); ctx.stroke(); txt('−9.8 ℃', (xa + xb) / 2, ya + 46, { a: 'center', f: mono(12, 600), c: C.par }); txt('1 km', xb - 46, (ya + yb2) / 2, { a: 'right', f: mono(12, 600) }); }
+  txt('上がった空気の気温', g.X(p.T) + 12, g.Y(zc) - 8, { f: note(12), c: C.par });
+  txt(zc < 30 ? '地面で温まった空気の泡（28 ℃）が、浮き上がり始める' : '上がる → まわりの気圧が下がる → 膨らむ → 冷える　いま ' + num(zc) + ' m・' + p.T.toFixed(1) + ' ℃', x + 40, y + 90, { f: note(14) });
+  txt('泡はまだ透明（水は気体のまま）· 泡の大きさは体積の 3 乗根で描く', x + 40, y + h - 20, { f: note(12) });
+  txt('高さ 0〜2 km · 標準大気', x + w - 40, y + h - 20, { a: 'right', f: mono(11) });
+  railLive = 'いま ' + num(zc) + ' m → 28 − 9.8 × ' + (zc / 1000).toFixed(2) + ' ＝ ' + p.T.toFixed(1) + ' ℃';
+};
+// 02 抱える水：冷えるほど入れ物が小さくなり、露点で満杯
+FIG[2] = (a, t) => {
+  const { x, y, w, h } = PL, e = L.es(TD0), Tc = T0 - ease(a / 0.8) * (T0 - TD0), full = Tc - TD0 < 0.05;
+  const gx0 = x + 110, gx1 = x + 640, gy0 = y + 150, gy1 = y + h - 90, emax = 80, GX = T => gx0 + T / 40 * (gx1 - gx0), GY = v => gy1 - v / emax * (gy1 - gy0);
+  // 抱えられる量の曲線
+  ctx.fillStyle = 'rgba(58,116,160,.08)'; ctx.beginPath(); ctx.moveTo(GX(0), gy1); for (let T = 0; T <= 40; T += 0.5) ctx.lineTo(GX(T), GY(Math.min(emax, L.es(T)))); ctx.lineTo(GX(40), gy1); ctx.fill();
+  ctx.strokeStyle = C.water; ctx.lineWidth = 3; ctx.beginPath(); for (let T = 0; T <= 40; T += 0.5) { const v = Math.min(emax, L.es(T)); T ? ctx.lineTo(GX(T), GY(v)) : ctx.moveTo(GX(T), GY(v)); } ctx.stroke();
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(gx0, gy0 - 10); ctx.lineTo(gx0, gy1); ctx.lineTo(gx1, gy1); ctx.stroke();
+  for (let T = 0; T <= 40; T += 10) txt(T + '℃', GX(T), gy1 + 18, { a: 'center', f: mono(10) });
+  for (let v = 0; v <= emax; v += 20) txt(v + '', gx0 - 8, GY(v) + 4, { a: 'right', f: mono(10) });
+  txt('抱えられる水（飽和水蒸気圧 hPa）', gx0, gy0 - 20, { f: note(12), c: C.water }); txt('気温 →', gx1, gy1 + 38, { a: 'right', f: note(12) });
+  txt('ここより下＝まだ抱えられる', GX(30), GY(18) + 40, { f: note(12), c: C.dim });
+  // いまの水の量（横線）と、冷えて左へ動く点
+  ctx.strokeStyle = C.dew; ctx.lineWidth = 1; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.moveTo(gx0, GY(e)); ctx.lineTo(GX(T0), GY(e)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(154,74,42,.35)'; ctx.beginPath(); ctx.arc(GX(T0), GY(e), 5, 0, 7); ctx.fill();
+  if (Tc < T0 - 0.3) arrow(GX(T0) - 8, GY(e) - 22, GX(Tc) + 8, GY(e) - 22, C.par, 2);
+  ctx.fillStyle = full ? C.dew : C.par; ctx.beginPath(); ctx.arc(GX(Tc), GY(e), 8, 0, 7); ctx.fill(); ctx.strokeStyle = C.paper; ctx.lineWidth = 2; ctx.stroke();
+  txt('いまの水 ' + e.toFixed(1) + ' hPa（28 ℃ で湿り気 50%）', GX(T0) + 14, GY(e) + 5, { f: mono(11), c: C.dew });
+  if (full) { ctx.strokeStyle = C.dew; ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(GX(TD0), GY(e)); ctx.lineTo(GX(TD0), gy1); ctx.stroke(); ctx.setLineDash([]); txt('露点 ' + TD0.toFixed(1) + ' ℃', GX(TD0), gy1 - 10, { a: 'center', f: mono(13, 600), c: C.dew, bg: 'rgba(228,238,242,.9)' }); }
+  // 右：入れ物（大きさ＝抱えられる量・水位＝いまの水）
+  const cx = x + 800, cb = y + h - 110, cw = 150, kk = 7.2, ch = L.es(Tc) * kk, wl = e * kk;
+  ctx.fillStyle = 'rgba(58,116,160,.18)'; ctx.fillRect(cx, cb - wl, cw, wl);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx, cb - ch); ctx.lineTo(cx, cb); ctx.lineTo(cx + cw, cb); ctx.lineTo(cx + cw, cb - ch); ctx.stroke();
+  ctx.strokeStyle = C.water; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx, cb - wl); ctx.lineTo(cx + cw, cb - wl); ctx.stroke();
+  txt('空気 1 つぶんの入れ物', cx + cw / 2, y + 150, { a: 'center', f: note(12) });
+  txt(Tc.toFixed(1) + ' ℃', cx + cw / 2, cb + 26, { a: 'center', f: mono(15, 600), c: full ? C.dew : C.par });
+  txt('湿り気 ' + Math.round(Math.min(1, e / L.es(Tc)) * 100) + ' %', cx + cw / 2, cb + 46, { a: 'center', f: mono(12) });
+  if (full) { for (let k = 0; k < 5; k++) { const dx = cx + 20 + k * 28, dy = cb - wl - 10 - ((t * 0.8 + k * 0.3) % 1) * (RM ? 0 : 14); ctx.fillStyle = C.water; ctx.beginPath(); ctx.arc(dx, dy, 3, 0, 7); ctx.fill(); } txt('満杯 → あふれた水が粒に', cx + cw / 2, cb - wl - 32, { a: 'center', f: note(12), c: C.water }); }
+  txt(full ? '露点：いまの水の量で、入れ物がちょうど満杯になる温度' : '同じ水の量のまま冷やすと、入れ物だけが小さくなる', x + 40, y + 90, { f: note(14) });
+  txt('飽和水蒸気圧：Magnus の式（WMO 2008 の係数）', x + 40, y + h - 20, { f: note(12) });
+  txt('縦 0〜80 hPa · 横 0〜40 ℃', x + w - 40, y + h - 20, { a: 'right', f: mono(11) });
+  railLive = 'e_s(' + Tc.toFixed(1) + ' ℃) ＝ ' + L.es(Tc).toFixed(1) + ' hPa ／ いまの水 ' + e.toFixed(1) + ' hPa';
+};
+// 03 出会う：2 本の線を下から引き、出会った所から左の空へ
+FIG[3] = (a, t) => {
+  const { x, y, w, h } = PL, top = 2500, yT = y + 130, yG = y + h - 90, zc = ease(a / 0.72) * top;
+  const lx0 = x + 60, lx1 = x + 320;
+  const g = chart({ x0: x + 400, x1: x + w - 40, yT, yG, top, tmin: 0, tmax: 35 });
+  const r = parcelLine(g, T0, TD0, zc), met = zc >= ZB0;
+  // 左：空の柱（出会ったら雲が出る）
+  ctx.fillStyle = C.sky; ctx.fillRect(lx0, yT, lx1 - lx0, yG - yT);
+  ctx.strokeStyle = C.rule; ctx.lineWidth = 0.4; for (let z = 500; z < top; z += 500) { ctx.beginPath(); ctx.moveTo(lx0, g.Y(z)); ctx.lineTo(lx1, g.Y(z)); ctx.stroke(); }
+  if (met) cloudAt((lx0 + lx1) / 2, g.Y(ZB0), 70, 120, 2, eo((zc - ZB0) / 500));
+  txt('LOOK', lx0 + 8, yT + 18, { f: mono(11, 600) });
+  // 差のものさし（地上と、いまの高さ）
+  const gapAt = z => (T0 - L.DRY * z / 1000) - (TD0 - L.DEW * z / 1000);
+  for (const z of [0, 1000].filter(z => z < Math.min(zc, ZB0) - 50)) { const xa = g.X(TD0 - L.DEW * z / 1000), xb = g.X(T0 - L.DRY * z / 1000), yy = g.Y(z) - 14; ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(xa, yy + 5); ctx.lineTo(xa, yy); ctx.lineTo(xb, yy); ctx.lineTo(xb, yy + 5); ctx.stroke(); txt('差 ' + gapAt(z).toFixed(1) + ' ℃', (xa + xb) / 2, yy - 6, { a: 'center', f: mono(11, 600), bg: 'rgba(237,243,246,.9)' }); }
+  if (met) {
+    const yy = g.Y(ZB0), xi = g.X(T0 - L.DRY * ZB0 / 1000);
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.moveTo(lx0, yy); ctx.lineTo(xi, yy); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(xi, yy, 6, 0, 7); ctx.fill();
+    txt('出会う ＝ 雲の底 ' + num(ZB0) + ' m', xi + 12, yy - 10, { f: mono(13, 600), bg: 'rgba(237,243,246,.9)' });
+  } else { const p = L.parcel(T0, TD0, zc); ctx.fillStyle = C.par; ctx.beginPath(); ctx.arc(g.X(p.T), g.Y(zc), 5, 0, 7); ctx.fill(); ctx.fillStyle = C.dew; ctx.beginPath(); ctx.arc(g.X(TD0 - L.DEW * zc / 1000), g.Y(zc), 5, 0, 7); ctx.fill(); }
+  txt('気温 −9.8 ℃/km', g.X(T0 - 6), g.Y(500), { f: note(12), c: C.par }); txt('露点 −1.8 ℃/km', g.X(TD0 - 1.4) - 8, g.Y(400), { a: 'right', f: note(12), c: C.dew });
+  // 式の箱
+  const bx = x + w - 400, by = y + 140; ctx.fillStyle = '#0B0B0A'; ctx.fillRect(bx, by, 350, 130);
+  txt('雲の底の早見', bx + 18, by + 26, { c: '#E8E6DF', f: note(12) }); txt('z = (T − Td) × 125', bx + 18, by + 64, { c: C.acc, f: mono(24) });
+  txt('= (' + T0.toFixed(1) + ' − ' + TD0.toFixed(1) + ') × 125', bx + 18, by + 92, { c: '#E8E6DF', f: mono(12) });
+  txt('= ' + num(ZB0) + ' m', bx + 18, by + 114, { c: C.acc, f: mono(13, 600) });
+  txt(met ? '差が 0 になった高さで、水が粒になる' : '1 km 上がるごとに差は 8 ℃ 縮む（9.8 − 1.8）', x + 40, y + 90, { f: note(14) });
+  txt('露点が下がるのは、膨らんで水の濃さが薄まるぶん（1.8 ℃/km は目安）', x + 40, y + h - 20, { f: note(12) });
+  txt('高さ 0〜2.5 km', x + w - 40, y + h - 20, { a: 'right', f: mono(11) });
+  railLive = met ? '差 ' + (T0 - TD0).toFixed(1) + ' ℃ × 125 ＝ ' + num(ZB0) + ' m' : 'いま ' + num(zc) + ' m · 差 ' + gapAt(zc).toFixed(1) + ' ℃';
+};
+// 04 なぜ平ら：同じ空気の泡が、同じ高さで白くなる
+FIG[4] = (a, t) => {
+  const { x, y, w, h } = PL, top = 2500, yT = y + 130, yG = y + h - 120, Y = z => yG - z / top * (yG - yT), yb = Y(ZB0), A = ease(a / 0.85);
+  ctx.fillStyle = C.sky; ctx.fillRect(x + 40, yT, w - 80, yG - yT);
+  ctx.strokeStyle = C.rule; ctx.lineWidth = 0.4; for (let z = 500; z < top; z += 500) { ctx.beginPath(); ctx.moveTo(x + 40, Y(z)); ctx.lineTo(x + w - 40, Y(z)); ctx.stroke(); }
+  const N = 6;
+  for (let i = 0; i < N; i++) {
+    const cx = x + 120 + i * (w - 240) / (N - 1), sp = 0.7 + hash(i * 3) * 0.6;
+    cloudAt(cx, yb, 50 + hash(i) * 24, 110, i, A);
+    for (let kk = 0; kk < 3; kk++) {
+      const ph = RM ? (kk + 1) / 4 : (t * 0.12 * sp + kk / 3 + hash(i * 7 + kk)) % 1, z = ph * (ZB0 + 380), cl = z >= ZB0, pz = L.parcel(T0, TD0, Math.min(z, ZB0));
+      if (cl && z > ZB0 + 200) continue;
+      bubble(cx + Math.sin(ph * 7 + i) * 8, Y(z), 11 * Math.cbrt(1 + Math.min(z, ZB0) / ZB0 * 0.13), cl ? null : Math.round(pz.T) + '°', C.par, cl);
+    }
+  }
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.2; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.moveTo(x + 40, yb); ctx.lineTo(x + w - 40, yb); ctx.stroke(); ctx.setLineDash([]);
+  txt('露点に届く高さ ' + num(ZB0) + ' m ＝ どの泡もここで白くなる', x + 56, yb - 10, { f: mono(12, 600), bg: 'rgba(237,243,246,.9)' });
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + 40, yG); ctx.lineTo(x + w - 40, yG); ctx.stroke();
+  ctx.lineWidth = 0.6; ctx.beginPath(); for (let xx = x + 32; xx < x + w - 40; xx += 7) { ctx.moveTo(xx + 8, yG + 1); ctx.lineTo(xx, yG + 8); } ctx.stroke();
+  txt('地面の空気：どこも 28 ℃・露点 16.6 ℃', x + 56, yG + 30, { f: note(13) });
+  // 湿り気が少し違う場所なら（目安）
+  const bx = x + w - 360, by = yG + 14; txt('湿り気 49% の場所 ' + num(bAt(0.49)) + ' m ／ 51% ' + num(bAt(0.51)) + ' m', bx, by + 16, { f: mono(11), c: C.dim });
+  txt('泡の数字＝その高さでの泡の気温（どの泡も同じ高さで同じ数）', x + 40, y + 90, { f: note(14) });
+  txt('雲の形はまね △（上は不ぞろい・底だけがそろう）', x + 40, y + h - 20, { f: note(12) });
+  txt('高さ 0〜2.5 km', x + w - 40, y + h - 20, { a: 'right', f: mono(11) });
+  railLive = 'どの泡も 差 ' + (T0 - TD0).toFixed(1) + ' ℃ → 同じ ' + num(ZB0) + ' m';
+};
+// 05 粒になると：雲の中で線が折れる・乾いたままとの差
+FIG[5] = (a, t) => {
+  const { x, y, w, h } = PL, top = 4000, yT = y + 130, yG = y + h - 70, zc = ease(a / 0.85) * top;
+  const g = chart({ x0: x + 380, x1: x + w - 40, yT, yG, top, tmin: -15, tmax: 35 });
+  // 乾いたままなら（破線）
+  ctx.strokeStyle = 'rgba(154,74,42,.55)'; ctx.lineWidth = 1.6; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.moveTo(g.X(T0 - L.DRY * ZB0 / 1000), g.Y(ZB0)); ctx.lineTo(g.X(T0 - L.DRY * Math.max(ZB0, zc) / 1000), g.Y(Math.max(ZB0, zc))); ctx.stroke(); ctx.setLineDash([]);
+  parcelLine(g, T0, TD0, zc);
+  ctx.fillStyle = 'rgba(247,250,251,.55)'; ctx.fillRect(g.X(-15) + 1, g.Y(Math.min(zc, top)), g.X(35) - g.X(-15) - 2, Math.max(0, g.Y(ZB0) - g.Y(Math.min(zc, top))));   // 雲の中の帯
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.moveTo(x + 40, g.Y(ZB0)); ctx.lineTo(g.X(35), g.Y(ZB0)); ctx.stroke(); ctx.setLineDash([]);
+  txt('雲の底 ' + num(ZB0) + ' m', g.X(35) - 8, g.Y(ZB0) + 16, { a: 'right', f: mono(11, 600) });
+  const p = L.parcel(T0, TD0, zc), dry = T0 - L.DRY * zc / 1000;
+  ctx.fillStyle = C.par; ctx.beginPath(); ctx.arc(g.X(p.T), g.Y(zc), 6, 0, 7); ctx.fill();
+  if (zc > ZB0 + 200) {
+    const yy = g.Y(zc); ctx.strokeStyle = C.par; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(g.X(dry), yy); ctx.lineTo(g.X(p.T), yy); ctx.stroke();
+    txt('+' + (p.T - dry).toFixed(1) + ' ℃ 温かい', (g.X(dry) + g.X(p.T)) / 2, yy - 10, { a: 'center', f: mono(13, 600), c: C.par, bg: 'rgba(237,243,246,.9)' });
+    txt('粒になると ' + L.moistLapse(p.T, L.pressure(zc)).toFixed(1) + ' ℃/km', g.X(p.T) + 14, yy + 20, { f: note(12), c: C.par });
+    txt('乾いたままなら 9.8 ℃/km', g.X(dry) - 10, yy + 20, { a: 'right', f: note(12), c: 'rgba(154,74,42,.8)' });
+  }
+  // 左：泡（底より上は白い・熱のしるし）
+  const bx = x + 190, Yz = g.Y, cl = zc >= ZB0;
+  ctx.fillStyle = C.sky; ctx.fillRect(x + 60, yT, 260, yG - yT);
+  if (cl) cloudAt(bx, Yz(ZB0), 90, Math.min(600, Math.max(40, (Yz(ZB0) - Yz(zc)) / 0.8)), 4, 1);   // 泡が雲のてっぺん
+  bubble(bx, Yz(zc), 18, p.T.toFixed(0) + '°', C.par, cl);
+  if (cl && zc < top - 10) for (let k = 0; k < 3; k++) { const ph = RM ? 0.5 : (t * 0.9 + k / 3) % 1; ctx.strokeStyle = C.par; ctx.globalAlpha = 1 - ph; ctx.lineWidth = 1.4; ctx.beginPath(); for (let s = 0; s <= 10; s++) { const xx = bx - 28 + k * 28 + Math.sin(s * 1.2 + t * 4) * 3, yy2 = Yz(zc) - 24 - ph * 30 - s * 2; s ? ctx.lineTo(xx, yy2) : ctx.moveTo(xx, yy2); } ctx.stroke(); ctx.globalAlpha = 1; }
+  if (cl) txt('粒になるとき熱が出る', bx, Yz(zc) - 70, { a: 'center', f: note(12), c: C.par, bg: 'rgba(237,243,246,.9)' });
+  const ph = zc < ZB0 ? '① 雲の底まで：乾いた冷え方 9.8 ℃/km' : zc < 2600 ? '② 粒になるとき熱が出る → 冷え方がゆるみ、赤茶の線が折れる' : '③ 4 km では乾いたままより ' + (L.parcel(T0, TD0, 4000).T - (T0 - 39.2)).toFixed(1) + ' ℃ 温かい＝まわりより軽く、上へ伸びる';
+  txt(ph, x + 40, y + 90, { f: note(14) });
+  txt('湿潤断熱減率（式は ph_a1_law.js の moistLapse）· 破線＝もし粒にならなければ', x + 40, y + h - 20, { f: note(12) });
+  txt('高さ 0〜4 km', x + w - 40, y + h - 20, { a: 'right', f: mono(11) });
+  railLive = 'いま ' + num(zc) + ' m · ' + (zc > ZB0 ? 'Γm ' + L.moistLapse(p.T, L.pressure(zc)).toFixed(1) + ' ℃/km · 差 +' + (p.T - dry).toFixed(1) + ' ℃' : 'まだ乾いた冷え方');
+};
+// 06 湿り気：湿り気を上げると底が下がり、霧になる（アプリの STATE と BOUNDARY）
+FIG[6] = (a, t) => {
+  const { x, y, w, h } = PL, A = ease(a / 0.85), rh = 0.1 + A * 0.89, Td = L.dewPoint(T0, rh), zb = L.lcl(T0, Td), top = 4000, yT = y + 130, yG = y + h - 200, Y = z => yG - z / top * (yG - yT);
+  const st = zb < 60 ? 0 : zb <= top ? 1 : 2;
+  // 左：空
+  const lx0 = x + 60, lx1 = x + 520;
+  ctx.fillStyle = C.sky; ctx.fillRect(lx0, yT, lx1 - lx0, yG - yT);
+  ctx.strokeStyle = C.rule; ctx.lineWidth = 0.4; for (let z = 500; z < top; z += 500) { ctx.beginPath(); ctx.moveTo(lx0, Y(z)); ctx.lineTo(lx1, Y(z)); ctx.stroke(); }
+  for (let z = 0; z <= top; z += 1000) txt(z / 1000 + ' km', lx0 - 8, Y(z) + 4, { a: 'right', f: mono(10) });
+  ctx.save(); ctx.beginPath(); ctx.rect(lx0, yT, lx1 - lx0, yG - yT); ctx.clip();
+  if (zb <= top) for (let i = 0; i < 4; i++) cloudAt(lx0 + 60 + i * 115, Y(Math.max(0, zb)), 40, 70, i, 1);
+  if (zb < 250) { ctx.fillStyle = 'rgba(255,255,255,' + (0.6 * (1 - zb / 250)).toFixed(3) + ')'; ctx.fillRect(lx0, Y(300), lx1 - lx0, yG - Y(300)); }
+  ctx.restore();
+  if (zb > top) txt('底は枠の上 ' + num(zb) + ' m', (lx0 + lx1) / 2, yT + 24, { a: 'center', f: mono(12, 600) });
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(lx0, yG); ctx.lineTo(lx1, yG); ctx.stroke();
+  // 右：高さ × 温度
+  const g = chart({ x0: x + 600, x1: x + w - 40, yT, yG, top, tmin: -10, tmax: 35, noZ: true });
+  parcelLine(g, T0, Td, top, { w: 2.5 });
+  if (zb <= top) { ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.moveTo(lx0, Y(zb)); ctx.lineTo(g.X(T0 - L.DRY * zb / 1000), Y(zb)); ctx.stroke(); ctx.setLineDash([]); }
+  // 下：湿り気のメーターと STATE・BOUNDARY（アプリの READOUT と同じ動き）
+  const my = y + h - 80, mx0 = x + 60, mx1 = x + 520;
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(mx0, my); ctx.lineTo(mx1, my); ctx.stroke();
+  for (let r = 10; r <= 100; r += 10) { const xx = mx0 + (r - 10) / 90 * (mx1 - mx0); ctx.beginPath(); ctx.moveTo(xx, my - 4); ctx.lineTo(xx, my + 4); ctx.stroke(); if (r % 30 === 10) txt(r + '%', xx, my + 18, { a: 'center', f: mono(10) }); }
+  const mx = mx0 + (rh * 100 - 10) / 90 * (mx1 - mx0); ctx.fillStyle = C.dew; ctx.beginPath(); ctx.arc(mx, my, 7, 0, 7); ctx.fill();
+  txt('湿り気 ' + Math.round(rh * 100) + ' %', mx, my - 14, { a: 'center', f: mono(12, 600), c: C.dew });
+  const bx0 = x + 620, bw = 360, cuts = [0.3, 0.7], zx = bx0 + (zb < 60 ? zb / 60 * 0.3 : zb <= top ? 0.3 + (zb - 60) / (top - 60) * 0.4 : 0.7 + Math.min(1, (zb - top) / 1000) * 0.3) * bw;
+  ['FOG', 'CLOUD', 'CLEAR'].forEach((nm, j) => { const cx0 = bx0 + [0, 0.3, 0.7][j] * bw, cx1 = bx0 + [0.3, 0.7, 1][j] * bw; ctx.fillStyle = j === st ? '#3A74A0' : 'rgba(34,50,58,.06)'; ctx.fillRect(cx0 + 2, my - 46, cx1 - cx0 - 4, 26); txt(nm, (cx0 + cx1) / 2, my - 28, { a: 'center', f: '400 13px Michroma', c: j === st ? '#FFFFFF' : C.dim }); });
+  ctx.strokeStyle = C.ink; ctx.beginPath(); ctx.moveTo(bx0, my); ctx.lineTo(bx0 + bw, my); for (const c of cuts) { ctx.moveTo(bx0 + c * bw, my - 8); ctx.lineTo(bx0 + c * bw, my + 8); } ctx.stroke();
+  txt('60 m', bx0 + 0.3 * bw, my + 20, { a: 'center', f: mono(10) }); txt('4 km', bx0 + 0.7 * bw, my + 20, { a: 'center', f: mono(10) });
+  ctx.fillStyle = '#3A74A0'; ctx.beginPath(); ctx.moveTo(zx, my); ctx.lineTo(zx - 7, my - 12); ctx.lineTo(zx + 7, my - 12); ctx.fill();
+  txt('▼ は結果（雲の底）· 動かすのは湿り気', bx0 + bw, my + 38, { a: 'right', f: note(11), c: C.dim });
+  txt(st === 0 ? '底が地面に着いた ＝ 霧（FOG）' : st === 1 ? '湿るほど差が縮み、底が下がる　差 ' + (T0 - Td).toFixed(1) + ' ℃ → ' + num(zb) + ' m' : '乾いていて、底は 4 km の枠の上（CLEAR）', x + 40, y + 90, { f: note(14) });
+  txt('気温は 28 ℃ のまま、湿り気だけを 10% → 99% へ', x + 40, y + h - 20, { f: note(12) });
+  txt('高さ 0〜4 km', x + w - 40, y + h - 20, { a: 'right', f: mono(11) });
+  railLive = '差 ' + (T0 - Td).toFixed(1) + ' ℃ × 125 ＝ ' + num(zb) + ' m → ' + ['FOG', 'CLOUD', 'CLEAR'][st];
+};
+// 07 一日：露点はそのまま、気温が上がって底が持ち上がる
+FIG[7] = (a, t) => {
+  const { x, y, w, h } = PL, A = ease(a / 0.85), hr = 5 + A * 12, T = day(hr), zb = L.lcl(T, TD_DAY);
+  // 上：空の帯（いまの時刻）
+  const sy0 = y + 120, sy1 = y + 390, top = 3500, Y = z => sy1 - z / top * (sy1 - sy0), sx0 = x + 60, sx1 = x + w - 60;
+  ctx.fillStyle = C.sky; ctx.fillRect(sx0, sy0, sx1 - sx0, sy1 - sy0);
+  ctx.save(); ctx.beginPath(); ctx.rect(sx0, sy0, sx1 - sx0, sy1 - sy0); ctx.clip();
+  const sun = clamp((hr - 5) / 12), sxp = sx0 + 40 + sun * (sx1 - sx0 - 80), syp = sy1 - 30 - Math.sin(sun * Math.PI) * 200; ctx.strokeStyle = C.par; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(sxp, syp, 16, 0, 7); ctx.stroke();
+  if (zb > 60) for (let i = 0; i < 6; i++) cloudAt(sx0 + 90 + i * 150, Y(zb), 42, 60 + clamp((zb - 300) / 1500) * 50, i + 2, clamp(zb / 600));
+  if (zb < 250) { ctx.fillStyle = 'rgba(255,255,255,' + (0.7 * (1 - zb / 250)).toFixed(3) + ')'; ctx.fillRect(sx0, Y(300), sx1 - sx0, sy1 - Y(300)); txt('霧', sx0 + 30, sy1 - 14, { f: jp(16, 500), c: C.dim }); }
+  ctx.restore();
+  for (let z = 0; z <= top; z += 1000) txt(z / 1000 + ' km', sx0 - 8, Y(z) + 4, { a: 'right', f: mono(10) });
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(sx0, sy1); ctx.lineTo(sx1, sy1); ctx.stroke();
+  txt(String(Math.floor(hr)).padStart(2, '0') + ':' + String(Math.floor((hr % 1) * 60)).padStart(2, '0'), sx0 + 12, sy0 + 28, { f: mono(22), bg: 'rgba(237,243,246,.9)' });
+  // 下：時刻のグラフ（気温・露点・雲の底）
+  const gx0 = x + 110, gx1 = x + w - 80, gy0 = y + 450, gy1 = y + h - 70, GX = hh => gx0 + (hh - 5) / 12 * (gx1 - gx0);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(gx0, gy0); ctx.lineTo(gx0, gy1); ctx.lineTo(gx1, gy1); ctx.stroke();
+  for (let hh = 6; hh <= 17; hh += 2) txt(hh + '時', GX(hh), gy1 + 18, { a: 'center', f: mono(10) });
+  const gm = (gy0 + gy1) / 2, GT = v => gy1 - v / 40 * (gy1 - gm - 8), GZ = z => gm - 8 - z / 2500 * (gm - 8 - gy0);
+  ctx.strokeStyle = C.rule; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(gx0, gm); ctx.lineTo(gx1, gm); ctx.stroke();
+  txt('2.5 km', gx0 - 8, GZ(2500) + 4, { a: 'right', f: mono(10) }); txt('0', gx0 - 8, GZ(0) + 4, { a: 'right', f: mono(10) }); txt('40 ℃', gx0 - 8, GT(40) + 4, { a: 'right', f: mono(10) }); txt('0 ℃', gx0 - 8, GT(0) + 4, { a: 'right', f: mono(10) });
+  ctx.strokeStyle = C.dew; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(GX(5), GT(TD_DAY)); ctx.lineTo(GX(hr), GT(TD_DAY)); ctx.stroke();
+  ctx.strokeStyle = C.par; ctx.beginPath(); for (let hh = 5; hh <= hr + 1e-6; hh += 0.1) hh === 5 ? ctx.moveTo(GX(hh), GT(day(hh))) : ctx.lineTo(GX(hh), GT(day(hh))); ctx.stroke();
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 2.5; ctx.beginPath(); for (let hh = 5; hh <= hr + 1e-6; hh += 0.1) { const z = L.lcl(day(hh), TD_DAY); hh === 5 ? ctx.moveTo(GX(hh), GZ(z)) : ctx.lineTo(GX(hh), GZ(z)); } ctx.stroke();
+  ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(GX(hr), GZ(zb), 5, 0, 7); ctx.fill(); ctx.fillStyle = C.par; ctx.beginPath(); ctx.arc(GX(hr), GT(T), 4, 0, 7); ctx.fill();
+  const rgt = hr > 13, lx = GX(hr) + (rgt ? -10 : 10), la = rgt ? 'right' : 'left';
+  txt('雲の底 ' + num(zb) + ' m', lx, GZ(zb) - 10, { a: la, f: mono(12, 600), bg: 'rgba(228,238,242,.9)' });
+  txt('気温 ' + T.toFixed(1) + ' ℃', lx, GT(T) - 10, { a: la, f: mono(11), c: C.par, bg: 'rgba(228,238,242,.9)' });
+  txt('露点 ' + TD_DAY + ' ℃（水の量はそのまま）', GX(Math.max(5.2, hr - 4)), GT(TD_DAY) + 16, { f: note(11), c: C.dew });
+  txt('上：雲の底（黒）　下：気温（赤茶）と露点（緑）', gx0, gy0 - 10, { f: note(12) });
+  txt(zb < 60 ? '朝：気温と露点がほぼ同じ ＝ 霧' : '日が昇ると気温だけが上がり、差 ' + (T - TD_DAY).toFixed(1) + ' ℃ → 底が持ち上がる', x + 40, y + 90, { f: note(14) });
+  txt('晴れた日の気温の形・露点一定は目安', x + 40, y + h - 20, { f: note(12) });
+  txt('z ＝ (T − 14) × 125', x + w - 40, y + h - 20, { a: 'right', f: mono(11) });
+  railLive = String(Math.floor(hr)).padStart(2, '0') + '時 (' + T.toFixed(1) + ' − 14.0) × 125 ＝ ' + num(zb) + ' m';
+};
+// 08 BREAK：本物（底がそろう）と、作り物（底がばらばら）
+FIG[8] = (a, t) => {
+  const { x, y, w, h } = PL, A = ease(a / 0.85), top = 3000, yT = y + 150, yG = y + h - 90, Y = z => yG - z / top * (yG - yT);
+  const half = (w - 120) / 2;
+  [[x + 40, 0, '本物の空', '同じ空気 → 同じ高さ'], [x + 80 + half, A * 0.6, 'BREAK の空', '底のばらつき SPREAD ' + (A * 0.6).toFixed(2)]].forEach(([px, spread, ttl, sub], side) => {
+    ctx.fillStyle = C.sky; ctx.fillRect(px, yT, half, yG - yT);
+    ctx.save(); ctx.beginPath(); ctx.rect(px, yT, half, yG - yT); ctx.clip();
+    for (let i = 0; i < 4; i++) { const off = (hash(i * 7 + 3) * 2 - 1) * spread * 900, b = ZB0 + off; cloudAt(px + 70 + i * (half - 140) / 3, Y(b), 38, 70, i + 1, 1); if (side && spread > 0.1) { ctx.strokeStyle = C.par; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(px + 70 + i * (half - 140) / 3 + 46, Y(ZB0)); ctx.lineTo(px + 70 + i * (half - 140) / 3 + 46, Y(b)); ctx.stroke(); } }
+    ctx.restore();
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.moveTo(px, Y(ZB0)); ctx.lineTo(px + half, Y(ZB0)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(px, yG); ctx.lineTo(px + half, yG); ctx.stroke();
+    txt(ttl, px, yT - 34, { f: jp(18, 500) }); txt(sub, px, yT - 12, { f: note(12) });
+  });
+  txt('破線＝法則の雲の底 ' + num(ZB0) + ' m', x + 40, yG + 30, { f: note(12) });
+  txt('赤茶の線＝法則からのずれ（最大 ±' + num(A * 0.6 * 900) + ' m）', x + 80 + half, yG + 30, { f: note(12), c: C.par });
+  txt('BREAK のときだけ形式を崩す（窓の縁は破線）', x + 40, y + h - 20, { f: note(12) });
+  txt('アプリの BREAK と同じ（SPREAD 0〜1 × 900 m）', x + w - 40, y + h - 20, { a: 'right', f: note(12) });
+  railLive = '';
+};
+// 09：アプリの見本（小さな窓）
+let thumbDone = false;
+function thumb() { if (thumbDone) return; thumbDone = true; const g2 = $('tc').getContext('2d'); g2.setTransform(2, 0, 0, 2, 0, 0); const w = 300, h = 150; g2.fillStyle = '#0B0B0A'; g2.fillRect(0, 0, w, h); g2.fillStyle = '#3A74A0'; g2.fillRect(12, 12, 120, 20); g2.fillStyle = C.paper; g2.fillRect(40, 44, 244, 92);
+  g2.strokeStyle = C.par; g2.lineWidth = 2; g2.beginPath(); g2.moveTo(250, 130); g2.lineTo(190, 86); g2.lineTo(160, 52); g2.stroke(); g2.strokeStyle = C.dew; g2.beginPath(); g2.moveTo(200, 130); g2.lineTo(190, 86); g2.stroke();
+  g2.strokeStyle = C.ink; g2.lineWidth = 0.8; g2.setLineDash([3, 3]); g2.beginPath(); g2.moveTo(48, 86); g2.lineTo(190, 86); g2.stroke(); g2.setLineDash([]); g2.fillStyle = C.cloud; g2.strokeStyle = C.ink; for (const cx of [72, 120]) { g2.beginPath(); g2.arc(cx, 78, 9, Math.PI, 0); g2.arc(cx + 10, 74, 10, Math.PI, 0); g2.lineTo(cx + 20, 86); g2.lineTo(cx - 9, 86); g2.fill(); g2.stroke(); }
+  g2.strokeStyle = '#0B0B0A'; g2.lineWidth = 3; g2.strokeRect(1.5, 1.5, w - 3, h - 3); g2.strokeStyle = '#8DB8D8'; g2.lineWidth = 1; g2.strokeRect(8, 8, w - 16, h - 16); }
+
+/* ================= 画面の部品 ================= */
+const stl = $('stl'); ST.forEach((s, i) => { const li = document.createElement('li'); li.innerHTML = '<u>' + String(i).padStart(2, '0') + '</u><b>' + s.name + '</b><s>' + s.en + '</s>'; li.addEventListener('click', () => goTo(i)); stl.appendChild(li); });
+const rail = $('rail');
+RAIL.forEach(r => { const d = document.createElement('div'); d.className = 'rb'; d.innerHTML = '<div class="rt"><span>' + r.k + '<b>' + r.ja + '</b></span><i></i></div><div class="rf">' + r.f + '</div><div class="dots">···</div><div class="rd"></div>'; rail.appendChild(d); });
+const labA = document.createElement('a'); labA.className = 'rb lab'; labA.href = LAB; labA.innerHTML = '<div class="rt"><span>⑤ LAB<b>終点</b></span><i></i></div><div class="rf">OPEN THE LAB →</div><div class="rd">いつでもアプリへ飛べる</div>'; rail.appendChild(labA);
+function frame() { const svg = $('frame'), M = 'rgba(232,230,223,0.55)', S = 'rgba(232,230,223,0.10)', A = '#8DB8D8'; let s = '';
+  for (const p of ['52,24 24,24 24,52', '1868,24 1896,24 1896,52', '52,1056 24,1056 24,1028', '1868,1056 1896,1056 1896,1028']) s += '<polyline points="' + p + '" fill="none" stroke="' + M + '" stroke-width="1.5"/>';
+  for (const yy of [124, 870]) s += '<line x1="24" y1="' + yy + '" x2="1896" y2="' + yy + '" stroke="' + S + '"/>';
+  s += '<line x1="372" y1="44" x2="372" y2="108" stroke="' + A + '" stroke-width="2"/><line x1="1090" y1="78" x2="1110" y2="78" stroke="' + A + '"/><line x1="1100" y1="68" x2="1100" y2="88" stroke="' + A + '"/>';
+  svg.innerHTML = s; }
+frame();
+
+const val = v => typeof v === 'function' ? v() : v;
+let cur = -1, kvAnim = { t0: 0 };
+function setStation(i) {
+  if (i === cur) return; cur = i; const s = ST[i], two = String(i).padStart(2, '0');
+  $('o_stn').textContent = two + ' / 09'; $('o_tab').textContent = 'LP · ' + two + ' / 09'; $('noise').textContent = s.noise; $('bigTop').textContent = s.big;
+  const kj = $('kanji'); kj.textContent = s.kanji; kj.classList.toggle('num', /\d/.test(s.kanji));
+  Object.assign(kj.style, i === 0 ? { left: '1300px', top: '806px' } : /\d/.test(s.kanji) ? { left: '30px', top: '900px' } : { left: '-6px', top: '560px' });
+  $('L0').classList.toggle('on', i === 0); $('LS').classList.toggle('on', i > 0); $('L1').classList.toggle('on', i > 0 && i < 9); $('L9').classList.toggle('on', i === 9);
+  [...stl.children].forEach((li, k) => { li.className = k < i ? 'done' : k === i ? 'now' : ''; });
+  $('o_read').textContent = two + ' / 09'; $('o_bar').style.width = (i / 9 * 100) + '%';
+  if (i > 0 && i < 9) { $('o_fig').textContent = s.fig; $('o_figt').textContent = s.figt; $('r_num').textContent = s.num; $('r_en').textContent = s.ren; $('r_h').innerHTML = s.h; $('r_body').textContent = s.body; $('r_kl').textContent = s.kl; $('r_ku').textContent = s.ku; $('r_kn').innerHTML = val(s.kn); $('r_wow').textContent = val(s.wow); $('r_next').textContent = s.next; }
+  $('brkchip').style.display = i === 8 ? 'flex' : 'none';
+  $('foot').textContent = 'ARCHIVE/EARTH/A1/0731/LP — ' + (i === 9 ? 'END OF RECORD' : 'STATION ' + two + (s.fig ? ' · ' + s.fig.replace('. ', '.') : ''));
+  [...rail.children].forEach((d, j) => {
+    if (j === 4) { d.className = 'rb lab' + (i === 9 ? ' now' : ''); d.querySelector('.rt i').textContent = i === 9 ? 'NOW' : ''; d.querySelector('.rd').textContent = i === 9 ? '4 つの式を、つまみで確かめる' : 'いつでもアプリへ飛べる'; d.href = LAB + ST[i].lab; return; }
+    const r = RAIL[j], ref = (REF[i] || []).includes(j + 1), st = i < r.at ? 'fut' : i === r.at ? 'now' : ref ? 'ref' : 'done';
+    d.className = 'rb ' + st; d.querySelector('.rt i').textContent = st === 'fut' ? '— 未着' : st === 'now' ? 'NOW' : st === 'ref' ? 'REF · 再登場' : '✓';
+    d.querySelector('.rd').textContent = st === 'fut' ? String(r.at).padStart(2, '0') + ' の駅で入線' : r.d; d.dataset.st = st;
+  });
+  for (const id of ['L0', 'L1', 'L9']) { const el = $(id); el.classList.remove('go'); void el.offsetWidth; if (el.classList.contains('on')) el.classList.add('go'); }
+  kvAnim.t0 = performance.now();
+}
+function keyNumber() {
+  const s = ST[cur]; if (!s || !s.kv) return; const v = s.kv(), el = $('r_kv');
+  if (v == null) { el.textContent = '—'; return; } if (typeof v === 'string') { el.textContent = v; return; }
+  const f = RM ? 1 : eo((performance.now() - kvAnim.t0 - 300) / 600); el.textContent = (s.kp || '') + num(v * f, s.kf);
+}
+function railLiveSet() { [...rail.children].forEach((d, j) => { if (j < 4 && d.dataset.st === 'now' && railLive) d.querySelector('.rd').textContent = railLive; }); }
+
+/* ================= スクロール（1 駅＝画面 1 枚・なめらかに追いかける） ================= */
+const track = $('track'); let vh = innerHeight; function size() { vh = innerHeight; track.style.height = (NST * vh) + 'px'; }
+size(); addEventListener('resize', () => { size(); resize(); });
+let P = 0, last = performance.now(), tSec = 0;
+let FIX = null;   // 検証用：#s=..&fix=1 でスクロールせずにその位置で止める
+const target = () => FIX != null ? FIX : clamp(scrollY / vh, 0, NST - 1);
+function goTo(i) { scrollTo({ top: i * vh + 2, behavior: RM ? 'auto' : 'smooth' }); }
+addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); goTo(Math.min(NST - 1, Math.floor(P + 0.02) + 1)); } if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); goTo(Math.max(0, Math.ceil(P - 0.02) - 1)); } });
+PHShell.onScale(resize); resize();
+function render(P) {
+  const i = Math.min(NST - 1, Math.floor(P + 1e-6)), a = P - i; setStation(i);
+  ctx.setTransform(SC, 0, 0, SC, 0, 0); ctx.clearRect(0, 0, 1920, 1080);
+  if (i === 0) FIG[0](a, tSec);
+  else if (i < 9) { plate(PL.x, PL.y, PL.w, PL.h, i === 8); ctx.save(); ctx.beginPath(); ctx.rect(PL.x, PL.y, PL.w, PL.h); ctx.clip(); railLive = ''; FIG[i](a, tSec); ctx.restore(); }
+  thumb(); keyNumber(); railLiveSet();
+}
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now; tSec += dt;
+  const T = target(); P = RM ? T : P + (T - P) * Math.min(1, dt * 9); if (Math.abs(T - P) < 1e-4) P = T;
+  render(P);
+  requestAnimationFrame(loop);
+}
+// 直リンク：#s=駅&p=駅の中の進み（例 #s=3&p=0.5）・&fix=1（検証用）
+{ const Q = new URLSearchParams(location.hash.slice(1)); if (Q.has('s')) { const s = clamp(+Q.get('s') + (+Q.get('p') || 0), 0, NST - 1); if (Q.get('fix') === '1') { FIX = s; P = s; } else requestAnimationFrame(() => { scrollTo(0, s * vh); P = s; }); } }
+if (document.fonts) ["13px 'M PLUS 1 Code'", "13px 'IBM Plex Sans JP'", "19px Michroma", "12px 'JetBrains Mono'"].forEach(f => document.fonts.load(f));
+window.__LP = { ST, FIG, get P() { return P; }, render, setP: v => { P = v; FIX = v; render(v); }, setFix: v => { FIX = v; } };   // 検証用
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

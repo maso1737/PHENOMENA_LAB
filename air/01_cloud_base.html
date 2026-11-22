@@ -67,7 +67,7 @@
 
   <!-- 07 FORMAT -->
   <div class="ph-format"><span class="k">FORMAT</span><span class="ja">高層気象図
-（高さ × 温度）</span><span class="en">UPPER-AIR DIAGRAM · HEIGHT × TEMP.</span></div>
+（高さ × 温度）</span><span class="en">UPPER-AIR DIAGRAM · HEIGHT × TEMP.</span><a href="scroll/SCROLL_CLOUDBASE_LP.html" style="margin-top:8px;font:600 11px/1 var(--f-thin);letter-spacing:.16em;color:var(--accent-line);text-decoration:none">SCROLL LP <span style="font:500 12px var(--f-jp);letter-spacing:0">解説を読む →</span></a></div>
 
   <!-- 08 READOUT（主役の操作つき） -->
   <div class="ph-readout">
@@ -345,6 +345,10 @@ cv.addEventListener('pointermove', e => { const [x, y] = pos(e), d = derive(), n
 cv.addEventListener('pointerleave', () => $('ctl').classList.remove('hot'));   // 外枠の拡大率が変わったら絵の解像度を合わせる
 if (document.fonts) ["11px 'JetBrains Mono'", "11px 'M PLUS 1 Code'", "13px 'IBM Plex Sans JP'"].forEach(f => document.fonts.load(f));
 
+/* ---- 直リンク：#T=28&rh=50（%）&proof=1&auto=1&brk=1（解説 LP の駅から開く） ---- */
+{ const Q = new URLSearchParams(location.hash.slice(1));
+  if (Q.has('T')) S.T = Math.max(0, Math.min(40, +Q.get('T') || 0)); if (Q.has('rh')) S.rh = Math.max(0.1, Math.min(1, (+Q.get('rh') || 50) / 100));
+  if (Q.get('proof') === '1') S.proof = true; if (Q.get('auto') === '1') S.auto = true; if (Q.get('brk') === '1') S.brk = true; }
 window.__PH = { goState, readout, S, L, get G() { return G; }, derive, step, draw, layout, X, Y, Tof, Zof };   // 検証用
 layout(); let last = performance.now();
 (function loop(now) { step(Math.min(0.05, (now - last) / 1000)); last = now; requestAnimationFrame(loop); })(last);
