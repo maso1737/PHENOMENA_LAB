@@ -129,6 +129,10 @@
 - 数値：ナトリウム灯（慣れ 100%）＝バーミリオン 100% と ホワイト 71%＋セルリアン 29% が ΔE 0.02 で同じ灰色・昼で ΔE 105（画面の読み出しも 148,148,148 と 149,149,148）／水銀灯＝ΔE 1.2・昼 15（黄土色どうし）／白色 LED・電球＝昼 7〜9（波長が広く入る光ほど分かれにくい）。照合 `check_relight.cjs` に 3 項目足して 43 項目。
 - 見本：`_out/relight/metamer_panel.jpg`。
 
+### 公開（2026-11-23）
+- GitHub：https://github.com/maso1737/PHENOMENA_LAB （公開・手元の master → GitHub の main。`push.default upstream` にしたので `git push` だけでよい）。
+- GitHub Pages：https://maso1737.github.io/PHENOMENA_LAB/ （main の / から）。入口はルートの `index.html`（作品を足したら WORKS に 1 行）。`.nojekyll` が無いと `_shell` `_law` `_assets` が配られないので消さない。サイトの LP でトトロの画像が出ることを確認済み。
+
 ### 解説 LP `wave/scroll/SCROLL_RELIGHT_LP.html`（2026-11-22・ユーザー依頼「チャットの解説のような LP 版」）
 - 型は E1 の `earth/scroll/SCROLL_PUSHCARVE_LP.html` をそのまま 11 駅に（外枠 ARCHIVE SHELL・左 STATIONS・中央の生成りの図・右の本文と KEY NUMBER・下の FORMULA RAIL 5 本＋LAB）。アクセントはアプリと同じ橙。
 - 駅：00 問い（1 枚の絵を 7 つに切って 7 つの光で）／01 光（光源 7 種の束・線の位置）／02 返す（12 色の形・バーミリオンの段 596 nm）／03 見える（昼とナトリウム灯で E × R → 色）／04 死ぬ色・残る色（12 色 × 光 × 本物と RGB×・彩度の棒）／05 慣れる（電球の下の絵で慣れ 0→100%）／06 混ぜる（セルリアン＋レモン：K/S を足す C 43 と RGB 平均 C 18）／07 実測の顔料（12 色の実測から組んだ形と目安の形・11 種）／08 画像を絵具に（元の画像・置き換え・3 つの光・スポイト）／09 逆算（赤と緑 × 昼・電球・水銀灯・ナトリウム灯）／10 持ち出す。
