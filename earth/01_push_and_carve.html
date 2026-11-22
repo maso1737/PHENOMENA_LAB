@@ -13,6 +13,12 @@
   .e1-vals .ph-val { padding-top: 6px; }
   #brks .ph-chip { font-size: 10px; padding: 0 7px; height: 20px; }
   #brks { gap: 4px; }
+  /* STATE と BOUNDARY は押せる（その状態になるように原因を動かす） */
+  #states > div { cursor: pointer; }
+  #states > div:hover:not(.now) { border-color: var(--accent-line); color: var(--ink); }
+  #states > div.off { opacity: .35; cursor: not-allowed; }
+  #states > div.seek { outline: 1px dashed var(--accent-line); outline-offset: 2px; }
+  #bound { cursor: pointer; }
 </style>
 </head>
 <body>
@@ -89,9 +95,9 @@
     <div class="ph-h"><i class="sq"></i><b>READOUT</b><span class="id">RD-E1-03</span></div>
     <span class="ph-lab" style="margin-top:12px">STATE</span>
     <div class="ph-states" id="states">
-      <div><b>GROW</b><span>育つ</span></div>
-      <div><b>STEADY</b><span>止まる</span></div>
-      <div><b>DECAY</b><span>低くなる</span></div>
+      <div data-s="GROW" title="押す速さを上げる（最大のときは平らからやり直す）"><b>GROW</b><span>育つ</span></div>
+      <div data-s="STEADY" title="いまの押す・雨のまま、高さが止まるまで早送りする"><b>STEADY</b><span>止まる</span></div>
+      <div data-s="DECAY" title="押すのをやめる（山が無いときは先に山を作る）"><b>DECAY</b><span>低くなる</span></div>
     </div>
     <div class="ph-vals e1-vals">
       <div class="ph-val"><span class="k">PEAK ELEV. <i>最高点</i></span><div class="v"><b id="o_peak">—</b><u>m</u><em id="o_age"></em></div></div>
@@ -101,7 +107,7 @@
         <input class="ph-range" type="range" id="rain" min="0.2" max="3" step="0.1" value="1" aria-label="雨の量（空の雲を上下に引いても同じ）"></div>
       <div class="ph-val"><span class="k">UP / DOWN <i>隆起 ／ 侵食</i></span><div class="v"><b id="o_ud">—</b><u>mm/年</u><em id="o_net"></em></div></div>
     </div>
-    <div class="ph-boundary"><span class="ph-lab">BOUNDARY</span><svg id="bound" role="img" aria-label="境界の目盛り：GROW・STEADY・DECAY"></svg></div>
+    <div class="ph-boundary"><span class="ph-lab">BOUNDARY <i style="font-style:normal;letter-spacing:0;text-transform:none">押すとその側へ</i></span><svg id="bound" role="img" aria-label="境界の目盛り：GROW・STEADY・DECAY"></svg></div>
   </div>
 
   <!-- 09 LOOK ⇄ CAUSE の窓 -->
@@ -147,7 +153,7 @@
 'use strict';
 const L = PH_E1, YR = 1e5;   // 1 秒 ＝ 10 万年
 const C = { paper: '#ECE5D1', sky: '#F0EADA', ink: '#2A251F', dim: '#6B6357', rule: 'rgba(42,37,31,.16)', mud: '#A57B52', sand: '#D2B06A', lime: '#A3A099', granite: '#E6DECA', mantle: '#C8C2B2', up: '#B0392B', down: '#2D5E8C' };   // 窓の色＝SHELL_TOKENS「E1 窓」
-const S = { v: 1.5, P: 1, wind: 0, fast: false, proof: false, auto: false, brk: false, brkMode: 'rain', t: 0, probe: null, drag: null, pf: 0, tv: 0, sm: { up: 0, down: 0 } };
+const S = { v: 1.5, P: 1, wind: 0, fast: false, proof: false, auto: false, brk: false, brkMode: 'rain', t: 0, probe: null, drag: null, pf: 0, tv: 0, sm: { up: 0, down: 0 }, z: 1, seek: false };
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d'), $ = id => document.getElementById(id);
 let W = 1, H = 1, G = {}, sim = L.create(), proofObj = null;
 
@@ -156,13 +162,21 @@ const params = () => ({ v: S.v / 100, P: S.brk && S.brkMode === 'rain' ? 0 : S.P
 const derive = () => { const st = sim.stat, d = S.sm.up - S.sm.down; return { st, up: S.sm.up, down: S.sm.down, d, state: L.state(S.sm.up, S.sm.down), divKm: sim.div * L.DX / 1000 }; };
 
 /* ---- 配置（外枠の座標で描く） ---- */
-const TOP = 7000, BRK = -3000, BOT = -75000;
+const TOP = 7000, BRK = -3000, BOT = -75000, GW = 156;   // GW＝右の縮尺ゲージの幅
+let BOTv = BOT;   // 根が深くなったら下へ広げる
 function layout() {
   const r = cv.getBoundingClientRect(), k = r.width / Math.max(1, cv.clientWidth), dpr = Math.min((window.devicePixelRatio || 1) * k, 2);
   W = Math.max(1, cv.clientWidth); H = Math.max(1, cv.clientHeight); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const x0 = 78, x1 = W - 78, yLT = 40, yLB = 152, yC0 = 166, yC1 = H - 12, kU = 14.4 / 1000, upper = (TOP - BRK) * kU;
-  G = { x0, x1, yLT, yLB, yC0, yC1, kU, y0: yC0 + TOP * kU, kL: (yC1 - yC0 - upper) / (BRK - BOT), kLook: 21.6 / 1000 };
+  fit();
 }
+/* 山が高く・根が深くなったら全体を引く（z＝縦の縮め率。地上と横顔に同じ z をかける） */
+function fit() {
+  const x0 = 78, x1 = W - 78 - GW, yLT = 40, yLB = 152, yC0 = 166, yC1 = H - 12, z = S.z, kU = 14.4 / 1000 / z, top = TOP * z, upper = (top - BRK) * kU;
+  const L0 = yC1 - yC0 - upper, deep = -(L.C0 + (sim.stat.rootMax || 0)) - 4000;   // 根の底＋4 km をラベル用に残す
+  BOTv = Math.min(BOT, BRK - (BRK - deep) * L0 / Math.max(1, L0 - 40));
+  G = { x0, x1, yLT, yLB, yC0, yC1, kU, top, z, y0: yC0 + top * kU, kL: L0 / (BRK - BOTv), kLook: 21.6 / 1000 / z };
+}
+const zTarget = () => Math.max(1, (sim.stat.peak || 0) / 4600);
 const Xi = i => G.x0 + i / (L.NX - 1) * (G.x1 - G.x0), Xkm = km => G.x0 + km / 200 * (G.x1 - G.x0), Iof = x => Math.round((x - G.x0) / (G.x1 - G.x0) * (L.NX - 1));
 const Yc = z => z >= BRK ? G.y0 - z * G.kU : G.y0 - BRK * G.kU + (BRK - z) * G.kL;     // 断面：-3 km より下は縦を縮める
 const Yl = z => G.yLB - z * G.kLook;                                                    // 横顔
@@ -240,8 +254,9 @@ function draw() {
   ctx.stroke();
   ctx.font = note(11); ctx.fillStyle = C.dim; ctx.textBaseline = 'top';
   if (S.wind) { const wetL = S.wind < 0, y = yLT + 52; ctx.textAlign = 'left'; ctx.fillText(wetL ? '雨の多い側（風上）' : '乾いた側（風下）', x0 + 14, y); ctx.textAlign = 'right'; ctx.fillText(wetL ? '乾いた側（風下）' : '雨の多い側（風上）', x1 - 14, y); }
-  ctx.font = mono(9); ctx.textAlign = 'right'; ctx.fillStyle = C.dim; ctx.fillText('縦 ×3 ・ 細部の凸凹はまね △', x1 - 8, yLB - 12);
-  if (src.stat.peak > (yLB - yLT + 30) / G.kLook) { ctx.font = mono(10, 600); ctx.fillStyle = C.up; ctx.textAlign = 'center'; ctx.fillText('▲ 枠の外 ' + num(src.stat.peak) + ' m', Xi(src.stat.peakI), yLT - 26); }
+  ctx.font = mono(9); ctx.textAlign = 'right'; ctx.fillStyle = C.dim; ctx.fillText('縦 ×' + (G.kLook / ((x1 - x0) / 200000)).toFixed(1) + ' ・ 細部の凸凹はまね △', x1 - 8, yLB - 12);
+  if (G.z > 1.03) { ctx.font = mono(10, 600); ctx.textAlign = 'left'; const t = '◢ 山が高いので引いて表示（縦 1/' + G.z.toFixed(1) + '）', tw = ctx.measureText(t).width; ctx.fillStyle = C.ink; ctx.fillRect(x0 + 1, yLB - 22, tw + 12, 16); ctx.fillStyle = C.paper; ctx.fillText(t, x0 + 7, yLB - 14); }
+  if (S.seek) { ctx.font = mono(11, 600); ctx.textAlign = 'center'; ctx.fillStyle = C.ink; ctx.fillText('▶▶ 高さが止まるまで早送り中', (x0 + x1) / 2, yLT + 70); }
 
   /* ======== CAUSE：地下まで切った断面 ======== */
   let ghost = null, sh = null, view = src;
@@ -260,15 +275,18 @@ function draw() {
   ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.strokeRect(x0 + .5, yC0 + .5, x1 - x0, yC1 - yC0);
   // 縦の目盛り（上＝×2・-3 km より下＝縮める）
   ctx.font = mono(10); ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = C.ink; ctx.strokeStyle = C.ink; ctx.lineWidth = 1;
-  for (const z of [6000, 4000, 2000, 0, -2000, -10000, -20000, -30000, -40000, -50000, -60000, -70000]) { const y = Math.round(Yc(z)) + .5; ctx.beginPath(); ctx.moveTo(x0 - 6, y); ctx.lineTo(x0, y); ctx.stroke(); ctx.fillText((z / 1000) + '', x0 - 9, y); }
+  const stU = [2000, 4000, 5000, 10000, 20000].find(v => v >= 2000 * G.z * 0.9) || 20000, ticks = [];
+  for (let z = 0; z <= G.top - 600 * G.z; z += stU) ticks.push(z); if (stU === 2000) ticks.push(-2000);
+  const stL = [10000, 20000, 25000, 50000, 100000].find(v => v * G.kL >= 15) || 100000; for (let z = -stL; z >= BOTv + 3000; z -= stL) ticks.push(z);
+  for (const z of ticks) { const y = Math.round(Yc(z)) + .5; ctx.beginPath(); ctx.moveTo(x0 - 6, y); ctx.lineTo(x0, y); ctx.stroke(); ctx.fillText((z / 1000) + '', x0 - 9, y); }
   ctx.fillText('km', x0 - 9, yC0 + 6);
   { const y = Yc(BRK); ctx.strokeStyle = C.ink; ctx.lineWidth = 0.8; ctx.beginPath(); for (let x = x0 - 22; x < x0; x += 6) { ctx.moveTo(x, y - 3); ctx.lineTo(x + 3, y + 3); ctx.lineTo(x + 6, y - 3); } ctx.stroke(); }
   ctx.font = note(10); ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillStyle = C.dim;
-  { const kx = (x1 - x0) / 200000, r = G.kU / G.kL; const t = '縦：地上 ×' + (G.kU / kx).toFixed(0) + ' ／ 深さ 3 km より下は ×' + (G.kL / kx).toFixed(2) + '（' + r.toFixed(0) + ' 分の 1 に縮めて描く）', tw = ctx.measureText(t).width; ctx.fillStyle = 'rgba(236,229,209,.9)'; ctx.fillRect(x1 - 216 - tw, Yc(BRK) - 14, tw + 6, 14); ctx.fillStyle = C.dim; ctx.fillText(t, x1 - 214, Yc(BRK) - 2); }
+  { const kx = (x1 - x0) / 200000, r = G.kU / G.kL; const t = '縦：地上 ×' + (G.kU / kx).toFixed(1) + ' ／ 深さ 3 km より下は ×' + (G.kL / kx).toFixed(2) + '（' + r.toFixed(0) + ' 分の 1 に縮めて描く）', tw = ctx.measureText(t).width; ctx.fillStyle = 'rgba(236,229,209,.9)'; ctx.fillRect(x1 - 216 - tw, Yc(BRK) - 14, tw + 6, 14); ctx.fillStyle = C.dim; ctx.fillText(t, x1 - 214, Yc(BRK) - 2); }
   // ラベル（もとのモホ面・根・地表の岩）
   ctx.font = note(11); ctx.fillStyle = C.ink; ctx.textBaseline = 'bottom'; ctx.textAlign = 'left'; ctx.fillText('もとのモホ面（深さ 35 km）', x0 + 8, Yc(-L.C0) - 3);
   const pi = view.stat ? view.stat.peakI : src.stat.peakI, rootI = (() => { let m = 0, k = 100; for (let i = 0; i < L.NX; i++) if (view.root[i] > m) { m = view.root[i]; k = i; } return k; })();
-  if (view.root[rootI] > 800) { const y = Yc(cs[rootI][4]); ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.font = note(11); ctx.fillStyle = C.ink;
+  if (view.root[rootI] > 800) { const y = Math.min(Yc(cs[rootI][4]), yC1 - 36); ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.font = note(11); ctx.fillStyle = C.ink;
     const lab = '山の根 ' + (view.root[rootI] / 1000).toFixed(1) + ' km（地上の山の断面積の ' + (view.stat && view.stat.ratio ? view.stat.ratio.toFixed(1) : '5.6') + ' 倍）', lx = Xi(rootI) + 40; ctx.textAlign = 'left'; const tw = ctx.measureText(lab).width; ctx.fillStyle = C.granite; ctx.fillRect(lx - 3, y - 20, tw + 6, 15); ctx.fillStyle = C.ink; ctx.fillText(lab, lx, y - 19); }
   // 分水嶺と、押し合う中心
   if (src.stat.peak > 200 && !S.proof) {
@@ -336,13 +354,55 @@ function draw() {
     ctx.fillText('中心の柱：削った ' + num(f < 0.3 ? po.cut * (f / 0.3) : po.cut) + ' m ／ 浮いた ' + num(f < 0.3 ? 0 : (po.cut - po.drop) * e) + ' m ／ 正味 −' + num(f < 0.3 ? po.cut * (f / 0.3) : cur) + ' m', x0 + 14, yLT + 32);
     ctx.font = note(11); ctx.fillStyle = C.dim; ctx.fillText('押す・削るの時計は止めている（PROOF を押すと戻る）', x0 + 14, yLT + 56);
   }
+  drawGauge(src);
   if (S.brk) { ctx.font = mono(11, 600); ctx.textAlign = 'right'; ctx.textBaseline = 'top'; const bt = S.brkMode === 'rain' ? 'BREAK　現実の外：雨が降らない（削られない）' : 'BREAK　現実の外：根が浮き沈みしない', bw = ctx.measureText(bt).width; ctx.fillStyle = '#0B0B0A'; ctx.fillRect(x1 - bw - 18, yC0 + 4, bw + 14, 19); ctx.fillStyle = C.paper; ctx.fillText(bt, x1 - 11, yC0 + 8); }
+}
+/* 右の縮尺ゲージ：上（山）も下（根）も同じ縮尺で描く＋縦横 1:1 の本当の形 */
+function drawGauge(src) {
+  const bx = G.x1 + 80, bw = W - 8 - bx, by = G.yLT - 30, bh = G.yC1 - by; if (bw < 60) return;
+  ctx.fillStyle = C.paper; ctx.fillRect(bx, by, bw, bh); ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.strokeRect(bx + .5, by + .5, bw, bh);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillStyle = C.ink; ctx.font = mono(10, 600); ctx.fillText('GAUGE', bx + 7, by + 6);
+  ctx.font = note(10); ctx.fillStyle = C.dim; ctx.fillText('縦を一つの縮尺で', bx + 7, by + 19);
+  const st = src.stat, pk = Math.max(0, st.peak), rm = st.rootMax || 0;
+  const ax = bx + 30, aw = bx + bw - 8 - ax, py0 = by + 44, py1 = G.yC1 - 120;
+  const topG = Math.max(4000, pk * 1.12), botG = Math.min(-40000, -(L.C0 + rm) * 1.05), kg = (py1 - py0) / (topG - botG), Y = z => py0 + (topG - z) * kg, Xg = i => ax + i / (L.NX - 1) * aw;
+  ctx.save(); ctx.beginPath(); ctx.rect(ax, py0, aw, py1 - py0); ctx.clip();
+  ctx.fillStyle = C.sky; ctx.fillRect(ax, py0, aw, Y(0) - py0);
+  ctx.fillStyle = C.mantle; ctx.fillRect(ax, Y(0), aw, py1 - Y(0)); ctx.fillStyle = PAT.mantle; ctx.fillRect(ax, Y(0), aw, py1 - Y(0));
+  const crust = new Path2D(); for (let i = 0; i < L.NX; i++) { const y = Y(src.h[i]); i ? crust.lineTo(Xg(i), y) : crust.moveTo(Xg(i), y); } for (let i = L.NX - 1; i >= 0; i--) crust.lineTo(Xg(i), Y(src.h[i] - src.c[i])); crust.closePath();
+  ctx.fillStyle = C.granite; ctx.fill(crust); ctx.strokeStyle = C.ink; ctx.lineWidth = 0.8; ctx.stroke(crust);
+  ctx.lineWidth = 1.4; ctx.beginPath(); for (let i = 0; i < L.NX; i++) { const y = Y(src.h[i]); i ? ctx.lineTo(Xg(i), y) : ctx.moveTo(Xg(i), y); } ctx.stroke();
+  ctx.strokeStyle = 'rgba(42,37,31,.55)'; ctx.lineWidth = 0.8; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(ax, Y(-L.C0)); ctx.lineTo(ax + aw, Y(-L.C0)); ctx.stroke(); ctx.setLineDash([]);
+  // 窓ではどう描いているか（上＝伸ばす・下＝縮める）の帯
+  const kx = (G.x1 - G.x0) / 200000, yb = Y(BRK);
+  ctx.fillStyle = 'rgba(176,57,43,.13)'; ctx.fillRect(ax, py0, aw, yb - py0); ctx.fillStyle = 'rgba(45,94,140,.10)'; ctx.fillRect(ax, yb, aw, py1 - yb);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 0.6; ctx.beginPath(); ctx.moveTo(ax, yb + .5); ctx.lineTo(ax + aw, yb + .5); ctx.stroke();
+  ctx.restore();
+  ctx.font = mono(9, 600); ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+  ctx.fillStyle = 'rgba(176,57,43,.35)'; ctx.fillRect(bx + 7, py1 + 5, 10, 9); ctx.fillStyle = C.up; ctx.fillText('窓では縦 ×' + (G.kU / kx).toFixed(1), bx + 21, py1 + 5);
+  ctx.fillStyle = 'rgba(45,94,140,.3)'; ctx.fillRect(bx + 7, py1 + 18, 10, 9); ctx.fillStyle = C.down; ctx.fillText('窓では縦 ×' + (G.kL / kx).toFixed(2), bx + 21, py1 + 18);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 0.8; ctx.strokeRect(ax + .5, py0 + .5, aw, py1 - py0);
+  // 目盛り（km）
+  const span = topG - botG, stp = [5000, 10000, 20000, 25000].find(v => span / v <= 6) || 50000;
+  ctx.font = mono(9); ctx.fillStyle = C.ink; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (let z = Math.ceil(botG / stp) * stp; z <= topG; z += stp) { const y = Math.round(Y(z)) + .5; ctx.beginPath(); ctx.moveTo(ax - 4, y); ctx.lineTo(ax, y); ctx.stroke(); ctx.fillText(z / 1000 + '', ax - 6, y); }
+  ctx.textBaseline = 'bottom'; ctx.fillText('km', ax - 6, py0 - 2);
+  // 山と根の長さ（同じ縮尺で比べる）
+  const xr = ax + aw - 3; ctx.lineWidth = 1.5;
+  if (pk > 150) { ctx.strokeStyle = C.up; ctx.beginPath(); ctx.moveTo(xr, Y(0)); ctx.lineTo(xr, Y(pk)); ctx.stroke(); ctx.font = mono(9, 600); ctx.fillStyle = C.up; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.textBaseline = 'middle'; ctx.fillText('山 ' + (pk / 1000).toFixed(1), xr - 3, Math.min(Y(0) - 6, Math.max(Y(pk) + 22, (Y(0) + Y(pk)) / 2))); }
+  if (rm > 150) { ctx.strokeStyle = C.down; ctx.beginPath(); ctx.moveTo(xr, Y(-L.C0)); ctx.lineTo(xr, Y(-L.C0 - rm)); ctx.stroke(); ctx.font = mono(9, 600); ctx.fillStyle = C.down; ctx.textAlign = 'right'; ctx.textBaseline = 'top'; ctx.fillText('根 ' + (rm / 1000).toFixed(1), xr - 3, Y(-L.C0) + 2); }
+  ctx.font = note(9); ctx.fillStyle = C.dim; ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText('ゲージの縦 ×' + (kg / (aw / 200000)).toFixed(1) + '（上下とも）', bx + 7, py1 + 32);
+  // 縦横 1:1（本当の形）
+  const sy0 = py1 + 64, sh = G.yC1 - 6 - sy0, k1 = Math.min((bw - 16) / 200000, sh / (pk + L.C0 + rm + 1000)), w1 = 200000 * k1, sx = bx + (bw - w1) / 2, s0 = sy0 + pk * k1 + 2;
+  ctx.font = note(10); ctx.fillStyle = C.ink; ctx.fillText('縦横 1:1（本当の形）', bx + 7, py1 + 47);
+  const p1 = new Path2D(); for (let i = 0; i < L.NX; i++) { const x = sx + i / (L.NX - 1) * w1, y = s0 - src.h[i] * k1; i ? p1.lineTo(x, y) : p1.moveTo(x, y); } for (let i = L.NX - 1; i >= 0; i--) p1.lineTo(sx + i / (L.NX - 1) * w1, s0 - (src.h[i] - src.c[i]) * k1); p1.closePath();
+  ctx.fillStyle = C.granite; ctx.fill(p1); ctx.strokeStyle = C.ink; ctx.lineWidth = 0.8; ctx.stroke(p1);
 }
 function arrow(x, ya, yb, col) {   // ya → yb の向き
   const dir = Math.sign(yb - ya) || 1; ctx.strokeStyle = ctx.fillStyle = col; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, ya); ctx.lineTo(x, yb - dir * 7); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(x, yb); ctx.lineTo(x - 5, yb - dir * 9); ctx.lineTo(x + 5, yb - dir * 9); ctx.closePath(); ctx.fill();
 }
-function handleRect(side) { const off = S.v / 4 * 26, w = 34, h = 86, y = G.y0 - 30; return side < 0 ? { x: 8 + off, y, w, h } : { x: W - 8 - w - off, y, w, h }; }
+function handleRect(side) { const off = S.v / 4 * 26, w = 34, h = 86, y = G.y0 - 30; return side < 0 ? { x: 8 + off, y, w, h } : { x: G.x1 + 70 - w - off, y, w, h }; }
 function cloudGeom() { const km = S.wind < 0 ? 62 : S.wind > 0 ? 138 : 128, r = 16 + S.P * 8; return { x: Xkm(km), y: G.yLT + 14, r }; }
 
 /* ---- PROOF の材料（法則で計算：いまの断面の中央 80 km を 1000 m 削って浮かせる） ---- */
@@ -364,6 +424,8 @@ const bx = dmm => { const t = L.STEADY_TOL * 1e3; return dmm > t ? 70.7 - Math.m
 function readout() {
   const d = derive(), si = STATE_I[d.state], st = sim.stat;
   PHShell.mark($('states'), si);
+  const noSteady = S.brk && S.brkMode === 'rain';
+  [...$('states').children].forEach(c => { if (!c.dataset.t) c.dataset.t = c.title; const off = c.dataset.s === 'STEADY' && noSteady; c.classList.toggle('off', off); c.classList.toggle('seek', c.dataset.s === 'STEADY' && S.seek); c.title = off ? 'BREAK「雨 0」では削られないので、高さは止まらない' : c.dataset.t; });
   $('o_peak').textContent = num(st.peak); $('o_age').textContent = '根 ' + (st.rootMax / 1000).toFixed(1) + ' km';
   $('o_push').textContent = S.v.toFixed(1); $('o_rain').textContent = params().P.toFixed(1);
   $('o_wind').textContent = S.wind < 0 ? '風 ← 左から' : S.wind > 0 ? '風 右から →' : '風なし';
@@ -390,11 +452,24 @@ function advance(yr) { const st = L.step(sim, yr, params()); S.t += yr; const a 
 function step(dt) {
   if (S.auto) S.v = Math.round((2 + 2 * Math.sin(S.t / 1e6 * 2 * Math.PI / 8)) * 10) / 10;   // 800 万年（80 秒）で 押す 0 ⇄ 4 cm/年
   if (S.proof) S.pf = (S.pf + dt / 10) % 1;   // 10 秒で ①②③
+  else if (S.seek) seekStep();
   else if (dt > 0) advance(dt * YR * (S.fast ? 10 : 1));
   S.tv += dt;
+  S.z += (zTarget() - S.z) * Math.min(1, dt * 2.5); fit();   // 引く・寄るは 0.4 秒ほどでなめらかに
   readout(); draw();
 }
-function reset(myr) { sim = L.create(); S.t = 0; S.sm.up = S.sm.down = 0; L.isostasy(sim, true); sim.stat = { up: 0, down: 0, peak: 0, peakI: 100, rootMax: 0, meanH: 0, ratio: 0 }; for (let k = 0; k < Math.round((myr || 0) * 10); k++) advance(YR); }
+/* STEADY を押したとき：いまの押す・雨のまま、高さが止まるまで早送り（1 コマ 20 万年・最長 4000 万年） */
+function seekStep() {
+  const st = advance(2e5); S.seekT += 2e5;
+  if (L.state(st.up, st.down) === 'STEADY' || S.seekT >= 4e7) { S.seek = false; S.sm.up = st.up; S.sm.down = st.down; }
+}
+function goState(k) {
+  if (S.proof) S.proof = false; S.auto = false; S.seek = false;
+  if (k === 'GROW') { if (S.v <= 2.5) S.v = Math.round((S.v + 1.5) * 10) / 10; else { S.v = 4; reset(0); } }
+  else if (k === 'DECAY') { if (sim.stat.peak < 300) { S.v = Math.max(S.v, 1.5); reset(3); } S.v = 0; }
+  else if (k === 'STEADY') { if (S.brk && S.brkMode === 'rain') return; S.seek = true; S.seekT = 0; }
+}
+function reset(myr) { sim = L.create(); S.t = 0; S.sm.up = S.sm.down = 0; L.isostasy(sim, true); sim.stat = { up: 0, down: 0, peak: 0, peakI: 100, rootMax: 0, meanH: 0, ratio: 0 }; for (let k = 0; k < Math.round((myr || 0) * 10); k++) advance(YR); S.z = zTarget(); fit(); }
 
 /* ---- 操作 ---- */
 $('push').addEventListener('input', e => { S.auto = false; S.v = +e.target.value; });
@@ -402,7 +477,9 @@ $('rain').addEventListener('input', e => { S.P = +e.target.value; });
 document.querySelectorAll('#winds .ph-chip').forEach(b => b.addEventListener('click', () => { S.wind = +b.dataset.w; }));
 document.querySelectorAll('#brks .ph-chip').forEach(b => b.addEventListener('click', () => { S.brkMode = b.dataset.b; }));
 $('bFast').addEventListener('click', () => { S.fast = !S.fast; });
-$('bReset').addEventListener('click', () => { S.proof = false; reset(0); });
+document.querySelectorAll('#states > div').forEach(b => b.addEventListener('click', () => goState(b.dataset.s)));
+$('bound').addEventListener('click', e => { const r = $('bound').getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 212; goState(x < 70.7 ? 'GROW' : x > 141.3 ? 'DECAY' : 'STEADY'); });
+$('bReset').addEventListener('click', () => { S.proof = false; S.seek = false; reset(0); });
 $('bProof').addEventListener('click', () => { S.proof = !S.proof; if (S.proof) { proofObj = makeProof(); S.pf = 0; } });
 $('bAuto').addEventListener('click', () => { S.auto = !S.auto; });
 $('bBreak').addEventListener('click', () => { S.brk = !S.brk; });
@@ -419,7 +496,7 @@ cv.addEventListener('pointerdown', e => {
 });
 cv.addEventListener('pointermove', e => {
   const [x, y] = pos(e);
-  if (S.drag === 'push') { const off = S.dragSide < 0 ? x - 8 - 17 : (W - 8 - 17) - x; S.v = Math.round(Math.max(0, Math.min(4, off / 26 * 4)) * 10) / 10; }
+  if (S.drag === 'push') { const off = S.dragSide < 0 ? x - 8 - 17 : (G.x1 + 70 - 17) - x; S.v = Math.round(Math.max(0, Math.min(4, off / 26 * 4)) * 10) / 10; }
   else if (S.drag === 'rain') { S.P = Math.round(Math.max(0.2, Math.min(3, S.dragP + (S.dragY - y) / 30)) * 10) / 10; }   // 上へ引くと雨が増える
   else { S.probe = (x >= G.x0 && x <= G.x1 && y >= G.yLT - 30 && y <= G.yC1) ? Math.max(0, Math.min(L.NX - 1, Iof(x))) : null; }
   const onH = inRect(x, y, handleRect(-1), 8) || inRect(x, y, handleRect(1), 8), onC = nearCloud(x, y);
@@ -440,7 +517,7 @@ if (Q.get('fast') === '1') S.fast = true; if (Q.get('auto') === '1') S.auto = tr
 layout(); reset(Q.has('t') ? Math.max(0, Math.min(30, +Q.get('t'))) : 1);
 if (Q.get('proof') === '1') { S.proof = true; proofObj = makeProof(); S.pf = Q.has('pf') ? +Q.get('pf') : 0; }
 
-window.__PH = { S, L, get sim() { return sim; }, get G() { return G; }, derive, step, draw, layout, readout, reset, advance, params, makeProof, get proofObj() { return proofObj; } };   // 検証用
+window.__PH = { goState, fit, zTarget, S, L, get sim() { return sim; }, get G() { return G; }, derive, step, draw, layout, readout, reset, advance, params, makeProof, get proofObj() { return proofObj; } };   // 検証用
 let last = performance.now();
 (function loop(now) { step(Math.min(0.05, (now - last) / 1000)); last = now; requestAnimationFrame(loop); })(last);
 </script>
