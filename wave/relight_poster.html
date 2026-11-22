@@ -136,6 +136,24 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
     </div>
 
     <div class="sec">
+      <div class="hd"><span class="en">METAMER</span><span class="jp">この光では同じ・昼では別の 2 色（条件等色のペア）</span></div>
+      <div class="row">
+        <button class="bt" id="b-met" style="flex:1">ペアを作る<span class="k">いまの光・目の慣れで探す（光を替えると探し直す）</span></button>
+        <button class="bt" id="b-metNext" style="flex:1">次の組<span class="k" id="met-k">—</span></button>
+      </div>
+      <div style="display:grid;grid-template-columns:18px 1fr 1fr;gap:4px 6px;margin-top:8px;align-items:center">
+        <div></div><div class="l">この光で</div><div class="l">昼に見ると（塗る色）</div>
+        <div class="l">A</div><div class="s" id="mt-an" style="height:30px"></div><div class="s" id="mt-ad" style="height:30px"></div>
+        <div class="l">B</div><div class="s" id="mt-bn" style="height:30px"></div><div class="s" id="mt-bd" style="height:30px"></div>
+      </div>
+      <div id="metTxt" style="font-size:11.5px;line-height:1.7;margin-top:6px">「ペアを作る」で、いまの光の下では見分けがつかないのに、昼に見るとはっきり違う 2 つの配合を探す。ナトリウム灯だと、赤と空色が同じ灰色になる。</div>
+      <div class="row" style="margin-top:6px">
+        <button class="bt" id="b-metAB" style="flex:1">色 A・B にする<span class="k">左クリック＝A・右クリック＝B で描ける</span></button>
+        <button class="bt" id="b-metPat" style="flex:1">模様で試す<span class="k">A と B の市松を紙いっぱいに塗る</span></button>
+      </div>
+    </div>
+
+    <div class="sec">
       <div class="hd"><span class="en">PAINT</span><span class="jp">ポスターカラー（左クリック A／右クリック B）</span></div>
       <div id="swatches"></div>
       <div id="swName"></div>
@@ -187,6 +205,7 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 <script src="_assets/papers.js"></script>
 <script src="_law/ph_color.js"></script>
 <script src="_law/ph_pigment.js"></script>
+<script src="_law/ph_mix_solve.js"></script>
 <script>
 (function () {
 'use strict';
@@ -1113,7 +1132,34 @@ function solveTarget () {
   if (S.rgb) msg += '<br>（逆算は波長で計算。RGB × の表示とは別）';
   $('#targetTxt').innerHTML = msg;
 }
-const solveTargetSoon = () => { if (!TG.on) return; clearTimeout(TG.timer); TG.timer = setTimeout(solveTarget, S.cycle ? 400 : 60); };
+/* ════════════════ METAMER：この光で同じ・昼で別の 2 色（条件等色のペア）＝ ph_mix_solve.js の findMetamers ════════════════ */
+const MS = PH_MIXSOLVE, MT = { on: false, list: null, i: 0, timer: 0, SLD: null, labD: null, dKey: '', E: null, ad: 0 };
+function solveMetamer () {
+  if (!S.E) return; MT.on = true; const bank = getBank();
+  if (!MT.SLD || MT.dKey !== PG.SOURCE) { MT.labD = MS.labUnder(PG.E_DAY, 0); MT.SLD = MS.bankLab(bank, MT.labD); MT.dKey = PG.SOURCE; }
+  const E_ = Float32Array.from(S.E), ad = P.adapt, labL = MS.labUnder(E_, ad), SLL = MS.bankLab(bank, labL);
+  MT.list = MS.findMetamers(bank, SLL, MT.SLD, labL, MT.labD, { top: 6 }); MT.i = 0; MT.E = E_; MT.ad = ad; showMetamer();
+}
+function showMetamer () {
+  const m = MT.list && MT.list[MT.i];
+  if (!m) { $('#metTxt').textContent = 'この光では、昼に見分けがつくほど違うペアが見つからない。'; $('#met-k').textContent = '—'; return; }
+  const Ra = PG.mixRefl(m.a), Rb = PG.mixRefl(m.b), c = { an: PG.render(Ra, MT.E, MT.ad).hex, bn: PG.render(Rb, MT.E, MT.ad).hex, ad: PG.render(Ra, PG.E_DAY, 0).hex, bd: PG.render(Rb, PG.E_DAY, 0).hex };
+  for (const k in c) { $('#mt-' + k).style.background = c[k]; $('#mt-' + k).title = c[k]; }
+  const lname = S.cycle ? 'この光' : ((PG.LIGHTS[S.light] || { jp: '描いた光' }).jp);
+  $('#met-k').textContent = (MT.i + 1) + ' / ' + MT.list.length + ' 組';
+  $('#metTxt').innerHTML = '<b>A</b>：' + mixText(m.a) + '<br><b>B</b>：' + mixText(m.b) + '<br>' + lname + '・目の慣れ ' + Math.round(MT.ad * 100) + '% での差 ΔE ' + m.dL.toFixed(1) +
+    '（2 以下ならほぼ見分けがつかない）・昼での差 ΔE ' + m.dD.toFixed(0) + (m.dD < 10 ? '<br>この光は波長が広く入っているので、昼との差は小さい（線だけの光ほど大きく分かれる）' : '') + (S.rgb ? '<br>（RGB× の表示では同じに見えない＝ペアは波長で計算した結果）' : '');
+}
+/* A・B の市松を紙いっぱいに（量を直接書く＝画像を置くのと同じ道） */
+function paintPattern (wa, wb) {
+  Robot.stop(); finishStroke(); const W = E.W, H = E.H, out = [0, 1, 2].map(() => new Float32Array(W * H * 4)), cs = Math.ceil(W / 6), A = normV(wa), B = normV(wb);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const w = ((Math.floor(x / cs) + Math.floor(y / cs)) & 1) ? B : A, i = (y * W + x) * 4; for (let j = 0; j < NP; j++) out[j >> 2][i + (j & 3)] = w[j]; }
+  pushUndo();
+  for (let t = 0; t < 3; t++) { gl.bindTexture(gl.TEXTURE_2D, E.cur.tex[t]); gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, W, H, gl.RGBA, gl.FLOAT, out[t]); }
+  gl.bindFramebuffer(gl.FRAMEBUFFER, E.cur.one[3]); gl.clearBufferfv(gl.COLOR, 0, [0, 0, 0, 0]); clearLayer(E.tmp);
+  E.wetUntil = 0; E.dryZeroed = true;
+}
+const solveTargetSoon = () => { if (MT.on) { clearTimeout(MT.timer); MT.timer = setTimeout(solveMetamer, S.cycle ? 700 : 120); } if (!TG.on) return; clearTimeout(TG.timer); TG.timer = setTimeout(solveTarget, S.cycle ? 400 : 60); };
 /* 配合を言葉に（多い順に 4 つまで） */
 const mixText = w => { const a = w.reduce((p, q) => p + q, 0) || 1; return w.map((v, j) => [j, v / a]).filter(q => q[1] >= 0.01).sort((p, q) => q[1] - p[1]).slice(0, 4).map(([j, v]) => PG.PIGMENTS[j].jp + ' ' + Math.round(v * 100) + '%').join(' ＋ '); };
 
@@ -1201,6 +1247,10 @@ function setSource (src) { PG.setSource(src); S.dirtyLight = true; IMG.lut = nul
 $('#tg-src').addEventListener('click', () => setSource(PG.SOURCE === 'measured' ? 'shape' : 'measured'));
 $('#tg-color').addEventListener('input', e => { TG.hex = e.target.value.toUpperCase(); solveTarget(); });
 $('#b-solve').addEventListener('click', solveTarget);
+$('#b-met').addEventListener('click', solveMetamer);
+$('#b-metNext').addEventListener('click', () => { if (!MT.list) return solveMetamer(); MT.i = (MT.i + 1) % Math.max(1, MT.list.length); showMetamer(); });
+$('#b-metAB').addEventListener('click', () => { if (!MT.list) solveMetamer(); const m = MT.list && MT.list[MT.i]; if (!m) return; setA(normV(m.a), 'ペア A＝' + mixText(m.a)); colB = normV(m.b); nameB = 'ペア B'; markSwatches(); $('#swName').textContent = '色 A・B：条件等色のペア'; });
+$('#b-metPat').addEventListener('click', () => { if (!MT.list) solveMetamer(); const m = MT.list && MT.list[MT.i]; if (m) paintPattern(m.a, m.b); });
 $('#b-tgA').addEventListener('click', () => { if (!TG.res) solveTarget(); setA(normV(TG.res.w), '逆算＝' + mixText(TG.res.w)); });
 $('#tg-imgnow').addEventListener('click', () => { IMG.useNow = !IMG.useNow; syncImgUI(); if (IMG.src) loadImage(IMG.src); });
 /* 条件つきのつまみ：効かないときは薄くして理由を書く */
@@ -1335,7 +1385,7 @@ window.__RELIGHT = {
   setCycle: (v, t) => { S.cycle = !!v; if (t != null) S.cycleT = t; S.dirtyLight = true; syncUI(); },
   setSun: h => { P.sunAlt = h; S.dirtyLight = true; syncUI(); },
   stroke: (pts, cfg) => { beginStroke(pts[0][0], pts[0][1], 1, Object.assign(userCfg(), { stab: 0 }, cfg)); for (const p of pts.slice(1)) moveStroke(p[0], p[1], 1); finishStroke(); },
-  clear: () => { Robot.stop(); clearCanvas(); }, view, IMG, loadImageUrl, loadImage, setSource, mixText, streakK, reliefK, TG, solveTarget, setUseNow: v => { IMG.useNow = !!v; syncImgUI(); }
+  clear: () => { Robot.stop(); clearCanvas(); }, view, IMG, loadImageUrl, loadImage, setSource, mixText, streakK, reliefK, TG, solveTarget, MT, solveMetamer, paintPattern, setUseNow: v => { IMG.useNow = !!v; syncImgUI(); }
 };
 })();
 </script>

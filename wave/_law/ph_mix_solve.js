@@ -66,8 +66,30 @@
     let out = null; for (const [d, s] of picks) { const q = refineFrom(T, lab, Array.from(SW.subarray(s * NP, s * NP + NP)), Math.sqrt(d)); if (!out || q.f < out.f) out = q; }
     return out;
   }
+  /* 条件等色のペア：光 L で同じに見えて、昼で最も違って見える 2 つの配合（どちらもポスターカラーで混ぜられる 1〜3 色＋白）。
+     1. 見本を光 L での Lab の升目（cell）に分ける → 同じ升目の中で、昼の Lab がいちばん離れた 2 つを候補に
+     2. 候補ごとに、B の顔ぶれのまま「光 L で A と同じ色」へネルダー–ミードで詰める
+     3. 昼の差 dD − 光 L でのずれの罰 で並べ、顔ぶれが重ならない上位を返す
+     SLL / SLD＝見本の光 L・昼での Lab（bankLab）。labL / labD＝それぞれの labUnder。 → [{ a, b, dL, dD }]（dD の大きい順） */
+  function findMetamers(bank, SLL, SLD, labL, labD, opt) {
+    opt = opt || {}; const cell = opt.cell || 3, cap = opt.cap || 300, top = opt.top || 6, minL = opt.minL == null ? 18 : opt.minL, maxL = opt.maxL == null ? 92 : opt.maxL;
+    const { NS, SW } = bank, map = new Map();
+    for (let s = 0; s < NS; s++) { const L = SLL[s * 3]; if (L < minL || L > maxL) continue; const k = Math.floor(L / cell) + ',' + Math.floor(SLL[s * 3 + 1] / cell) + ',' + Math.floor(SLL[s * 3 + 2] / cell); let a = map.get(k); if (!a) map.set(k, a = []); if (a.length < cap) a.push(s); }
+    const dd = (A, i, j) => Math.hypot(A[i * 3] - A[j * 3], A[i * 3 + 1] - A[j * 3 + 1], A[i * 3 + 2] - A[j * 3 + 2]), cand = [];
+    for (const a of map.values()) { if (a.length < 2) continue; let bi = -1, bj = -1, bd = 0; for (let p = 0; p < a.length; p++) for (let q = p + 1; q < a.length; q++) { const d = dd(SLD, a[p], a[q]); if (d > bd) { bd = d; bi = a[p]; bj = a[q]; } } if (bi >= 0) cand.push([bd, bi, bj]); }
+    cand.sort((p, q) => q[0] - p[0]);
+    const out = [], used = new Set(), sig = w => w.map((v, j) => v > 0.01 ? j : -1).filter(j => j >= 0).join(',');
+    for (const [, i, j] of cand.slice(0, top * 5)) {
+      const wa = Array.from(SW.subarray(i * NP, i * NP + NP)), wb0 = Array.from(SW.subarray(j * NP, j * NP + NP)), TA = labL(wa);
+      const q = refineFrom(TA, labL, wb0, Math.hypot(...labL(wb0).map((v, k) => v - TA[k]))), dD = Math.hypot(...labD(wa).map((v, k) => v - labD(q.w)[k]));
+      const key = [sig(wa), sig(q.w)].sort().join('|'); if (used.has(key)) continue; used.add(key);
+      out.push({ a: wa, b: q.w, dL: q.f, dD, score: dD - 6 * Math.max(0, q.f - 1) });
+    }
+    out.sort((p, q) => q.score - p.score);
+    return out.slice(0, top);
+  }
   const mixText = w => { const a = w.reduce((p, q) => p + q, 0) || 1; return w.map((v, j) => [j, v / a]).filter(q => q[1] >= 0.01).sort((p, q) => q[1] - p[1]).slice(0, 4).map(([j, v]) => PG.PIGMENTS[j].jp + ' ' + Math.round(v * 100) + '%').join(' ＋ '); };
-  const api = { mulberry32, labUnder, makeBank, bankLab, refineFrom, solveNear, mixText };
+  const api = { mulberry32, labUnder, makeBank, bankLab, refineFrom, solveNear, findMetamers, mixText };
   if (isNode) module.exports = api;
   root.PH_MIXSOLVE = api;
 })(typeof window !== 'undefined' ? window : globalThis);

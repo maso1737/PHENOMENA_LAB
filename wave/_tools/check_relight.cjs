@@ -69,5 +69,11 @@ console.log('── 5. 夕日');
   check('太陽が低いほど赤い（色度 x：60° > 10° > 2°）', r(2) > r(10) && r(10) > r(60), 'x ' + [60, 10, 2].map(h => r(h).toFixed(3)).join(' → '));
   check('エアマス：真上 1・地平線で約 38', Math.abs(PG.airmass(90) - 1) < 0.01 && Math.abs(PG.airmass(0) - 38) < 1, PG.airmass(90).toFixed(3) + ' / ' + PG.airmass(0).toFixed(1)); }
 }
+console.log('── 6. 条件等色のペア（ph_mix_solve.js・実測の絵具）');
+{ PG.setSource('measured'); const MS = require('../_law/ph_mix_solve.js'), bank = MS.makeBank(40000), labD = MS.labUnder(PG.E_DAY, 0), SLD = MS.bankLab(bank, labD);
+  const pair = k => { const labL = MS.labUnder(PG.LIGHTS[k].make(), 1); return MS.findMetamers(bank, MS.bankLab(bank, labL), SLD, labL, labD)[0]; };
+  const s = pair('SODIUM'); check('ナトリウム灯：同じに見えて（ΔE 1 未満）昼で大きく違う（ΔE 60 以上）ペアがある', s.dL < 1 && s.dD > 60, 'ΔE ' + s.dL.toFixed(2) + ' / 昼 ' + s.dD.toFixed(0));
+  const h = pair('MERCURY'); check('水銀灯：同じに見えて（ΔE 2 未満）昼で違う（ΔE 10 以上）ペアがある', h.dL < 2 && h.dD > 10, 'ΔE ' + h.dL.toFixed(2) + ' / 昼 ' + h.dD.toFixed(0));
+  const d = pair('DAY'); check('昼光どうしでは、昼で違うペアは作れない（昼の差 ≦ 光の下のずれ ＋ 2）', d.dD < 2 + d.dL, 'ΔE ' + d.dL.toFixed(2) + ' / 昼 ' + d.dD.toFixed(2)); }
 console.log('\n' + ok + ' OK / ' + ng + ' NG');
 process.exit(ng ? 1 : 0);
