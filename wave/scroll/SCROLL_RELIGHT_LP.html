@@ -481,7 +481,7 @@ FIG[1] = (a, t) => {
 };
 // 02 返す
 FIG[2] = (a, t) => {
-  const { x, y, w, h } = PL, j = Math.min(NP - 1, Math.floor(clamp(a / 0.8, 0, 0.9999) * NP)), p = PG.PIGMENTS[j], m = PG.MEASURED[p.id];
+  const { x, y, w, h } = PL, j = Math.min(NP - 1, Math.floor(clamp(a / 0.95, 0, 0.9999) * NP)), p = PG.PIGMENTS[j], m = PG.MEASURED[p.id];
   const c = chart(x + 60, y + 90, w - 120, 380, { strip: true, title: '返す割合（1＝全部返す）' });
   ctx.globalAlpha = 0.4; for (let q = 0; q < NP; q++) if (q !== j) curve(REFL_M[q], c.X, c.Y, PG.PIGMENTS[q].hex, 1.2); ctx.globalAlpha = 1;
   curve(REFL_M[j], c.X, c.Y, C.ink, 3.4); curve(REFL_M[j], c.X, c.Y, p.hex, 1.6);
@@ -638,30 +638,38 @@ function keyNumber() {
 function railLiveSet() { [...rail.children].forEach((d, j) => { if (j < 5 && d.dataset.st === 'now' && railLive) d.querySelector('.rd').textContent = railLive; }); }
 
 /* ================= スクロール（1 駅＝画面 1 枚・なめらかに追いかける） ================= */
-const track = $('track'); let vh = innerHeight; function size() { vh = innerHeight; track.style.height = (NST * vh) + 'px'; }
+/* 駅ごとの長さ（画面何枚ぶん）。ホイール 1 回 ≈ 画面の 1 割なので、02 の 12 色は 1 色 2〜3 回。 */
+const LEN = [1.6, 3.4, 5, 2.4, 3, 2.4, 2.4, 3, 2.4, 3, 1.4], OFF = LEN.reduce((o, l, i) => (o.push(o[i] + l), o), [0]);
+const track = $('track'); let vh = innerHeight; function size() { vh = innerHeight; track.style.height = (OFF[NST] * vh) + 'px'; }
+function toP(y) { const u = y / vh; for (let i = 0; i < NST; i++) if (u < OFF[i + 1] || i === NST - 1) return Math.min(NST - 0.001, i + clamp((u - OFF[i]) / LEN[i], 0, 0.999)); }
+const fromP = v => { const i = Math.min(NST - 1, Math.floor(v)); return (OFF[i] + (v - i) * LEN[i]) * vh; };
+/* 余韻：駅に入ってすぐと終わりは図を止め、その間を加速・減速でつなぐ（smootherstep） */
+const hold = a => { const t = clamp((a - 0.12) / 0.7); return t * t * t * (t * (t * 6 - 15) + 10); };
+/* 1 つずつ切り替わる駅（01 光・02 絵具・04 光・09 光）は、間を均等に（加速すると真ん中で 1 回に 2 つ進むので） */
+const STEPPED = { 1: 1, 2: 1, 4: 1, 9: 1 }, holdLin = a => clamp((a - 0.12) / 0.7);
 size(); addEventListener('resize', () => { size(); resize(); });
 let P = 0, last = performance.now(), tSec = 0, FIX = null;
-const target = () => FIX != null ? FIX : clamp(scrollY / vh, 0, NST - 1);
-function goTo(i) { scrollTo({ top: i * vh + 2, behavior: RM ? 'auto' : 'smooth' }); }
+const target = () => FIX != null ? FIX : toP(scrollY);
+function goTo(i) { scrollTo({ top: OFF[i] * vh + 2, behavior: RM ? 'auto' : 'smooth' }); }
 addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); goTo(Math.min(NST - 1, Math.floor(P + 0.02) + 1)); } if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); goTo(Math.max(0, Math.ceil(P - 0.02) - 1)); } });
 PHShell.onScale(resize); resize();
 function render(P) {
   const i = Math.min(NST - 1, Math.floor(P + 1e-6)), a = P - i; setStation(i);
   ctx.setTransform(SC, 0, 0, SC, 0, 0); ctx.clearRect(0, 0, 1920, 1080);
   if (i === 0) FIG[0](a, tSec);
-  else if (i < LAST) { plate(PL.x, PL.y, PL.w, PL.h); ctx.save(); ctx.beginPath(); ctx.rect(PL.x, PL.y, PL.w, PL.h); ctx.clip(); railLive = ''; FIG[i](a, tSec); ctx.restore(); }
+  else if (i < LAST) { plate(PL.x, PL.y, PL.w, PL.h); ctx.save(); ctx.beginPath(); ctx.rect(PL.x, PL.y, PL.w, PL.h); ctx.clip(); railLive = ''; FIG[i](RM ? a : STEPPED[i] ? holdLin(a) : hold(a), tSec); ctx.restore(); }
   thumb(); keyNumber(); railLiveSet();
   const now = performance.now(); if (now - textT > 400) { textT = now; liveText(); $('calc').textContent = jobDone ? '' : '計算中 ' + Math.min(99, D.done / D.total * 100).toFixed(0) + '% · ' + D.stage; }
 }
 function loop(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now; tSec += dt;
   work(cur === 0 ? 14 : 9);
-  const T = target(); P = RM ? T : P + (T - P) * Math.min(1, dt * 9); if (Math.abs(T - P) < 1e-4) P = T;
+  const T = target(); P = RM ? T : P + (T - P) * Math.min(1, dt * 4.5); if (Math.abs(T - P) < 1e-4) P = T;
   render(P);
   requestAnimationFrame(loop);
 }
 // 直リンク：#s=駅&p=駅の中の進み（例 #s=4&p=0.5）・&fix=1＝スクロールせずにその位置で止める（検証・撮影用）
-{ const Q = new URLSearchParams(location.hash.slice(1)); if (Q.has('s')) { const s = clamp(+Q.get('s') + (+Q.get('p') || 0), 0, NST - 1); if (Q.get('fix') === '1') { FIX = s; P = s; } else requestAnimationFrame(() => { scrollTo(0, s * vh); P = s; }); } }
+{ const Q = new URLSearchParams(location.hash.slice(1)); if (Q.has('s')) { const s = clamp(+Q.get('s') + (+Q.get('p') || 0), 0, NST - 1); if (Q.get('fix') === '1') { FIX = s; P = s; } else requestAnimationFrame(() => { scrollTo(0, fromP(s)); P = s; }); } }
 if (document.fonts) ["13px 'M PLUS 1 Code'", "13px 'IBM Plex Sans JP'", "19px Michroma", "12px 'JetBrains Mono'"].forEach(f => document.fonts.load(f));
 window.__LP = { D, IM, ST, get P() { return P; }, render, work: b => work(b), get jobDone() { return jobDone; }, setP: v => { FIX = v; P = v; render(v); }, view };   // 検証用
 requestAnimationFrame(loop);
