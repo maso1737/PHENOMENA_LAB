@@ -407,7 +407,7 @@ function render(P) {
   keyNumber(); railLiveSet();
 }
 function loop(now) {
-  const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now;   // 最初の rAF は performance.now() より前の時刻のことがある（負の t を防ぐ） tSec += dt;
+  const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now; tSec += dt;   // 最初の rAF は performance.now() より前の時刻のことがある（負の t を防ぐ）
   const T = target(); P = RM ? T : P + (T - P) * Math.min(1, dt * 4.5); if (Math.abs(T - P) < 1e-4) P = T;
   render(P);
   requestAnimationFrame(loop);

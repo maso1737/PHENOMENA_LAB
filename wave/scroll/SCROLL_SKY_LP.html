@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>W4 SKY 空の色 解説 LP — PHENOMENA LAB</title>
+<link rel="stylesheet" href="../../_shell/shell.css">
+<style>
+  /* ★ アクセント＝アプリと同じ 3 変数だけ変える（スクリプトの ACC・ACCL も同じ値に）。下の CSS は 3 本の LP で共通・触らない */
+  :root { --accent: #25478F; --accent-ink: #FFFFFF; --accent-line: #9CB6E6; }
+  html, body { height: auto; overflow-x: hidden; overflow-y: auto; }
+  #track { position: relative; width: 1px; pointer-events: none; }
+  .ph-viewport { z-index: 1; }
+  #cv { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; }
+  .ab { position: absolute; }
+  .lay { position: absolute; inset: 0; pointer-events: none; transition: opacity .25s; opacity: 0; }
+  .lay.on { opacity: 1; }
+  .lay.on .hit { pointer-events: auto; }
+
+  /* ヘッダ */
+  .brand b { display: block; width: 300px; font: 400 22px/1.35 var(--f-wide); letter-spacing: .24em; color: var(--ink); }
+  .brand span { display: block; margin-top: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .2em; color: var(--accent-line); }
+  .ids { display: grid; grid-template-columns: 96px 1fr; row-gap: 6px; width: 340px; font-size: 11px; }
+  .ids dt { font-family: var(--f-thin); letter-spacing: .18em; color: var(--ink-2); }
+  .ids dd { margin: 0; font-family: var(--f-num); color: var(--ink); }
+  .tab { left: 1704px; top: 24px; width: 176px; height: 152px; background: var(--accent); color: var(--accent-ink); padding: 18px 18px 0; }
+  .tab .k { display: flex; justify-content: space-between; font: 600 13px/1 var(--f-thin); letter-spacing: .24em; }
+  .tab .n { font: 400 62px/1 var(--f-wide); margin-top: 12px; }
+  .tab .s { font: 400 12px/1 var(--f-num); margin-top: 10px; }
+  .noise { left: 1130px; top: 44px; font: 400 8.5px/13px var(--f-num); color: var(--ink); opacity: .2; white-space: pre; }
+  #bigTop { left: 1100px; top: 36px; width: 590px; text-align: right; font: 400 72px/1 var(--f-wide); color: var(--accent); opacity: .16; white-space: nowrap; }
+  #kanji { font: 500 300px/1 var(--f-jp); color: var(--accent); opacity: .12; white-space: nowrap; }
+  #kanji.num { font: 400 200px/1 var(--f-wide); }
+
+  /* 00 問い */
+  .band { left: 32px; top: 136px; width: 1316px; height: 330px; background: var(--accent); color: var(--accent-ink); padding: 34px 48px; }
+  .band .f { font: 600 13px/1 var(--f-thin); letter-spacing: .42em; }
+  .band h1 { margin: 26px 0 0; font: 400 128px/118px var(--f-wide); letter-spacing: -.01em; }
+  .q { left: 1376px; top: 190px; width: 480px; }
+  .q .k { font: 600 12px/1 var(--f-thin); letter-spacing: .3em; color: var(--accent-line); }
+  .q p { margin: 22px 0 0; font: 500 28px/1.55 var(--f-jp); color: var(--ink); }
+  .howto { left: 40px; top: 486px; width: 212px; }
+  .howto h3, .stl h3 { margin: 0; display: flex; align-items: center; gap: 10px; font: 400 15px/1 var(--f-wide); letter-spacing: .16em; color: var(--ink); }
+  .howto h3 i, .stl h3 i, .railk i { width: 10px; height: 10px; background: var(--accent); }
+  .howto .st { border-bottom: 1px solid var(--line-sub); padding: 18px 0 14px; }
+  .howto .st span { display: block; font: 600 10px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .howto .st b { font: 400 28px/1 var(--f-num); color: var(--ink); margin-right: 10px; }
+  .howto .st small { font: 400 12px/1 var(--f-jp); color: var(--ink-2); }
+  .hint { font: 600 11px/1 var(--f-thin); letter-spacing: .24em; color: var(--accent-line); }
+  .hint em, .nextk em { font-style: normal; display: inline-block; animation: bob 1.2s ease-in-out infinite; }
+  @keyframes bob { 0%, 100% { transform: translateY(-2px); } 50% { transform: translateY(3px); } }
+
+  /* 駅の一覧 */
+  .stl { left: 40px; top: 140px; width: 212px; }
+  .stl ol { list-style: none; margin: 16px 0 0; padding: 0; }
+  .stl li { display: flex; align-items: center; height: 45px; padding: 0 10px; border-bottom: 1px solid var(--line-sub); cursor: pointer; color: var(--ink-3); }
+  .stl li u { text-decoration: none; font: 400 12px/1 var(--f-num); width: 32px; }
+  .stl li b { font: 400 14px/1 var(--f-jp); flex: 1; }
+  .stl li s { text-decoration: none; font: 600 9px/1 var(--f-thin); letter-spacing: .14em; }
+  .stl li.done { color: var(--ink); }
+  .stl li.done s::before { content: '✓'; font-size: 11px; color: var(--ink-2); }
+  .stl li.done s { font-size: 0; }
+  .stl li.now { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .stl li.now b { font-weight: 500; }
+  .stl li.now s { font-size: 0; }
+  .stl li.now s::after { content: '◀ NOW'; font-size: 9px; }
+  .stl li:hover:not(.now) { color: var(--ink); background: rgba(232,230,223,.04); }
+  .read { margin-top: 26px; display: flex; justify-content: space-between; font: 600 10px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .read b { font: 400 12px/1 var(--f-num); color: var(--ink); }
+  .bar { margin-top: 8px; height: 5px; background: rgba(232,230,223,.1); }
+  .bar i { display: block; height: 100%; background: var(--accent); width: 0; }
+
+  /* 図の札 */
+  .figtag { left: 302px; top: 168px; height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: #0B0B0A; color: var(--ink); }
+  .figtag i { width: 10px; height: 10px; background: var(--accent); }
+  .figtag b { font: 400 15px/1 var(--f-wide); letter-spacing: .1em; }
+  .figtag span { font: 500 12px/1 var(--f-jp); }
+  .brkchip { left: 1166px; top: 168px; height: 30px; padding: 0 12px; display: flex; align-items: center; gap: 8px; background: #0B0B0A; color: var(--ink); font: 600 11px/1 var(--f-thin); letter-spacing: .2em; }
+  .brkchip b { font: 500 12px/1 var(--f-jp); letter-spacing: 0; }
+
+  /* 右の欄 */
+  .rc { left: 1360px; top: 158px; width: 520px; display: flex; flex-direction: column; }
+  .rc .hd { display: flex; align-items: baseline; gap: 22px; }
+  .rc .num { font: 400 82px/1 var(--f-wide); color: var(--accent-line); }
+  .rc .en { font: 600 12px/1 var(--f-thin); letter-spacing: .24em; color: var(--ink-2); }
+  .rc h2 { margin: 18px 0 0; font: 500 40px/1.38 var(--f-jp); color: var(--ink); letter-spacing: .02em; }
+  .rc .body { margin: 20px 0 0; font: 400 16px/1.78 var(--f-jp); color: var(--ink); padding-bottom: 20px; border-bottom: 1px solid var(--line-main); }
+  .rc .kl { margin-top: 20px; font: 600 10px/1 var(--f-thin); letter-spacing: .22em; color: var(--ink-2); }
+  .rc .kv { margin-top: 10px; display: flex; align-items: baseline; gap: 12px; }
+  .rc .kv b { font: 400 64px/1 var(--f-num); color: var(--accent-line); }
+  .rc .kv span { font: 400 18px/1 var(--f-num); color: var(--ink-2); }
+  .rc .kn { margin-top: 12px; font: 400 13px/1.6 var(--f-jp); color: var(--ink-2); }
+  .rc .kn sup { font-size: 9px; }
+  .rc .wow { margin-top: 18px; display: flex; gap: 12px; font: 400 14px/1.65 var(--f-jp); color: var(--ink); }
+  .rc .wow i { flex: none; font: 600 10px/1 var(--f-jp); background: var(--ink); color: #0B0B0A; padding: 5px 8px; height: 20px; margin-top: 2px; font-style: normal; }
+  .nextk { left: 1360px; top: 838px; width: 520px; display: flex; align-items: center; gap: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .24em; color: var(--ink-2); }
+  .nextk hr { flex: 1; border: 0; border-top: 1px solid var(--line-sub); margin: 0; }
+  .nextk span { font: 500 13px/1 var(--f-jp); letter-spacing: 0; color: var(--ink); }
+  .nextk span small { font-size: 12px; color: var(--ink-2); margin-right: 10px; }
+
+  /* 文字の入り方：左から（0.26〜0.34 秒） */
+  .in { clip-path: inset(0 100% 0 0); }
+  .go .in { animation: wipe .32s cubic-bezier(.2,.8,.2,1) forwards; animation-delay: calc(var(--d, 0) * 60ms); }
+  @keyframes wipe { from { clip-path: inset(0 100% 0 0); transform: translateX(-10px); } to { clip-path: inset(0 0 0 0); transform: none; } }
+
+  /* 09 持ち出す */
+  .endh { left: 284px; top: 160px; display: flex; align-items: baseline; gap: 26px; }
+  .endh b { font: 400 96px/1 var(--f-wide); color: var(--accent-line); }
+  .endh span { font: 400 32px/1 var(--f-wide); letter-spacing: .08em; color: var(--ink); }
+  .endh em { font: 500 22px/1 var(--f-jp); font-style: normal; color: var(--ink); }
+  .endn { left: 1300px; top: 230px; width: 580px; text-align: right; font: 600 11px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .cards { left: 280px; top: 272px; width: 1600px; height: 332px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .cards > div { border-left: 2px solid var(--accent); padding: 16px 16px; color: var(--ink); transition: background .2s, color .2s; }
+  .cards > div:hover { background: var(--accent); color: var(--accent-ink); }
+  .cards h4 { margin: 0; font: 400 15px/1 var(--f-wide); letter-spacing: .08em; }
+  .cards h4 u { text-decoration: none; font: 400 12px/1 var(--f-num); color: var(--accent-line); margin-right: 8px; }
+  .cards h4 small { font: 400 11px/1 var(--f-jp); color: var(--ink-2); margin-left: 8px; letter-spacing: 0; }
+  .cards > div:hover h4 u, .cards > div:hover h4 small { color: var(--accent-ink); }
+  .cards p { margin: 26px 0 0; font: 400 15px/1.85 var(--f-jp); }
+  .cards p em { display: block; margin-top: 12px; font: 400 11px/1.5 var(--f-num); font-style: normal; color: var(--ink-2); }
+  .cards > div:hover p em { color: var(--accent-ink); }
+  .cards > div { transform: translateY(16px); opacity: 0; transition: transform .4s cubic-bezier(.2,.8,.2,1), opacity .4s, background .2s, color .2s; }
+  .go .cards > div { transform: none; opacity: 1; }
+  .cta { left: 280px; top: 628px; width: 1254px; height: 200px; background: var(--accent); color: var(--accent-ink); padding: 44px 36px; display: block; text-decoration: none; }
+  .cta .k { font: 600 12px/1 var(--f-thin); letter-spacing: .32em; }
+  .cta b { display: block; margin-top: 18px; font: 400 58px/1 var(--f-wide); }
+  .cta b em { font-style: normal; display: inline-block; transition: transform .2s; }
+  .cta:hover b em { transform: translateX(10px); }
+  .cta span { display: block; margin-top: 16px; font: 500 16px/1 var(--f-jp); }
+  .ctaf { left: 1208px; top: 812px; font: 400 10px/1 var(--f-num); color: var(--accent-ink); }
+  .nextc { left: 1550px; top: 628px; width: 330px; height: 200px; border: 1px solid var(--line-main); padding: 26px; }
+  .nextc .k { font: 600 11px/1 var(--f-thin); letter-spacing: .26em; color: var(--ink-2); }
+  .nextc b { display: block; margin-top: 16px; font: 400 28px/1 var(--f-wide); color: var(--ink); }
+  .nextc p { margin: 14px 0 0; font: 400 14px/1.6 var(--f-jp); color: var(--ink); }
+  .nextc small { display: block; margin-top: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .14em; color: var(--ink-2); }
+
+  /* 式の線路 */
+  .railk { left: 40px; top: 882px; display: flex; align-items: center; gap: 12px; }
+  .railk i { width: 24px; height: 8px; }
+  .railk b { font: 400 15px/1 var(--f-wide); letter-spacing: .16em; color: var(--ink); }
+  .railk span { font: 400 12px/1 var(--f-jp); color: var(--ink-2); }
+  .rail { left: 40px; top: 912px; width: 1840px; height: 120px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .rb { border: 1px solid var(--line-sub); padding: 16px 16px; position: relative; color: var(--ink-3); transition: background .3s, color .3s, border-color .3s; }
+  .rb .rt { display: flex; justify-content: space-between; font: 600 11px/1 var(--f-thin); letter-spacing: .14em; }
+  .rb .rt b { font: 500 11px/1 var(--f-jp); letter-spacing: 0; margin-left: 4px; }
+  .rb .rt i { font-style: normal; }
+  .rb .rf { margin-top: 18px; font: 400 24px/1 var(--f-num); white-space: nowrap; }
+  .rb .rf sup { font-size: 13px; }
+  .rb .rd { margin-top: 14px; font: 400 12px/1.35 var(--f-jp); }
+  .rb .dots { display: none; margin-top: 18px; font: 400 18px/1 var(--f-num); letter-spacing: .9em; }
+  .rb.fut .rf { display: none; }
+  .rb.fut .dots { display: block; }
+  .rb.done { border-color: var(--line-main); color: var(--ink); }
+  .rb.done .rd { color: var(--ink-2); }
+  .rb.ref { border-color: var(--accent-line); color: var(--ink); }
+  .rb.ref .rt i, .rb.ref .rf { color: var(--accent-line); }
+  .rb.now { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); animation: grow .3s cubic-bezier(.2,.8,.2,1); transform-origin: left; }
+  @keyframes grow { from { transform: scaleX(.3); } to { transform: none; } }
+  .rb.lab { border: 1px dashed var(--accent-line); color: var(--accent-line); text-decoration: none; display: block; }
+  .rb.lab .rf { font: 400 25px/1 var(--f-wide); }
+  .rb.lab .rd { color: var(--ink); }
+  .rb.lab:hover, .rb.lab.now { background: var(--accent); color: var(--accent-ink); border-style: solid; }
+  .rb.lab:hover .rd, .rb.lab.now .rd { color: var(--accent-ink); }
+  .foot { left: 300px; top: 1050px; font: 400 9px/1 var(--f-num); letter-spacing: .14em; color: var(--ink-3); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .in, .go .in { clip-path: none; animation: none; }
+    .hint em, .nextk em { animation: none; }
+    .cards > div { transform: none; opacity: 1; transition: none; }
+    .rb.now { animation: none; }
+  }
+</style>
+</head>
+<body>
+<!-- ===== 差し替える所は「★」で探す。構造（外枠・駅の一覧・本文・式の線路・間合い）は触らない ===== -->
+<div class="ph-viewport"><div class="ph-shell" id="shell">
+  <div class="ph-grid"></div>
+  <div class="ab" id="kanji"></div>
+  <div class="ab" id="bigTop"></div>
+  <div class="ab noise" id="noise"></div>
+  <svg class="ab" id="frame" width="1920" height="1080" viewBox="0 0 1920 1080" aria-hidden="true" style="left:0;top:0;pointer-events:none"></svg>
+  <canvas id="cv"></canvas>
+
+  <!-- ヘッダ（全駅共通）★ OBS.No・DOC・FIELD・CARD -->
+  <div class="ab brand" style="left:48px;top:46px"><b>PHENOMENA LAB</b><span>WAVE SURVEY ARCHIVE · EXPLAINER</span></div>
+  <dl class="ab ids" style="left:392px;top:62px;margin:0"><dt>OBS.No</dt><dd>W-004-1787</dd><dt>DOC</dt><dd>SCROLL-SKY-LP</dd><dt>TIMESTAMP</dt><dd>2125-08-03T12:00:00Z</dd></dl>
+  <dl class="ab ids" style="left:760px;top:62px;margin:0"><dt>FIELD</dt><dd>WAVE</dd><dt>CARD</dt><dd>W4 / 22</dd><dt>STATION</dt><dd id="o_stn">00</dd></dl>
+  <div class="ab tab"><div class="k"><span>SCROLL</span><span>/</span></div><div class="n">W4</div><div class="s" id="o_tab">LP · 00</div></div>
+
+  <!-- 00 問い ★ 帯の英字・タイトル・問い・HOW TO READ の数 -->
+  <div class="lay" id="L0">
+    <div class="ab band"><div class="f in">W4 — WAVE · SKY COLOR · SCROLL EXPLAINER</div><h1 class="in" style="--d:1">SKY<br>COLOR</h1></div>
+    <div class="ab q"><div class="k in" style="--d:2">QUESTION</div><p class="in" style="--d:3">なぜ昼の空は青く、<br>夕方は赤く、<br>雲は白いのか。</p></div>
+    <div class="ab howto"><h3><i></i>HOW TO READ</h3>
+      <div class="st"><span>STATIONS</span><b id="o_nst">0</b><small>の駅</small></div>
+      <div class="st"><span>READING</span><b>≈ 6</b><small>分</small></div>
+      <div class="st"><span>FORMULAS</span><b id="o_nrail">0</b><small>本の式</small></div></div>
+    <div class="ab figtag" style="left:302px;top:504px"><i></i><b>LOOK</b><span>— 太陽を正面にした空</span></div>
+    <div class="ab hint" style="left:40px;top:842px">SCROLL <em>▼</em>　<span id="o_hint"></span></div>
+  </div>
+
+  <!-- 01〜最後：駅の一覧 -->
+  <div class="lay" id="LS">
+    <div class="ab stl hit"><h3><i></i>STATIONS <small style="font:400 12px var(--f-jp);color:var(--ink-2)">駅</small></h3><ol id="stl"></ol>
+      <div class="read"><span>READ</span><b id="o_read">01</b></div><div class="bar"><i id="o_bar"></i></div></div>
+  </div>
+
+  <!-- 01〜最後の 1 つ前：図と本文 -->
+  <div class="lay" id="L1">
+    <div class="ab figtag in" id="figtag"><i></i><b id="o_fig">FIG. 01</b><span id="o_figt"></span></div>
+    <div class="ab brkchip" id="brkchip" style="display:none">BREAK <b>現実の外</b></div>
+    <div class="ab rc" id="rc">
+      <div class="hd"><span class="num in" id="r_num">01</span><span class="en in" style="--d:1" id="r_en"></span></div>
+      <h2 class="in" style="--d:2" id="r_h"></h2>
+      <p class="body in" style="--d:3" id="r_body"></p>
+      <div class="kl in" style="--d:4" id="r_kl"></div>
+      <div class="kv in" style="--d:5"><b id="r_kv"></b><span id="r_ku"></span></div>
+      <div class="kn in" style="--d:6" id="r_kn"></div>
+      <div class="wow in" style="--d:7"><i>驚き</i><span id="r_wow"></span></div>
+    </div>
+    <div class="ab nextk">SCROLL <em>▼</em><hr><span><small>次の駅</small><b id="r_next"></b></span></div>
+  </div>
+
+  <!-- 最後：持ち出す ★ TRANSFER 5 枚はアプリの TRANSFER と同じ文・NEXT CARD -->
+  <div class="lay" id="LE">
+    <div class="ab endh"><b class="in" id="o_endn">09</b><span class="in" style="--d:1">TRANSFER</span><em class="in" style="--d:2">表現に持ち出す</em></div>
+    <div class="ab endn in" style="--d:3">NOTES FOR CG / ANIMATION · カードに触れると色が変わる</div>
+    <div class="ab cards hit">
+      <div style="transition-delay:0ms"><h4><u>01</u>LOOK RULES<small>絵の決まり</small></h4><p>天頂ほど濃い青、地平線ほど白い。遠い山ほど青く明るく空に溶ける。夕方は太陽の近くから黄 → 橙 → 赤、反対側の空は青いまま。</p></div>
+      <div style="transition-delay:60ms"><h4><u>02</u>CG</h4><p>空は 1 色の背景ではなく、太陽の高さと見る向きで決まる場。フォグの色＝地平の空の色、遠景は距離の指数で空の色へ。雲は「その時の太陽の光の色」で照らす。</p></div>
+      <div style="transition-delay:120ms"><h4><u>03</u>GEN CHECK<small>嘘の見つけ方</small></h4><p>天頂と地平が同じ青／遠景が近景より濃い／夕方なのに雲の明るい側が白い、なら嘘。<em>sky gradient / aerial perspective / sunset cloud tint</em></p></div>
+      <div style="transition-delay:180ms"><h4><u>04</u>BREAK<small>わざと外す</small></h4><p>散り方を逆にする（赤ほど散る）と、空は赤く、夕日は青くなる。異星の空を作るときの入口。</p></div>
+      <div style="transition-delay:240ms"><h4><u>05</u>FIELD NOTE<small>宿題</small></h4><p>晴れた日、天頂・地平線・太陽と反対側の空を同じ設定で撮って並べる。夕方にもう一度撮り、どこの色が先に変わるか記録する。</p></div>
+    </div>
+    <a class="ab cta hit in" style="--d:4" id="cta" href="#"><span class="k" style="margin:0">END OF SCROLL · 終点</span><b>OPEN THE LAB <em>→</em></b><span>太陽の高さと粒の大きさで、空の色を作る</span></a>
+    <canvas class="ab" id="tc" width="600" height="300" style="left:1198px;top:652px;width:300px;height:150px"></canvas>
+    <div class="ab ctaf" id="ctaf"></div>
+    <a class="ab nextc hit in" style="--d:5" href="../relight_poster.html#light=SKY&sun=25"><div class="k">NEXT CARD</div><b>RELIGHT POSTER · 空の下</b><p>この空の光で、ポスターカラーの絵を照らす。日なたと日陰。</p><small>OPEN · 実装済み</small></a>
+  </div>
+
+  <!-- 式の線路（全駅共通） -->
+  <div class="ab railk"><i></i><b>FORMULA RAIL</b><span id="o_railk">— 式の線路 · 駅を通るたびに式が入線する · アプリと同じ式（ph_w4_law.js）</span></div>
+  <div class="ab rail hit" id="rail" style="pointer-events:auto"></div>
+  <div class="ab foot" id="foot"></div>
+</div></div>
+<div id="track"></div>
+
+<script src="../../_shell/shell.js"></script>
+<script src="../_law/ph_color.js"></script>
+<script src="../_law/ph_w4_law.js"></script>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+/* 法則：アプリと同じ ph_w4_law.js（PH_W4）と ph_color.js。図の数・KEY NUMBER・本文の数はここから計算する */
+const L = PH_W4, CO = PH_COLOR, NL = L.NL;
+/* 窓の色＝アプリの窓（白い紙・墨・目盛りの青）。ACC＝--accent・ACCL＝--accent-line */
+const C = { paper: '#F3F1EA', ink: '#24303C', dim: '#69727D', faint: '#9AA1A9', rule: 'rgba(36,48,60,.22)', blue: '#25478F', sky: '#3D74C4', sun: '#E8A03A', red: '#B0392B', ground: '#1C2420' };
+const ACC = '#25478F', ACCL = '#9CB6E6';
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const LAB = '../04_sky.html';
+const DOC = 'ARCHIVE/EARTH/WAVE/W4/1787/LP';
+
+/* ---- 画面の色：アプリと同じ（白＝その日の正午 60° に地面へ届く太陽の光・露出は空の明るさで合わせる） ---- */
+const REF_AZ = 90, REF_EL = 25, I450 = L.LS.indexOf(450), I550 = L.LS.indexOf(550), I700 = L.LS.indexOf(700);
+const b1 = new Float64Array(NL), b2 = new Float64Array(NL);
+const Y_NOON = L.xyz(L.skyAt(L.setup(60, L.R_MIN), REF_AZ, REF_EL, b1)).Y;
+const tone = v => 1 - Math.exp(-1.7 * Math.max(0, v));
+const wbOf = (r, brk) => { const x = L.xyz(L.setup(60, r, brk).sun); return [0.9505 * x.Y / x.X, 1, 1.089 * x.Y / x.Z]; };
+const ENV = new Map();
+function env(alt, r, brk, noO3) {   // その条件の「設定・露出・白」
+  const key = alt + '|' + r + '|' + (brk ? 1 : 0) + '|' + (noO3 ? 1 : 0); let e = ENV.get(key); if (e) return e;
+  const St = L.setup(alt, r, brk, noO3 ? { noO3: true } : null), WB = wbOf(r, brk), yref = L.xyz(L.skyAt(St, REF_AZ, REF_EL, b1)).Y;
+  e = { St, WB, k: 0.42 / (Math.pow(yref, 0.8) * Math.pow(Y_NOON, 0.2)) }; if (ENV.size > 400) ENV.clear(); ENV.set(key, e); return e;
+}
+function rgbOf(spec, e) { const x = L.xyz(spec), l = CO.toLin({ X: x.X * e.k * e.WB[0], Y: x.Y * e.k, Z: x.Z * e.k * e.WB[2] }); return l.map(v => CO.gamma(tone(v))); }
+const css = rgb => 'rgb(' + rgb.map(v => Math.round(clamp(v) * 255)).join(',') + ')';
+const skyRGB = (e, az, el) => rgbOf(L.skyAt(e.St, az, el, b1), e);
+const sunRGB = e => { const x = L.xyz(e.St.sun); return CO.lightColor({ X: x.X * e.WB[0], Y: x.Y, Z: x.Z * e.WB[2] }).rgb; };
+const zenith = e => skyRGB(e, 180, 89.5);
+const cyN = rgb => L.cyanometer(rgb).n;
+/* 空の絵（太陽を正面に・方位 ±span・高さ 0〜top）。条件ごとに 1 回だけ計算して取っておく */
+const PANO = new Map();
+function pano(alt, r, brk, o) {
+  o = o || {}; const cols = o.cols || 120, rows = o.rows || 40, span = o.span || 100, top = o.top || 60, key = [alt, r, brk ? 1 : 0, o.noO3 ? 1 : 0, cols, rows, span, top].join('|');
+  let c = PANO.get(key); if (c) return c;
+  const e = env(alt, r, brk, o.noO3); c = document.createElement('canvas'); c.width = cols; c.height = rows; const g = c.getContext('2d'), id = g.createImageData(cols, rows);
+  for (let j = 0; j < rows; j++) { const el = top * (1 - (j + 0.5) / rows); for (let i = 0; i < cols; i++) { const rgb = skyRGB(e, -span + (i + 0.5) / cols * 2 * span, Math.max(0.3, el)), p = (j * cols + i) * 4; id.data[p] = rgb[0] * 255; id.data[p + 1] = rgb[1] * 255; id.data[p + 2] = rgb[2] * 255; id.data[p + 3] = 255; } }
+  g.putImageData(id, 0, 0); if (PANO.size > 160) PANO.delete(PANO.keys().next().value); PANO.set(key, c); return c;
+}
+const MTN = [{ d: 90, h: 0.9, f: 0.021, s: 11 }, { d: 35, h: 1.6, f: 0.034, s: 23 }, { d: 12, h: 2.6, f: 0.05, s: 37 }, { d: 3, h: 3.6, f: 0.08, s: 51 }];
+const ridge = (az, m) => { let v = 0; for (let k = 1; k <= 4; k++) v += Math.sin(az * m.f * k * 1.7 + m.s * k) / k; return m.h * (0.65 + 0.35 * v); };
+function mtnCol(e, az, d) { const cosS = Math.sin(e.St.alt * Math.PI / 180), hor = L.skyAt(e.St, az, 0.6, b2).slice(), obj = e.St.sun.map((v, i) => v * 0.05 / Math.PI * cosS + hor[i] * 0.04); return css(rgbOf(L.aerial(e.St, obj, hor, d, new Float64Array(NL)), e)); }
+/* 空の絵を枠に描く：空・太陽・山（遠い順に地平の空へ溶ける） */
+function drawSky(x, y, w, h, alt, r, brk, o) {
+  o = o || {}; const span = o.span || 100, top = o.top || 60, e = env(alt, r, brk, o.noO3), horY = y + h * (o.hor || 0.86), ppd = (horY - y) / top;
+  ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); ctx.imageSmoothingEnabled = true; ctx.drawImage(pano(alt, r, brk, o), x, y, w, horY - y);
+  if (alt <= top) { const sx = x + w / 2, sy = horY - alt * ppd, gl = ctx.createRadialGradient(sx, sy, 4, sx, sy, 46); gl.addColorStop(0, 'rgba(255,255,255,.5)'); gl.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(sx, sy, 46, 0, 7); ctx.fill(); ctx.fillStyle = css(sunRGB(e)); ctx.beginPath(); ctx.arc(sx, sy, 9, 0, 7); ctx.fill(); }
+  if (!o.noMtn) MTN.forEach((m, q) => { const gr = ctx.createLinearGradient(x, 0, x + w, 0); for (let k2 = 0; k2 <= 4; k2++) gr.addColorStop(k2 / 4, mtnCol(e, -span + k2 / 4 * 2 * span, m.d)); ctx.fillStyle = gr; ctx.beginPath(); ctx.moveTo(x, y + h); for (let xx = x; xx <= x + w; xx += 4) { const az = -span + (xx - x) / w * 2 * span; ctx.lineTo(xx, horY - ridge(az, m) * ppd * 2.2 + q * 6); } ctx.lineTo(x + w, y + h); ctx.closePath(); ctx.fill(); });
+  ctx.restore(); ctx.strokeStyle = C.rule; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+  return e;
+}
+/* 波長のグラフ（横 380〜750 nm・縦は山を 1 に） */
+function chart(x, y, w, h, title) {
+  const X = l => x + (l - 380) / 370 * w, Y = v => y + h - v * h;
+  ctx.strokeStyle = 'rgba(36,48,60,.10)'; ctx.lineWidth = 1; for (let l = 400; l <= 750; l += 50) { ctx.beginPath(); ctx.moveTo(X(l), y); ctx.lineTo(X(l), y + h); ctx.stroke(); }
+  ctx.strokeStyle = C.ink; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + h); ctx.lineTo(x + w, y + h); ctx.stroke();
+  for (let l = 380; l < 750; l += 5) { ctx.fillStyle = css(CO.lightColor(L.xyz(L.LS.map(v => v === l ? 1 : 0))).rgb); ctx.fillRect(X(l), y + h + 3, X(l + 5) - X(l) + 0.5, 6); }
+  for (let l = 400; l <= 750; l += 50) txt(String(l), X(l), y + h + 24, { f: mono(10), a: 'center', c: C.dim });
+  if (title) txt(title, x, y - 10, { f: note(12.5) });
+  return { X, Y };
+}
+function curve(arr, X, Y, col, lw, o) {
+  o = o || {}; const m = o.max || Math.max(...arr, 1e-12); ctx.beginPath(); L.LS.forEach((l, i) => { const xx = X(l), yy = Y(Math.min(1.05, arr[i] / m)); i ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); });
+  if (o.fill) { ctx.lineTo(X(750), Y(0)); ctx.lineTo(X(380), Y(0)); ctx.closePath(); ctx.fillStyle = o.fill; ctx.fill(); return; }
+  ctx.setLineDash(o.dash || []); ctx.strokeStyle = col; ctx.lineWidth = lw || 2; ctx.lineJoin = 'round'; ctx.stroke(); ctx.setLineDash([]);
+}
+function sw(x, y, w, h, rgb, lab, sub) { ctx.fillStyle = css(rgb); ctx.fillRect(x, y, w, h); ctx.strokeStyle = C.rule; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1); if (lab) txt(lab, x, y + h + 18, { f: note(12.5) }); if (sub) txt(sub, x, y + h + 35, { f: mono(11), c: C.dim }); }
+function cyRing(cx, cy, R1, R0, n) {   // シアノメーターの輪（アプリと同じ目盛り）と、いまの番号
+  for (let q = 0; q < L.CYAN_N; q++) { const a0 = -Math.PI / 2 + q / L.CYAN_N * Math.PI * 2, a1 = a0 + Math.PI * 2 / L.CYAN_N + 0.004; ctx.fillStyle = L.cyanHex(q); ctx.beginPath(); ctx.arc(cx, cy, R1, a0, a1); ctx.arc(cx, cy, R0, a1, a0, true); ctx.closePath(); ctx.fill(); }
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, R1, 0, 7); ctx.stroke(); ctx.beginPath(); ctx.arc(cx, cy, R0, 0, 7); ctx.stroke();
+  if (n != null) { const a = -Math.PI / 2 + (n + 0.5) / L.CYAN_N * Math.PI * 2; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * (R0 - 4), cy + Math.sin(a) * (R0 - 4)); ctx.lineTo(cx + Math.cos(a) * (R1 + 4), cy + Math.sin(a) * (R1 + 4)); ctx.stroke();
+    ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * (R1 + 22), cy + Math.sin(a) * (R1 + 22), 13, 0, 7); ctx.fill(); txt(String(n), cx + Math.cos(a) * (R1 + 22), cy + Math.sin(a) * (R1 + 22) + 4, { a: 'center', f: mono(11, 700), c: C.paper }); }
+}
+const logR = u => Math.exp(Math.log(L.R_MIN) + u * (Math.log(L.R_MAX) - Math.log(L.R_MIN)));
+const fmtR = r => r < 0.1 ? (r * 1000).toFixed(r < 0.001 ? 1 : 0) + ' nm' : (r < 1 ? r.toFixed(2) : r.toFixed(1)) + ' µm';
+const q5 = v => Math.round(v * 2) / 2;   // 太陽の高さは 0.5° 刻み（空の絵を取っておくため）
+
+/* 法則から出す数（本文・KEY NUMBER 用） */
+const N = {
+  br: L.blueRed(),
+  zen60: cyN(zenith(env(60, L.R_MIN, false))),
+  am0: L.airmass(0),
+  blueLeft: alt => { const S2 = env(alt, L.R_MIN, false).St; return S2.sun[I450] / S2.Es[I450] * 100; },
+  redLeft: alt => { const S2 = env(alt, L.R_MIN, false).St; return S2.sun[I700] / S2.Es[I700] * 100; },
+  horN: cyN(skyRGB(env(60, L.R_MIN, false), 180, 1)),
+  half550: (() => { const S2 = env(25, L.R_MIN, false).St; return Math.log(2) / (S2.tr[I550] / 8 + S2.tp[I550] / 1.5); })(),
+  zenO3: alt => cyN(zenith(env(alt, L.R_MIN, false))), zenNoO3: alt => cyN(zenith(env(alt, L.R_MIN, false, true))),
+};
+
+/* ================= 駅の中身 ================= */
+const ST = [
+  { name: '問い', en: '', big: '1/λ⁴', kanji: '空', lab: '', noise: '1123 > SCROLL-SKY LOAD 11 STATIONS OK\nLAW ph_w4_law.js · ph_color.js\nLINK 04_sky.html ACK' },
+  { name: '散る', en: 'SCATTER', big: 'λ⁻⁴', kanji: '散', lab: '#alt=60', fig: 'FIG. 01', figt: '— 空気の分子は、短い波長ほど強く散らす',
+    num: '01', ren: 'RAYLEIGH · 青ほど散る', h: '空気は、<br>青い光ほど横へ散らす。', body: '太陽の光は全部の色の束。空気の分子は光の波長よりずっと小さく、当たった光を四方へ散らす。散る強さは波長の 4 乗に反比例するので、短い青ほど強く散る。',
+    kl: 'KEY NUMBER · 青 450 nm は 赤 700 nm の何倍散るか', kv: () => N.br, kf: 2, kp: '× ', ku: '', kn: '(700 ÷ 450)⁴ ≒ 5.85 に、空気の屈折の補正が少し乗る（Hansen & Travis の式）', wow: '散り方の差は、波長の差よりずっと大きい。波長は 1.6 倍しか違わないのに、散り方は 6 倍違う。', next: '02 空が青い',
+    noise: '1123 > STATION 01 SCATTER · RAYLEIGH\nTAU = 0.008569 L^-4 (1+0.0113 L^-2+...)\nBLUE/RED 6.06' },
+  { name: '空が青い', en: 'BLUE SKY', big: 'E · τ', kanji: '青', lab: '#alt=60', fig: 'FIG. 02', figt: '— 太陽の光 × 散り方 ＝ 空の光',
+    num: '02', ren: 'SKYLIGHT · 空の光', h: '空の色は、<br>横へ散った光の色。', body: '空を見上げて目に入るのは、太陽から来て途中で横へ散った光。だから空の光は「太陽の光 × 散り方」の形になり、青い側が持ち上がる。',
+    kl: 'KEY NUMBER · 正午（太陽 60°）の天頂の青さ', kv: () => N.zen60, kf: 0, kp: 'No. ', ku: '', kn: 'シアノメーター（ソシュールの青さの目盛り 0〜52）でいちばん近い番号。目盛りの色は目安', wow: '紫の方がもっと散るのに、空は紫ではない。太陽の光に紫が少なく、目も紫には鈍いから。', next: '03 通る空気',
+    noise: '1123 > STATION 02 BLUE SKY · SINGLE SCATTER\nL = E (tR PR + tp Pp) / 4 pi tau ...\nZENITH CYANOMETER ' + N.zen60 },
+  { name: '通る空気', en: 'AIR MASS', big: '×38', kanji: '厚', lab: '#alt=6', fig: 'FIG. 03', figt: '— 太陽が低いほど、光は長く空気を通る',
+    num: '03', ren: 'AIR MASS · 空気の量', h: '太陽が低いと、<br>光は空気を長く通る。', body: '真上の太陽の光が通る空気を 1 とすると、太陽が低くなるほど斜めに長く通る。地平線では、丸い地球の縁をかすめて約 38 倍になる。',
+    kl: 'KEY NUMBER · 地平線（0°）の空気の量', kv: () => N.am0, kf: 1, kp: '× ', ku: '', kn: () => '真上 ×1.0 ・ 30° ×' + num(L.airmass(30), 1) + ' ・ 10° ×' + num(L.airmass(10), 1) + '（Kasten & Young 1989）', wow: '平らな地面なら 1 ÷ sin(高さ) で、地平線では無限大になる。38 で止まるのは地球が丸いから。', next: '04 夕日',
+    noise: '1123 > STATION 03 AIR MASS · KASTEN-YOUNG\nm = 1 / (sin h + 0.50572 (h+6.08)^-1.636)\nHORIZON 37.9' },
+  { name: '夕日', en: 'PROOF', big: 'e⁻τᵐ', kanji: '夕', lab: '#alt=6&proof=1', fig: 'FIG. 04', figt: '— PROOF · 光を 1 本、大気の外から目まで追う',
+    num: '04', ren: 'PROOF · 残った光が太陽の色', h: '夕日が赤いのは、<br>青が途中で抜けたから。', body: '太陽の光を 1 本、大気に入ってから目に届くまで追う。進むたびに青が横へ散って抜け、残った光が目に届く。通る空気が長い夕方ほど、残るのは赤い側だけになる。',
+    kl: 'KEY NUMBER · 太陽 10° で目に届く青 450 nm', kv: () => N.blueLeft(10), kf: 1, ku: '%', kn: () => '赤 700 nm は ' + num(N.redLeft(10), 0) + '% 残る。正午（60°）なら青 ' + num(N.blueLeft(60), 0) + '%・赤 ' + num(N.redLeft(60), 0) + '%、日の入り（0.5°）は青ほぼ 0・赤 ' + num(N.redLeft(0.5), 0) + '%（大気の外を 100%）', wow: '夕日の空が赤いのも、同じ光。赤く残った光が、雲や空気に当たって散っている。', next: '05 地平は白い',
+    noise: '1123 > STATION 04 PROOF · TRANSMISSION\nE = E0 exp(-tau m) · O3 CHAPPUIS\nSTEP 1 ENTER · 2 SCATTER · 3 ARRIVE' },
+  { name: '地平は白い', en: 'HORIZON', big: 'WHITE', kanji: '白', lab: '#alt=60', fig: 'FIG. 05', figt: '— 天頂から地平線へ · 同じ空でも色が違う',
+    num: '05', ren: 'HORIZON · 長く通ると白に戻る', h: '地平線の空は、<br>天頂より白い。', body: '地平線の方を見ると、目に届くまでに空気を長く通る。青は途中で何度も散らされ、赤や黄も少しずつ散って足し合わさる。長く通るほど色の差がならされ、白に近づく。',
+    kl: 'KEY NUMBER · 正午の地平線（高さ 1°）の青さ', kv: () => N.horN, kf: 0, kp: 'No. ', ku: '', kn: () => '天頂は No. ' + N.zen60 + '。番号が小さいほど白い（太陽と反対側の空で見た）', wow: '空気は透明なのに、厚く重なると白く光る。霞んだ遠景が白っぽいのと同じ理由。', next: '06 遠い山',
+    noise: '1123 > STATION 05 HORIZON · LONG PATH\nEL 90 → 1 · CYANOMETER ' + N.zen60 + ' → ' + N.horN + '\nSATURATION OF SCATTER' },
+  { name: '遠い山', en: 'AERIAL', big: 'e⁻ᵝᵈ', kanji: '遠', lab: '#alt=25', fig: 'FIG. 06', figt: '— 遠い山ほど、地平の空の色に溶ける',
+    num: '06', ren: 'AERIAL PERSPECTIVE · 空気遠近', h: '遠い山ほど、<br>青く明るく空に溶ける。', body: '山と目の間の空気も、空と同じように光る。山の光は距離とともに減り、代わりに途中の空気が散らした地平の空の光が足される。だから遠いほど山は空の色に近づく。',
+    kl: 'KEY NUMBER · 山の光が半分になる距離（緑 550 nm）', kv: () => N.half550, kf: 1, ku: 'km', kn: '地面の近くの空気と粒で計算した目安（空気の厚みを 8 km・粒を 1.5 km に割り振った）', wow: '青は遠いほど速く消えるのに、遠い山は青く見える。山の光が消えた分を、空の青が埋めるから。', next: '07 粒の大きさ',
+    noise: '1123 > STATION 06 AERIAL · T = exp(-beta d)\nD 3 · 12 · 35 · 90 KM\nHALF ' + num(N.half550, 1) + ' KM @550' },
+  { name: '粒の大きさ', en: 'STATE', big: 'α', kanji: '粒', lab: '#alt=60&r=0.13', fig: 'FIG. 07', figt: '— 粒が波長より大きくなると、色によらず散る',
+    num: '07', ren: 'STATE · BLUE / MILKY / WHITE', h: '粒が大きくなると、<br>空は白くなる。', body: '霞・煙・雲の粒は、空気の分子よりずっと大きい。粒が波長より大きくなると、青も赤も同じように散るので、散った光は白い。雲が白いのも同じ理由。▼ は結果で、動かしているのは粒の大きさ（原因）。',
+    kl: 'KEY NUMBER · BLUE と MILKY の境の粒の大きさ', kv: () => L.R_BLUE * 1000, kf: 0, ku: 'nm', kn: () => 'MILKY と WHITE の境は ' + num(L.R_WHITE * 1000, 0) + ' nm。散り方の傾き α（4＝空気と同じ・0＝色によらない）を、粒の大きさから目安の式で出した', wow: '見える光の波長（380〜750 nm）より小さい粒でも、もう白っぽくなり始める。', next: '08 オゾン',
+    noise: '1123 > STATION 07 STATE · ANGSTROM\nALPHA = 4 / (1 + (r/0.1um)^1.5)\nBLUE ≥ 2.5 · MILKY · WHITE < 0.8' },
+  { name: 'オゾン', en: 'OZONE', big: 'O₃', kanji: '層', lab: '#alt=0.5', fig: 'FIG. 08', figt: '— 日が沈んでも、天頂が青いまま残る理由',
+    num: '08', ren: 'CHAPPUIS · オゾンの吸収', h: '日の入りの天頂が青いのは、<br>オゾンのおかげ。', body: '空の上の方（高さ 20 km あたり）のオゾンは、橙〜黄の光（600 nm 付近）を少し吸う。夕方、天頂に届く光は斜めにオゾン層を長く通るので、橙が抜けて青が残る。',
+    kl: 'KEY NUMBER · 日の入り（0.5°）の天頂の青さ（オゾンあり）', kv: () => N.zenO3(0.5), kf: 0, kp: 'No. ', ku: '', kn: () => 'オゾンを抜くと No. ' + N.zenNoO3(0.5) + '。吸収の帯の形は目安（量は 300 DU）', wow: '夕方の空の青は、散った光だけでは説明できない。散り方の法則だけだと、天頂は灰色の黄に寄る。', next: '09 BREAK',
+    noise: '1123 > STATION 08 OZONE · CHAPPUIS BAND\n300 DU · TAU 0.042 @602\nKOMHYR MASS · SUN BEAM ONLY' },
+  { name: '外す', en: 'BREAK', big: 'λ⁺⁴', kanji: '逆', lab: '#alt=6&brk=1', fig: 'FIG. 09', figt: '— BREAK · 赤ほど散る世界', brk: true,
+    num: '09', ren: 'BREAK · 散り方を逆に', h: '赤ほど散る世界では、<br>夕日が青い。', body: '散り方を逆にして、波長の 4 乗に比例させる（赤ほど強く散る）。空は赤い光で満ち、通り抜けた光は青い側だけが残る。昼の空は黄土色、夕日は青になる。',
+    kl: 'KEY NUMBER · BREAK で赤 700 nm は青 450 nm の何倍散るか', kv: () => N.br, kf: 2, kp: '× ', ku: '', kn: '本物の逆数。現実には無い（異星の空を作るときの入口）', wow: '夕日の色は「散らなかった側の色」。空の色と夕日の色は、いつも反対側にある。', next: '10 持ち出す',
+    noise: '1123 > STATION 09 BREAK · OUT OF REALITY\nTAU ∝ L^+4 · PARTICLE ALPHA FLIPPED\nSUNSET → BLUE' },
+  { name: '持ち出す', en: 'TRANSFER', big: '→ LAB', kanji: '渡', lab: '', noise: '1123 > STATION 10 TRANSFER · 5 NOTES\nRAIL COMPLETE 5/5 · LAB LINK READY\nNEXT RELIGHT POSTER · SKY' },
+];
+const RAIL = [
+  { k: '① SCATTER', ja: '散る', f: 'τ ∝ λ<sup>−4</sup>', d: '空気の散り方は、波長の 4 乗に反比例', at: 1 },
+  { k: '② SKY', ja: '空の光', f: 'L ∝ E · τ · P(Θ)', d: '空の光 ＝ 太陽の光 × 散り方 × 向き', at: 2 },
+  { k: '③ AIR MASS', ja: '空気の量', f: 'm ≒ 1 / sin h', d: '太陽の高さ h で、通る空気が増える（地平線で 38）', at: 3 },
+  { k: '④ PASS', ja: '通り抜け', f: 'E = E<sub>0</sub> e<sup>−τm</sup>', d: '通り抜けた光 ＝ 大気の外の光 × e^(−厚み × 量)', at: 4 },
+  { k: '⑤ FAR', ja: '遠さ', f: 'T = e<sup>−βd</sup>', d: '距離 d で、物の光は減り、空の光に置き換わる', at: 6 },
+];
+const REF = { 5: [2, 3], 7: [1, 2], 8: [4], 9: [1, 4] };
+const LEN = [1.6, 2.8, 3, 2.6, 3.4, 2.6, 2.6, 3, 2.6, 2.8, 1.4];
+const STEPPED = {};
+
+/* ================= 描く道具（そのまま使う） ================= */
+const NST = ST.length, LAST = NST - 1, NR = RAIL.length, pad = n => String(n).padStart(2, '0');
+const cv = $('cv'), ctx = cv.getContext('2d');
+let SC = 1;
+function resize() { SC = Math.min(2, (PHShell.scale || 1) * (window.devicePixelRatio || 1)); cv.width = Math.round(1920 * SC); cv.height = Math.round(1080 * SC); }
+const mono = (px, w) => (w || 400) + ' ' + px + 'px "JetBrains Mono",monospace', note = px => px + 'px "M PLUS 1 Code","IBM Plex Sans JP",monospace', jp = (px, w) => (w || 400) + ' ' + px + 'px "IBM Plex Sans JP",sans-serif';
+function clamp(v, a = 0, b = 1) { return Math.max(a, Math.min(b, v)); }
+const ease = v => { v = clamp(v); return v * v * (3 - 2 * v); }, eo = v => 1 - Math.pow(1 - clamp(v), 3);
+function num(v, d) { return v == null ? '—' : (+v).toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+function txt(s, x, y, o) { o = o || {}; ctx.font = o.f || note(12); ctx.fillStyle = o.c || C.ink; ctx.textAlign = o.a || 'left'; ctx.textBaseline = o.b || 'alphabetic'; if (o.bg) { const w = ctx.measureText(s).width, x0 = o.a === 'center' ? x - w / 2 : o.a === 'right' ? x - w : x; ctx.save(); ctx.fillStyle = o.bg; ctx.fillRect(x0 - 3, y - 13, w + 6, 17); ctx.restore(); ctx.fillStyle = o.c || C.ink; } ctx.fillText(s, x, y); }
+function arrow(x0, y0, x1, y1, col, w) {
+  const a = Math.atan2(y1 - y0, x1 - x0), L2 = Math.hypot(x1 - x0, y1 - y0); if (L2 < 3) return;
+  ctx.strokeStyle = ctx.fillStyle = col; ctx.lineWidth = w || 2.5; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1 - Math.cos(a) * 9, y1 - Math.sin(a) * 9); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x1 - Math.cos(a) * 13 + Math.sin(a) * 6, y1 - Math.sin(a) * 13 - Math.cos(a) * 6); ctx.lineTo(x1 - Math.cos(a) * 13 - Math.sin(a) * 6, y1 - Math.sin(a) * 13 + Math.cos(a) * 6); ctx.closePath(); ctx.fill();
+}
+const bob = (t, f, a) => RM ? 0 : Math.sin(t * Math.PI * 2 * (f || 0.9)) * (a || 4);   // 矢印の上下のゆれ
+function plate(x, y, w, h, dashed) {   // 図の紙（四隅のトンボ・BREAK は外に破線）
+  ctx.fillStyle = C.paper; ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath();
+  for (const [bx, by, sx, sy] of [[x + 10, y + 10, 1, 1], [x + w - 10, y + 10, -1, 1], [x + 10, y + h - 10, 1, -1], [x + w - 10, y + h - 10, -1, -1]]) { ctx.moveTo(bx + sx * 20, by); ctx.lineTo(bx, by); ctx.lineTo(bx, by + sy * 20); }
+  ctx.stroke();
+  if (dashed) { ctx.strokeStyle = '#E8E6DF'; ctx.setLineDash([6, 5]); ctx.lineWidth = 2; ctx.strokeRect(x - 7, y - 7, w + 14, h + 14); ctx.setLineDash([]); }
+}
+
+/* ================= 駅ごとの図 =================
+   FIG[i](a, t)：a＝駅の中の進み（余韻と加速減速はかかっている）・t＝秒。図は PL の中。 */
+const PL = { x: 280, y: 150, w: 1040, h: 706 };
+let railLive = '';
+const FIG = [];
+// 00 問い：太陽を正面にした空が、ゆっくり 1 日を回る（60° ⇄ 1°）
+FIG[0] = (a, t) => {
+  const x = 280, y = 486, w = 1600, h = 370; plate(x, y, w, h);
+  const alt = RM ? 25 : q5(1 + 59 * (0.5 + 0.5 * Math.cos(t * Math.PI * 2 / 24)));
+  drawSky(x + 14, y + 14, w - 28, h - 56, alt, L.R_MIN, false, { cols: 160, rows: 34, span: 110, top: 50, hor: 0.84 });
+  txt('LOOK — 太陽を正面にした空 · 太陽 ' + alt.toFixed(1) + '° · 通る空気 ×' + num(L.airmass(alt), 1) + '（W4 SKY の法則で計算）', x + 18, y + h - 16, { f: note(12) });
+};
+// 01 散る：散り方の曲線。印が 700 → 400 nm へ動き、700 nm の何倍かを出す
+FIG[1] = (a, t) => {
+  const { x, y, w, h } = PL, lm = Math.round(700 - 300 * a), c = chart(x + 70, y + 150, 900, 360, '散る強さ τ（空気だけ・700 nm を 1 にした）'), t700 = L.tauRay(700), mx = L.tauRay(400) / t700;
+  const Yt = v => c.Y(v / mx);
+  ctx.beginPath(); for (let l = 380; l <= 750; l += 2) { const yy = Yt(L.tauRay(l) / t700); l === 380 ? ctx.moveTo(c.X(l), yy) : ctx.lineTo(c.X(l), yy); } ctx.strokeStyle = C.blue; ctx.lineWidth = 3; ctx.stroke();
+  for (const v of [1, 2, 4, 6, 8]) { txt('×' + v, x + 60, Yt(v) + 4, { f: mono(10), a: 'right', c: C.dim }); ctx.strokeStyle = 'rgba(36,48,60,.08)'; ctx.beginPath(); ctx.moveTo(c.X(380), Yt(v)); ctx.lineTo(c.X(750), Yt(v)); ctx.stroke(); }
+  const v = L.tauRay(lm) / t700, px = c.X(lm), py = Yt(v); ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(px, py, 6, 0, 7); ctx.fill();
+  arrow(px, py - 56 + bob(t, 0.9, 4), px, py - 12, C.ink, 2);
+  txt(lm + ' nm は 700 nm の ×' + v.toFixed(2), px + (lm > 520 ? -12 : 12), py - 64, { f: mono(14, 600), a: lm > 520 ? 'right' : 'left' });
+  // 束の絵：同じ量の光が来て、横へ散る量
+  const bx = x + 70, by = y + 600; txt('同じ強さの光 → 横へ散る量（線の長さ）', bx, by - 26, { f: note(12.5) });
+  [[450, '青 450'], [550, '緑 550'], [700, '赤 700']].forEach(([l, nm], i) => { const xx = bx + i * 300, len = L.tauRay(l) / L.tauRay(450) * 200, col = css(CO.lightColor(L.xyz(L.LS.map(q => q === l ? 1 : 0))).rgb);
+    ctx.strokeStyle = col; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(xx, by); ctx.lineTo(xx + len, by); ctx.stroke(); txt(nm + '　' + (L.tauRay(l) / L.tauRay(700)).toFixed(1) + ' 倍', xx, by + 26, { f: mono(12) }); });
+  txt('空気の分子（0.3 nm）だけ・Hansen & Travis 1974 の式', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = 'τ(' + lm + ') ÷ τ(700) ＝ ' + v.toFixed(2);
+};
+// 02 空が青い：太陽の光 → 散り方 → かけ算 ＝ 天頂の空の光
+FIG[2] = (a, t) => {
+  const { x, y, w, h } = PL, e = env(60, L.R_MIN, false), c = chart(x + 70, y + 150, 600, 330, '波長ごと（高さは山を 1 に）');
+  const ph = a < 0.3 ? 0 : a < 0.6 ? 1 : 2, zen = L.skyAt(e.St, 180, 89.5, new Float64Array(NL));
+  curve(e.St.Es, c.X, c.Y, null, 0, { fill: 'rgba(232,160,58,.32)' }); txt('太陽の光（大気の外）', c.X(600), c.Y(0.98), { f: note(12), c: '#9A6A20' });
+  if (ph >= 1) { curve(L.LS.map((l, i) => e.St.tr[i] + e.St.tp[i]), c.X, c.Y, C.blue, 2.5); txt('散り方', c.X(395), c.Y(0.95), { f: note(12), c: C.blue }); }
+  if (ph >= 2) { curve(zen, c.X, c.Y, C.ink, 3); const im = zen.indexOf(Math.max(...zen)); txt('× ＝ 空の光（山は ' + L.LS[im] + ' nm）', c.X(L.LS[im]) + 10, c.Y(1) - 8, { f: note(13) }); }
+  txt(['① 太陽の光は、どの色もほぼそろっている', '② 散り方は、青い側ほど大きい', '③ かけ算すると、空の光は青い側が持ち上がる'][ph], x + 70, y + 90, { f: jp(17, 500) });
+  const zr = zenith(e), n = cyN(zr); cyRing(x + 870, y + 300, 120, 76, ph >= 2 ? n : null);
+  ctx.fillStyle = ph >= 2 ? css(zr) : 'rgba(36,48,60,.06)'; ctx.beginPath(); ctx.arc(x + 870, y + 300, 62, 0, 7); ctx.fill();
+  if (ph >= 2) { txt('天頂の空', x + 870, y + 294, { a: 'center', f: jp(13), c: '#FFFFFF' }); txt('No. ' + n, x + 870, y + 318, { a: 'center', f: mono(17, 600), c: '#FFFFFF' }); }
+  txt('CYANOMETER · 0〜52（色は目安）', x + 870, y + 470, { a: 'center', f: note(11), c: C.dim });
+  drawSky(x + 70, y + 540, 900, 120, 60, L.R_MIN, false, { cols: 120, rows: 20, span: 100, top: 60, noMtn: true, hor: 1 });
+  txt('太陽 60°・粒 0.3 nm（空気だけ）・一次散乱（1 回だけ散る）', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = ph >= 2 ? '空の光の山 ' + L.LS[zen.indexOf(Math.max(...zen))] + ' nm · 天頂 No.' + n : '太陽の光 × 散り方';
+};
+// 03 通る空気：太陽が 90° → 0.5° と下がり、空気の量の曲線を進む
+FIG[3] = (a, t) => {
+  const { x, y, w, h } = PL, alt = Math.max(0.5, 90 - 89.5 * a), m = L.airmass(alt);
+  // 左：地球の縁と大気（誇張）
+  const ox = x + 250, oy = y + 470, ER = 1400, AH = 110, ec = { x: ox, y: oy + ER };
+  ctx.save(); ctx.beginPath(); ctx.rect(x + 20, y + 110, 470, 470); ctx.clip();
+  ctx.fillStyle = 'rgba(61,116,196,.10)'; ctx.beginPath(); ctx.arc(ec.x, ec.y, ER + AH, 0, 7); ctx.fill();
+  ctx.fillStyle = C.paper; ctx.beginPath(); ctx.arc(ec.x, ec.y, ER, 0, 7); ctx.fill(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(ec.x, ec.y, ER, 0, 7); ctx.stroke();
+  ctx.setLineDash([4, 4]); ctx.strokeStyle = C.dim; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(ec.x, ec.y, ER + AH, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+  const ar = alt * Math.PI / 180, dir = { x: Math.cos(ar), y: -Math.sin(ar) }, bq = 2 * (dir.x * (ox - ec.x) + dir.y * (oy - ec.y)), cq = (ox - ec.x) ** 2 + (oy - ec.y) ** 2 - (ER + AH) ** 2, tE = (-bq + Math.sqrt(bq * bq - 4 * cq)) / 2;
+  ctx.strokeStyle = C.sun; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + dir.x * tE, oy + dir.y * tE); ctx.stroke();
+  ctx.strokeStyle = 'rgba(36,48,60,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox, oy - AH); ctx.stroke();
+  ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(ox, oy, 5, 0, 7); ctx.fill(); txt('目', ox - 14, oy + 22, { f: jp(12) });
+  ctx.restore();
+  txt('大気の厚みは誇張した絵（本物は地球の 1% より薄い）', x + 40, y + 600, { f: note(11.5), c: C.dim });
+  // 右：m(h) の曲線
+  const gx0 = x + 560, gx1 = x + 990, gy0 = y + 130, gy1 = y + 540, GX = hh => gx0 + hh / 90 * (gx1 - gx0), GY = mm => gy1 - Math.log(mm) / Math.log(40) * (gy1 - gy0);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(gx0, gy0); ctx.lineTo(gx0, gy1); ctx.lineTo(gx1, gy1); ctx.stroke();
+  for (const mm of [1, 2, 5, 10, 20, 38]) { txt('×' + mm, gx0 - 8, GY(mm) + 4, { f: mono(10), a: 'right', c: C.dim }); ctx.strokeStyle = 'rgba(36,48,60,.08)'; ctx.beginPath(); ctx.moveTo(gx0, GY(mm)); ctx.lineTo(gx1, GY(mm)); ctx.stroke(); }
+  for (const hh of [0, 30, 60, 90]) txt(hh + '°', GX(hh), gy1 + 18, { f: mono(10), a: 'center', c: C.dim });
+  ctx.strokeStyle = C.blue; ctx.lineWidth = 2.5; ctx.beginPath(); for (let hh = 0; hh <= 90; hh += 0.5) { hh ? ctx.lineTo(GX(hh), GY(L.airmass(hh))) : ctx.moveTo(GX(hh), GY(L.airmass(hh))); } ctx.stroke();
+  ctx.setLineDash([5, 4]); ctx.strokeStyle = C.dim; ctx.lineWidth = 1.2; ctx.beginPath(); for (let hh = 1.6; hh <= 90; hh += 0.5) { const mm = 1 / Math.sin(hh * Math.PI / 180); hh > 1.6 ? ctx.lineTo(GX(hh), GY(mm)) : ctx.moveTo(GX(hh), GY(mm)); } ctx.stroke(); ctx.setLineDash([]);
+  txt('実線＝丸い地球（Kasten & Young）　点線＝平らな地面 1 ÷ sin h', gx0, gy0 - 14, { f: note(11.5) });
+  ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(GX(alt), GY(m), 6, 0, 7); ctx.fill();
+  txt('太陽 ' + alt.toFixed(1) + '° → 空気 ×' + num(m, 1), x + 40, y + 90, { f: jp(18, 600) });
+  txt('縦は対数の目盛り', gx1, y + h - 20, { f: note(12), a: 'right', c: C.dim });
+  railLive = 'm(' + alt.toFixed(1) + '°) ＝ ' + num(m, 2);
+};
+// 04 夕日（PROOF）：太陽 6° の光を 1 本追う → 太陽が沈むと残る色が変わる
+const SUNROW = [60, 25, 10, 6, 3, 1, 0.5];
+FIG[4] = (a, t) => {
+  const { x, y, w, h } = PL, fP = clamp(a / 0.5), alt = a < 0.5 ? 6 : q5(6 - 5.5 * clamp((a - 0.5) / 0.45)), e = env(alt, L.R_MIN, false), S2 = e.St;
+  const ox = x + 120, oy = y + 400, ER = 1500, AH = 150, ec = { x: ox, y: oy + ER };
+  ctx.save(); ctx.beginPath(); ctx.rect(x + 20, y + 110, w - 40, 330); ctx.clip();
+  ctx.fillStyle = 'rgba(61,116,196,.08)'; ctx.beginPath(); ctx.arc(ec.x, ec.y, ER + AH, 0, 7); ctx.fill(); ctx.fillStyle = C.paper; ctx.beginPath(); ctx.arc(ec.x, ec.y, ER, 0, 7); ctx.fill();
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(ec.x, ec.y, ER, 0, 7); ctx.stroke();
+  const ar = alt * Math.PI / 180, dir = { x: Math.cos(ar), y: -Math.sin(ar) }, bq = 2 * (dir.x * (ox - ec.x) + dir.y * (oy - ec.y)), cq = (ox - ec.x) ** 2 + (oy - ec.y) ** 2 - (ER + AH) ** 2, tE = (-bq + Math.sqrt(bq * bq - 4 * cq)) / 2, ex = ox + dir.x * tE, ey = oy + dir.y * tE;
+  const NS = 30; for (let s = 0; s < NS; s++) { const f0 = s / NS, f1 = (s + 1) / NS; if (f0 > fP) break; const rem = S2.Es.map((v, i) => v * Math.exp(-S2.te[i] * S2.ms * f1));
+    ctx.strokeStyle = css(CO.lightColor((q => ({ X: q.X * e.WB[0], Y: q.Y, Z: q.Z * e.WB[2] }))(L.xyz(rem))).rgb); ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(ex + (ox - ex) * f0, ey + (oy - ey) * f0); ctx.lineTo(ex + (ox - ex) * Math.min(f1, fP), ey + (oy - ey) * Math.min(f1, fP)); ctx.stroke();
+    if (s % 3 === 1 && f1 <= fP) { const mx = ex + (ox - ex) * f1, my = ey + (oy - ey) * f1; ctx.strokeStyle = C.sky; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(mx - dir.y * 22, my - 22 + bob(t + s, 0.7, 2)); ctx.stroke(); } }
+  ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(ox, oy, 5, 0, 7); ctx.fill(); txt('目', ox - 6, oy + 24, { f: jp(12), a: 'center' });
+  ctx.restore();
+  const st = ['① 大気に入る：太陽の白い光（全部の色）', '② 進むたびに青が横へ散る → それが空の色（青い線）', '③ 残った光が目に届く：' + (alt > 20 ? '白っぽい' : alt > 4 ? '橙の' : '赤い') + '太陽'], k3 = a < 0.5 ? Math.min(2, Math.floor(fP * 3)) : 2;
+  for (let q = 0; q <= k3; q++) txt(st[q], x + 40, y + 76 + q * 22, { f: note(13.5), c: q === k3 ? C.ink : C.dim });
+  txt('太陽 ' + alt.toFixed(1) + '° · 空気 ×' + num(S2.ms, 1), x + w - 40, y + 76, { f: mono(14, 600), a: 'right' });
+  // 下：通り抜けた光の形と、太陽の色の並び
+  const c = chart(x + 70, y + 480, 470, 120, '目に届く太陽の光（大気の外を 1）'); curve(S2.Es, c.X, c.Y, C.faint, 1.2, { dash: [4, 3], max: 1 });
+  const now = S2.Es.map((v, i) => v * Math.exp(-S2.te[i] * S2.ms * fP)); curve(now, c.X, c.Y, null, 0, { fill: 'rgba(232,160,58,.45)', max: 1 }); curve(now, c.X, c.Y, '#9A6A20', 2, { max: 1 });
+  SUNROW.forEach((h2, i) => { const xx = x + 600 + i * 58, on = a >= 0.5 && h2 >= alt - 1e-6, yy = y + 500; ctx.globalAlpha = on || a < 0.5 ? 1 : 0.25; ctx.fillStyle = css(sunRGB(env(h2, L.R_MIN, false))); ctx.beginPath(); ctx.arc(xx + 22, yy + 22, 20, 0, 7); ctx.fill(); ctx.strokeStyle = C.rule; ctx.stroke(); txt(h2 + '°', xx + 22, yy + 62, { f: mono(11), a: 'center' }); ctx.globalAlpha = 1; });
+  txt('太陽の色（白はその日の正午に合わせた）', x + 600, y + 482, { f: note(12.5) });
+  txt('大気の厚みは誇張・オゾンの吸収も入っている', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = 'e^(−τ·' + num(S2.ms, 1) + '·' + fP.toFixed(2) + ') → 青 450 の残り ' + num(now[I450] / S2.Es[I450] * 100, 1) + '%';
+};
+// 05 地平は白い：太陽と反対側の空を、天頂から地平線まで
+const ELS = [90, 60, 40, 25, 15, 8, 4, 2, 1];
+FIG[5] = (a, t) => {
+  const { x, y, w, h } = PL, e = env(60, L.R_MIN, false), sx = x + 80, sw2 = 120, sy0 = y + 120, sy1 = y + 620, elP = Math.max(1, 89.5 - 88.5 * a);
+  const EY = el => sy1 - Math.log(1 + el) / Math.log(91) * (sy1 - sy0);
+  for (let py = sy0; py < sy1; py += 3) { const el = Math.exp((sy1 - py) / (sy1 - sy0) * Math.log(91)) - 1; ctx.fillStyle = css(skyRGB(e, 180, Math.max(0.5, el))); ctx.fillRect(sx, py, sw2, 3.5); }
+  ctx.strokeStyle = C.rule; ctx.strokeRect(sx + 0.5, sy0 + 0.5, sw2 - 1, sy1 - sy0 - 1);
+  ELS.forEach(el => { const yy = EY(el); txt(el + '°', sx - 8, yy + 4, { f: mono(10), a: 'right', c: C.dim }); txt('No.' + cyN(skyRGB(e, 180, el)), sx + sw2 + 10, yy + 4, { f: mono(11) }); });
+  const yp = EY(elP); ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.strokeRect(sx - 4, yp - 6, sw2 + 8, 12); arrow(sx + sw2 + 110, yp + bob(t, 0.9, 3), sx + sw2 + 66, yp, C.ink, 2);
+  txt('天頂', sx + sw2 / 2, sy0 - 10, { a: 'center', f: jp(13) }); txt('地平線', sx + sw2 / 2, sy1 + 22, { a: 'center', f: jp(13) });
+  // 右：その高さの空の光の形（天頂と比べる）
+  const c = chart(x + 420, y + 170, 560, 300, '空の光の形（高さを山で 1 に）'), zen = L.skyAt(e.St, 180, 89.5, new Float64Array(NL)), now = L.skyAt(e.St, 180, elP, new Float64Array(NL));
+  curve(zen, c.X, c.Y, C.blue, 2, { dash: [5, 4] }); curve(now, c.X, c.Y, C.ink, 3);
+  txt('点線＝天頂　実線＝いまの高さ', c.X(560), c.Y(1.02), { f: note(12) });
+  const rgb = skyRGB(e, 180, elP); sw(x + 420, y + 540, 130, 70, rgb, '高さ ' + elP.toFixed(0) + '° の空', 'No.' + cyN(rgb) + '　通る空気 ×' + num(L.airmass(elP), 1));
+  txt('高さ ' + elP.toFixed(0) + '° · 目に届くまでに空気 ×' + num(L.airmass(elP), 1), x + 40, y + 90, { f: jp(17, 500) });
+  txt('正午（太陽 60°）・太陽と反対側（方位 180°）の空', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = '高さ ' + elP.toFixed(0) + '° · m ' + num(L.airmass(elP), 1) + ' · No.' + cyN(rgb);
+};
+// 06 遠い山：距離 d が増えると、山の光は減り空の光に置き換わる
+FIG[6] = (a, t) => {
+  const { x, y, w, h } = PL, e = drawSky(x + 40, y + 110, 960, 300, 25, L.R_MIN, false, { cols: 140, rows: 30, span: 100, top: 30, hor: 0.8 });
+  MTN.slice().reverse().forEach((m, i) => txt(m.d + ' km', x + 60 + i * 60, y + 398, { f: mono(11, 600), c: '#FFFFFF' }));
+  const DM = 30, d = 0.2 + (DM - 0.2) * a, S2 = e.St, beta = i => S2.tr[i] / 8 + S2.tp[i] / 1.5;
+  const gx0 = x + 90, gx1 = x + 780, gy0 = y + 450, gy1 = y + 630, GX = dd => gx0 + dd / DM * (gx1 - gx0), GY = v => gy1 - v * (gy1 - gy0);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(gx0, gy0); ctx.lineTo(gx0, gy1); ctx.lineTo(gx1, gy1); ctx.stroke();
+  for (const dd of [0, 10, 20, 30]) txt(dd + ' km', GX(dd), gy1 + 18, { f: mono(10), a: 'center', c: C.dim });
+  txt('1', gx0 - 8, gy0 + 4, { f: mono(10), a: 'right', c: C.dim }); txt('0', gx0 - 8, gy1 + 4, { f: mono(10), a: 'right', c: C.dim });
+  [[I450, '#3D74C4', '青 450'], [I550, '#3E8E4E', '緑 550'], [I700, C.red, '赤 700']].forEach(([i, col, nm], q) => { ctx.strokeStyle = col; ctx.lineWidth = 2.4; ctx.beginPath(); for (let dd = 0; dd <= DM; dd += 0.25) { const yy = GY(Math.exp(-beta(i) * dd)); dd ? ctx.lineTo(GX(dd), yy) : ctx.moveTo(GX(dd), yy); } ctx.stroke();
+    const v = Math.exp(-beta(i) * d); ctx.fillStyle = col; ctx.beginPath(); ctx.arc(GX(d), GY(v), 4.5, 0, 7); ctx.fill(); txt(nm + '　' + (v * 100).toFixed(0) + '%', gx1 + 30, gy0 + 30 + q * 34, { f: mono(14, 600), c: col }); });
+  txt('いまの距離で残る割合', gx1 + 30, gy0 + 4, { f: note(12) });
+  ctx.strokeStyle = C.ink; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(GX(d), gy0); ctx.lineTo(GX(d), gy1); ctx.stroke(); ctx.setLineDash([]);
+  txt('距離 ' + d.toFixed(0) + ' km：山の光が残る割合（T）', x + 40, y + 90, { f: jp(17, 500) });
+  txt('T ＝ e^(−βd) · β は地面の近くの空気と粒（目安）', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = 'T(550, ' + d.toFixed(0) + ' km) ＝ ' + Math.exp(-beta(I550) * d).toFixed(2);
+};
+// 07 粒の大きさ：0.3 nm → 10 µm。空と天頂が白くなり、▼ が後からついてくる
+FIG[7] = (a, t) => {
+  const { x, y, w, h } = PL, r = logR(a), e = drawSky(x + 40, y + 120, 600, 230, 60, r, false, { cols: 100, rows: 26, span: 100, top: 60, hor: 0.86 }), st = L.stateOf(r), al = L.alphaOf(r);
+  const zr = zenith(e), n = cyN(zr); sw(x + 680, y + 120, 140, 110, zr, '天頂の空', 'No.' + n);
+  txt('α ' + al.toFixed(2), x + 860, y + 160, { f: mono(26, 600) }); txt('散り方の傾き（4＝空気と同じ・0＝色によらない）', x + 860, y + 186, { f: note(11), c: C.dim });
+  txt(st, x + 860, y + 240, { f: mono(22, 700), c: C.blue });
+  // 散り方（空気＋粒）
+  const c = chart(x + 680, y + 300, 300, 110, '散り方（空気＋粒）'); curve(L.LS.map((l, i) => e.St.tr[i] + e.St.tp[i]), c.X, c.Y, C.blue, 2.4);
+  // 境の目盛り（BLUE / MILKY / WHITE）と ▼（結果なので少し遅れて追う）
+  const bx0 = x + 60, bx1 = x + 980, BXr = rr => bx0 + (Math.log(rr) - Math.log(L.R_MIN)) / (Math.log(L.R_MAX) - Math.log(L.R_MIN)) * (bx1 - bx0), by = y + 520;
+  [[L.R_MIN, L.R_BLUE, 'BLUE'], [L.R_BLUE, L.R_WHITE, 'MILKY'], [L.R_WHITE, L.R_MAX, 'WHITE']].forEach(([r0, r1, nm]) => { const on = nm === st; ctx.fillStyle = on ? C.ink : 'rgba(36,48,60,.08)'; ctx.fillRect(BXr(r0), by, BXr(r1) - BXr(r0) - 2, 40); txt(nm, (BXr(r0) + BXr(r1)) / 2, by + 26, { a: 'center', f: mono(13, 700), c: on ? C.paper : C.ink }); });
+  for (const [rr, s2] of [[0.0003, '空気 0.3 nm'], [0.01, '10 nm'], [0.1, '煙 0.1 µm'], [1, '霞 1 µm'], [10, '雲の粒 10 µm']]) txt(s2, BXr(rr), by + 64, { f: mono(10), a: rr === 0.0003 ? 'left' : rr === 10 ? 'right' : 'center', c: C.dim });
+  const lag = logR(clamp(a - 0.04)); D7.r = D7.r == null ? lag : D7.r + (lag - D7.r) * 0.2; const mk = BXr(D7.r); ctx.fillStyle = C.ink; ctx.beginPath(); ctx.moveTo(mk, by - 4); ctx.lineTo(mk - 8, by - 18); ctx.lineTo(mk + 8, by - 18); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(156,182,230,.35)'; ctx.fillRect(BXr(0.38), by + 44, BXr(0.75) - BXr(0.38), 6); txt('見える光の波長', (BXr(0.38) + BXr(0.75)) / 2, by + 90, { f: note(10.5), a: 'center', c: '#4A6AA8' });
+  txt('粒の大きさ ' + fmtR(r) + ' → ' + st, x + 40, y + 90, { f: jp(18, 600) });
+  txt('▼＝結果（状態）。動かしているのは粒の大きさ（原因）・太陽 60°', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = 'r ' + fmtR(r) + ' · α ' + al.toFixed(2) + ' · ' + st;
+};
+const D7 = { r: null };
+// 08 オゾン：太陽が 10° → 0.5° と沈むとき、天頂の色（オゾンあり／なし）
+FIG[8] = (a, t) => {
+  const { x, y, w, h } = PL, alt = q5(10 - 9.5 * a), e1 = env(alt, L.R_MIN, false), e0 = env(alt, L.R_MIN, false, true), z1 = zenith(e1), z0 = zenith(e0);
+  drawSky(x + 40, y + 120, 460, 250, alt, L.R_MIN, false, { cols: 70, rows: 30, span: 100, top: 70, hor: 0.88 });
+  drawSky(x + 540, y + 120, 460, 250, alt, L.R_MIN, false, { cols: 70, rows: 30, span: 100, top: 70, hor: 0.88, noO3: true });
+  txt('オゾンあり（本物）', x + 40, y + 110, { f: jp(14, 500) }); txt('オゾンを抜いた空', x + 540, y + 110, { f: jp(14, 500) });
+  sw(x + 40, y + 400, 120, 80, z1, '天頂', 'No.' + cyN(z1)); sw(x + 540, y + 400, 120, 80, z0, '天頂', 'No.' + cyN(z0));
+  const c = chart(x + 200, y + 410, 300, 70, null); curve(L.LS.map(l => L.tauO3(l)), c.X, c.Y, '#7A4FA0', 2.2); txt('オゾンの吸う形（600 nm 付近）', x + 200, y + 400, { f: note(11.5), c: '#7A4FA0' });
+  txt('太陽 ' + alt.toFixed(1) + '° · オゾン層を通る量 ×' + num(L.o3mass(alt), 1), x + 40, y + 90, { f: jp(17, 500) });
+  txt('天頂へ届く光は、斜めに入ってオゾン層を長く通る → 橙が抜けて青が残る', x + 40, y + 590, { f: note(13) });
+  txt('オゾン 300 DU・帯の形は目安（チャピュイ帯）', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = '天頂 No.' + cyN(z1) + '（オゾンなし No.' + cyN(z0) + '）';
+};
+// 09 BREAK：本物と λ⁺⁴ を並べて、太陽を沈める
+FIG[9] = (a, t) => {
+  const { x, y, w, h } = PL, alt = q5(60 - 59 * a);
+  const e1 = drawSky(x + 40, y + 120, 460, 300, alt, L.R_MIN, false, { cols: 70, rows: 34, span: 100, top: 65, hor: 0.86 });
+  const e2 = drawSky(x + 540, y + 120, 460, 300, alt, L.R_MIN, true, { cols: 70, rows: 34, span: 100, top: 65, hor: 0.86 });
+  txt('本物：τ ∝ λ⁻⁴（青ほど散る）', x + 40, y + 110, { f: jp(14, 500) }); txt('BREAK：τ ∝ λ⁺⁴（赤ほど散る）', x + 540, y + 110, { f: jp(14, 500), c: C.red });
+  sw(x + 40, y + 450, 100, 70, zenith(e1), '天頂', 'No.' + cyN(zenith(e1))); sw(x + 180, y + 450, 100, 70, sunRGB(e1), '太陽', alt.toFixed(1) + '°');
+  sw(x + 540, y + 450, 100, 70, zenith(e2), '天頂', ''); sw(x + 680, y + 450, 100, 70, sunRGB(e2), '太陽', alt.toFixed(1) + '°');
+  txt('太陽 ' + alt.toFixed(1) + '° · 同じ空気の量で、散り方の向きだけを逆に', x + 40, y + 90, { f: jp(17, 500) });
+  txt('空の色と夕日の色は、いつも反対側', x + 40, y + 620, { f: jp(15, 500) });
+  txt('現実の外（BREAK）· 粒の散り方も逆にしてある', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = 'BREAK · 太陽 ' + alt.toFixed(1) + '°';
+};
+function wait() { const { x, y, w, h } = PL; txt('法則で計算中…', x + w / 2, y + h / 2, { a: 'center', f: mono(16, 600), c: C.dim }); }
+/* 最後の駅：アプリの小さな見本（空 ＋ シアノメーター） */
+function thumb(g2) {
+  g2.fillStyle = '#0B0B0A'; g2.fillRect(0, 0, 300, 150); g2.fillStyle = C.paper; g2.fillRect(12, 12, 276, 126);
+  g2.imageSmoothingEnabled = true; g2.drawImage(pano(25, L.R_MIN, false, { cols: 60, rows: 24, span: 100, top: 60 }), 16, 16, 170, 118);
+  for (let q = 0; q < L.CYAN_N; q++) { const a0 = -Math.PI / 2 + q / L.CYAN_N * Math.PI * 2; g2.fillStyle = L.cyanHex(q); g2.beginPath(); g2.arc(238, 75, 40, a0, a0 + 0.13); g2.arc(238, 75, 24, a0 + 0.13, a0, true); g2.closePath(); g2.fill(); }
+  g2.strokeStyle = ACCL; g2.lineWidth = 1; g2.strokeRect(8, 8, 284, 134);
+}
+
+/* ================= 画面の部品（そのまま使う） ================= */
+$('o_nst').textContent = LAST; $('o_nrail').textContent = NR; $('o_hint').textContent = '01 ' + ST[1].name; $('o_endn').textContent = pad(LAST);
+$('ctaf').textContent = LAB.split('/').pop(); $('cta').href = LAB;
+{ const g2 = $('tc').getContext('2d'); g2.setTransform(2, 0, 0, 2, 0, 0); thumb(g2); }
+const stl = $('stl'); ST.forEach((s, i) => { const li = document.createElement('li'); li.innerHTML = '<u>' + pad(i) + '</u><b>' + s.name + '</b><s>' + s.en + '</s>'; li.addEventListener('click', () => goTo(i)); stl.appendChild(li); });
+const rail = $('rail'); rail.style.gridTemplateColumns = 'repeat(' + (NR + 1) + ', 1fr)';
+RAIL.forEach(r => { const d = document.createElement('div'); d.className = 'rb'; d.innerHTML = '<div class="rt"><span>' + r.k + '<b>' + r.ja + '</b></span><i></i></div><div class="rf">' + r.f + '</div><div class="dots">···</div><div class="rd"></div>'; rail.appendChild(d); });
+const labA = document.createElement('a'); labA.className = 'rb lab'; labA.href = LAB; labA.innerHTML = '<div class="rt"><span>LAB<b>終点</b></span><i></i></div><div class="rf">OPEN THE LAB →</div><div class="rd">いつでもアプリへ飛べる</div>'; rail.appendChild(labA);
+function frame() { const svg = $('frame'), M = 'rgba(232,230,223,0.55)', S = 'rgba(232,230,223,0.10)'; let s = '';
+  for (const p of ['52,24 24,24 24,52', '1868,24 1896,24 1896,52', '52,1056 24,1056 24,1028', '1868,1056 1896,1056 1896,1028']) s += '<polyline points="' + p + '" fill="none" stroke="' + M + '" stroke-width="1.5"/>';
+  for (const yy of [124, 870]) s += '<line x1="24" y1="' + yy + '" x2="1896" y2="' + yy + '" stroke="' + S + '"/>';
+  s += '<line x1="372" y1="44" x2="372" y2="108" stroke="' + ACCL + '" stroke-width="2"/><line x1="1090" y1="78" x2="1110" y2="78" stroke="' + ACCL + '"/><line x1="1100" y1="68" x2="1100" y2="88" stroke="' + ACCL + '"/>';
+  svg.innerHTML = s; }
+frame();
+
+const val = v => typeof v === 'function' ? v() : v;
+let cur = -1, kvAnim = { t0: 0 };
+function setStation(i) {
+  if (i === cur) return; cur = i; const s = ST[i], two = pad(i), of = two + ' / ' + pad(LAST);
+  $('o_stn').textContent = of; $('o_tab').textContent = 'LP · ' + of; $('noise').textContent = s.noise; $('bigTop').textContent = s.big;
+  const kj = $('kanji'); kj.textContent = s.kanji; kj.classList.toggle('num', /\d/.test(s.kanji));
+  Object.assign(kj.style, i === 0 ? { left: '1300px', top: '806px' } : /\d/.test(s.kanji) ? { left: '30px', top: '900px' } : { left: '-6px', top: '560px' });
+  $('L0').classList.toggle('on', i === 0); $('LS').classList.toggle('on', i > 0); $('L1').classList.toggle('on', i > 0 && i < LAST); $('LE').classList.toggle('on', i === LAST);
+  [...stl.children].forEach((li, k) => { li.className = k < i ? 'done' : k === i ? 'now' : ''; });
+  $('o_read').textContent = of; $('o_bar').style.width = (i / LAST * 100) + '%';
+  if (i > 0 && i < LAST) { $('o_fig').textContent = s.fig; $('o_figt').textContent = s.figt; $('r_num').textContent = s.num; $('r_en').textContent = s.ren; $('r_h').innerHTML = s.h; $('r_body').textContent = s.body; $('r_kl').textContent = s.kl; $('r_ku').textContent = s.ku; $('r_kn').innerHTML = val(s.kn); $('r_wow').textContent = val(s.wow); $('r_next').textContent = s.next; }
+  $('brkchip').style.display = s.brk ? 'flex' : 'none';
+  $('foot').textContent = DOC + ' — ' + (i === LAST ? 'END OF RECORD' : 'STATION ' + two + (s.fig ? ' · ' + s.fig.replace('. ', '.') : ''));
+  [...rail.children].forEach((d, j) => {
+    if (j === NR) { d.className = 'rb lab' + (i === LAST ? ' now' : ''); d.querySelector('.rt i').textContent = i === LAST ? 'NOW' : ''; d.querySelector('.rd').textContent = i === LAST ? NR + ' つの式を、アプリで確かめる' : 'いつでもアプリへ飛べる'; d.href = LAB + (s.lab || ''); return; }
+    const r = RAIL[j], ref = (REF[i] || []).includes(j + 1), st = i < r.at ? 'fut' : i === r.at ? 'now' : ref ? 'ref' : 'done';
+    d.className = 'rb ' + st; d.querySelector('.rt i').textContent = st === 'fut' ? '— 未着' : st === 'now' ? 'NOW' : st === 'ref' ? 'REF · 再登場' : '✓';
+    d.querySelector('.rd').textContent = st === 'fut' ? pad(r.at) + ' の駅で入線' : r.d; d.dataset.st = st;
+  });
+  for (const id of ['L0', 'L1', 'LE']) { const el = $(id); el.classList.remove('go'); void el.offsetWidth; if (el.classList.contains('on')) el.classList.add('go'); }
+  kvAnim.t0 = performance.now();
+}
+function keyNumber() {   // KEY NUMBER は 0 から数え上げる（0.6 秒）
+  const s = ST[cur]; if (!s || !s.kv) return; const v = s.kv(), el = $('r_kv');
+  if (v == null) { el.textContent = '—'; return; } if (typeof v === 'string') { el.textContent = v; return; }
+  const f = RM ? 1 : eo((performance.now() - kvAnim.t0 - 300) / 600); el.textContent = (s.kp || '') + num(v * f, s.kf);
+}
+function railLiveSet() { [...rail.children].forEach((d, j) => { if (j < NR && d.dataset.st === 'now' && railLive) d.querySelector('.rd').textContent = railLive; }); }
+
+/* ================= スクロールと間合い（数値はユーザーの赤で決まった物・変えるなら聞く） =================
+   駅の長さ LEN（画面の枚数）・駅の頭 12% と終わり 18% は図を止める・間は smootherstep・追いかけ dt×4.5 */
+const OFF = LEN.reduce((o, l, i) => (o.push(o[i] + l), o), [0]);
+const track = $('track'); let vh = innerHeight; function size() { vh = innerHeight; track.style.height = (OFF[NST] * vh) + 'px'; }
+function toP(y) { const u = y / vh; for (let i = 0; i < NST; i++) if (u < OFF[i + 1] || i === NST - 1) return Math.min(NST - 0.001, i + clamp((u - OFF[i]) / LEN[i], 0, 0.999)); }
+const fromP = v => { const i = Math.min(NST - 1, Math.floor(v)); return (OFF[i] + (v - i) * LEN[i]) * vh; };
+const hold = a => { const t = clamp((a - 0.12) / 0.7); return t * t * t * (t * (t * 6 - 15) + 10); };
+const holdLin = a => clamp((a - 0.12) / 0.7);
+size(); addEventListener('resize', () => { size(); resize(); });
+let P = 0, last = performance.now(), tSec = 0, FIX = null;   // FIX：検証用 #s=..&fix=1 でスクロールせずにその位置で止める
+const target = () => FIX != null ? FIX : toP(scrollY);
+function goTo(i) { scrollTo({ top: OFF[i] * vh + 2, behavior: RM ? 'auto' : 'smooth' }); }
+addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); goTo(Math.min(NST - 1, Math.floor(P + 0.02) + 1)); } if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); goTo(Math.max(0, Math.ceil(P - 0.02) - 1)); } });
+PHShell.onScale(resize); resize();
+function render(P) {
+  const i = Math.min(NST - 1, Math.floor(P + 1e-6)), a = P - i; setStation(i);
+  ctx.setTransform(SC, 0, 0, SC, 0, 0); ctx.clearRect(0, 0, 1920, 1080);
+  if (i === 0) FIG[0](a, tSec);
+  else if (i < LAST) { plate(PL.x, PL.y, PL.w, PL.h, ST[i].brk); ctx.save(); ctx.beginPath(); ctx.rect(PL.x, PL.y, PL.w, PL.h); ctx.clip(); railLive = ''; FIG[i](RM ? a : STEPPED[i] ? holdLin(a) : hold(a), tSec); ctx.restore(); }
+  keyNumber(); railLiveSet();
+}
+function loop(now) {
+  const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now; tSec += dt;   // 最初の rAF は performance.now() より前の時刻のことがある（負の t を防ぐ）
+  const T = target(); P = RM ? T : P + (T - P) * Math.min(1, dt * 4.5); if (Math.abs(T - P) < 1e-4) P = T;
+  render(P);
+  requestAnimationFrame(loop);
+}
+// 直リンク：#s=駅&p=駅の中の進み（例 #s=1&p=0.5）・&fix=1（検証の撮影用）
+{ const Q = new URLSearchParams(location.hash.slice(1)); if (Q.has('s')) { const s = clamp(+Q.get('s') + (+Q.get('p') || 0), 0, NST - 1); if (Q.get('fix') === '1') { FIX = s; P = s; } else requestAnimationFrame(() => { scrollTo(0, fromP(s)); P = s; }); } }
+if (document.fonts) ["13px 'M PLUS 1 Code'", "13px 'IBM Plex Sans JP'", "19px Michroma", "12px 'JetBrains Mono'"].forEach(f => document.fonts.load(f));
+window.__LP = { ST, FIG, LEN, get P() { return P; }, render, setP: v => { P = v; FIX = v; render(v); }, setFix: v => { FIX = v; } };   // 検証用
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
