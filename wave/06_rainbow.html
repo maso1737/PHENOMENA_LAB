@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>W6 RAINBOW 虹 — PHENOMENA LAB</title>
+<link rel="stylesheet" href="../_shell/shell.css">
+<style>
+  /* W6 のアクセント＝すみれ色（虹のいちばん内側）。外枠で変えてよいのはこの 3 つだけ */
+  :root { --accent: #5E3A8C; --accent-ink: #FFFFFF; --accent-line: #C3ABE8; }
+  /* STATE と BOUNDARY は押せる（その状態になるように原因＝粒の大きさを動かす。▼ は結果なので後からついてくる）＝E1・A1・W1・W4 と同じ */
+  #states > div { cursor: pointer; }
+  #states > div:hover:not(.now) { border-color: var(--accent-line); color: var(--ink); }
+  #states > div.seek { outline: 1px dashed var(--accent-line); outline-offset: 2px; }
+  #bound { cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="ph-viewport"><div class="ph-shell">
+  <div class="ph-grid"></div>
+
+  <!-- 18 BIG GRAPHIC -->
+  <svg class="ph-big" viewBox="0 0 1920 1080" aria-hidden="true">
+    <rect x="0" y="682" width="1920" height="12"></rect>
+    <text x="-6" y="646" font-family="'IBM Plex Sans JP', sans-serif" font-size="300" font-weight="500">虹</text>
+    <text id="bigAm" x="28" y="1104" font-family="Michroma, sans-serif" font-size="168">42.3°</text>
+    <text x="1690" y="112" font-family="Michroma, sans-serif" font-size="96" text-anchor="end">D min</text>
+  </svg>
+
+  <!-- 16 NOISE LAYER（読ませない） -->
+  <svg class="ph-noise" viewBox="0 0 1920 1080" aria-hidden="true">
+    <text font-family="Jura, sans-serif" font-size="9" letter-spacing="2" transform="translate(13 1040) rotate(-90)">SECTOR 06-A · 46.0000N 7.0000E · OBS W-006-1637 · DESCARTES 1637 · AIRY 1838 · 0x5E3A8C · ARCHIVE/EARTH/WAVE/W6 · CHK 0x42A3</text>
+    <text font-family="Jura, sans-serif" font-size="9" letter-spacing="2" transform="translate(1909 40) rotate(90)">WATER 20C CAUCHY 3-TERM · FRESNEL UNPOLARIZED · SUN DISK 0.53 DEG · K=1 PRIMARY K=2 SECONDARY · NODE 06</text>
+    <g font-family="'JetBrains Mono', monospace" font-size="8.5">
+      <text x="1132" y="50">1637 &gt; RAY TRACE B 0-1 N 8000 OK</text>
+      <text id="nz1" x="1132" y="61">ALT 10.0  TOP 31.9</text>
+      <text id="nz2" x="1132" y="72">A 1.000 MM  RHO 0.25</text>
+      <text x="1132" y="83">COS2 I = (N2-1)/3  ACK</text>
+      <text x="1290" y="332">REF 0x0642 · W6/CAUSE/CH3</text>
+      <text x="300" y="1066">ARCHIVE/EARTH/WAVE/W6/1637 — CLASSIFICATION: NONE</text>
+      <text x="1560" y="1066">END OF RECORD</text>
+    </g>
+  </svg>
+
+  <!-- 01 GRID / FRAME（shell.js が描く） -->
+  <svg class="ph-frame" viewBox="0 0 1920 1080" aria-hidden="true"></svg>
+
+  <!-- 02 HEADER IDS -->
+  <div class="ph-brand"><b>PHENOMENA LAB</b><span>EARTH SURVEY ARCHIVE · SHELL v0.1</span></div>
+  <dl class="ph-ids" style="left:392px"><dt>OBS.No</dt><dd>W-006-1637</dd><dt>COORD</dt><dd>46.00°N 7.00°E</dd><dt>TIMESTAMP</dt><dd>2125-08-03T17:40:00Z</dd></dl>
+  <dl class="ph-ids" style="left:760px"><dt>FIELD</dt><dd>WAVE</dd><dt>CARD</dt><dd>W6 / 22</dd><dt>REF</dt><dd>SPEC_02 §1 W6</dd></dl>
+
+  <!-- 03 STAGE TAB -->
+  <div class="ph-stagetab"><span class="k">STAGE</span><span class="n">W6</span><span class="s">W · 06/07</span>
+    <svg width="14" height="22" viewBox="0 0 14 22" aria-hidden="true"><line x1="1" y1="21" x2="13" y2="1" stroke-width="1.5"/></svg></div>
+
+  <!-- 04 TITLE BAND・05 QUESTION -->
+  <div class="ph-title"><span class="field" id="titleField">W6 — WAVE · RAINBOW</span><h1>RAINBOW</h1><span class="ja">虹</span></div>
+  <div class="ph-question"><span class="k">QUESTION</span><p>虹はなぜ弧で、<br>なぜいつも<br>同じ大きさなのか。</p></div>
+
+  <!-- 06 SPECIMEN（雨粒 1 つの光の道・法則から描く） -->
+  <div class="ph-specimen" id="specimen"><span class="tag">SPECIMEN · ONE DROP</span></div>
+
+  <!-- 07 FORMAT -->
+  <div class="ph-format"><span class="k">FORMAT</span><span class="ja">雨粒 1 つの光線の作図
+＋ 分度器</span><span class="en">RAY DIAGRAM + PROTRACTOR</span><a id="toSky" href="04_sky.html" style="margin-top:8px;font:600 11px/1 var(--f-thin);letter-spacing:.16em;color:var(--accent-line);text-decoration:none">W4 SKY <span style="font:500 12px var(--f-jp);letter-spacing:0">太陽の側の空 →</span></a></div>
+
+  <!-- 08 READOUT -->
+  <div class="ph-readout">
+    <div class="ph-h"><i class="sq"></i><b>READOUT</b><span class="id">RD-W6-01</span></div>
+    <span class="ph-lab" style="margin-top:14px">STATE <i style="font-style:normal;letter-spacing:0;text-transform:none">色の分かれ方</i></span>
+    <div class="ph-states" id="states">
+      <div data-s="WHITE" title="粒を 0.02 mm（霧）へ＝帯が太く、全部の色が重なる"><b>WHITE</b><span>霧の白い虹</span></div>
+      <div data-s="PALE" title="粒を 0.15 mm（霧雨）へ"><b>PALE</b><span>淡い・縞</span></div>
+      <div data-s="COLOR" title="粒を 1 mm（雨）へ＝帯が細く、色が分かれる"><b>COLOR</b><span>雨の虹</span></div>
+    </div>
+    <div class="ph-vals">
+      <div class="ph-val"><span class="k">SUN ALT. <i>太陽の高さ</i></span><div class="v"><b id="o_alt">—</b><u>°</u><em id="o_top"></em></div>
+        <input class="ph-range lead" type="range" id="alt" min="0.5" max="60" step="0.5" value="10" aria-label="太陽の高さ（主役。虹を上下に引いても同じ）"></div>
+      <div class="ph-val"><span class="k">DROP <i>雨粒の半径</i></span><div class="v"><b id="o_a">—</b><u>mm</u><em id="o_w"></em></div>
+        <input class="ph-range" type="range" id="drop" min="0" max="1000" step="1" value="800" aria-label="雨粒の半径（0.005〜2.5 mm・対数）"></div>
+      <div class="ph-val"><span class="k">BOW <i>虹の角</i></span><div class="v"><b id="o_bow">—</b><u>°</u><em id="o_sec"></em></div></div>
+    </div>
+    <div class="ph-boundary"><span class="ph-lab">BOUNDARY <i style="font-style:normal;letter-spacing:0;text-transform:none">押すとその側へ</i></span><svg id="bound" role="img" aria-label="境界の目盛り：WHITE・PALE・COLOR"></svg></div>
+  </div>
+
+  <!-- 09 LOOK ⇄ CAUSE の窓 -->
+  <div class="ph-winhead"><i class="sq"></i><span class="t">LOOK ⇄ CAUSE</span><span class="s">LEFT = FACING AWAY FROM THE SUN · RIGHT = ONE DROP + PROTRACTOR</span>
+    <div class="r"><b>SUN</b><div class="ph-chips" id="presets">
+      <button class="ph-chip" data-a="3">夕方 3°</button><button class="ph-chip" data-a="10">10°</button><button class="ph-chip" data-a="25">25°</button><button class="ph-chip" data-a="45">45° 見えない</button>
+    </div></div></div>
+  <div class="ph-window" id="win">
+    <canvas id="cv"></canvas>
+    <div class="ph-tag" style="left:16px;top:8px"><i></i><b>LOOK</b><span>— 実物の姿</span><small>RAIN · BACK TO THE SUN</small></div>
+    <div class="ph-tag" id="tagCause" style="left:836px;top:8px"><i></i><b>CAUSE</b><span>— 原因の図</span></div>
+    <div class="ph-control" id="ctl" style="left:16px;top:44px"><span class="k">◆ CONTROL ▶</span><span class="d">虹を上下に引く＝太陽の高さ</span></div>
+  </div>
+
+  <!-- 12 SCALE：雨粒の大きさ -->
+  <div class="ph-scale-k"><i></i><b>SCALE · 雨粒の半径</b></div>
+  <svg class="ph-scale" id="scale" width="960" height="56" viewBox="-1 0 962 56" aria-hidden="true"></svg>
+
+  <!-- 13 REALISM -->
+  <div class="ph-realism"><b>REALISM <span class="note">角度 ◎ ／ 帯の太さはエアリーの近似・白い虹は ○〜△</span></b>
+    <div class="marks"><div class="now"><span>◎</span>法則</div><div><span>○</span>近似</div><div><span>△</span>まね</div></div></div>
+
+  <!-- 14 PROOF / AUTO / BREAK -->
+  <div class="ph-pab">
+    <button id="bProof" title="光を高さ 0 から 1 まで 1 本ずつ入れ、出ていく角を数える（10 秒）"><span>[ </span>PROOF<span> ]</span></button><button id="bAuto" title="40 秒で 1 日（朝 → 正午 → 夕方）"><span>[ </span>AUTO<span> ]</span></button><button id="bBreak" title="分散を逆に（赤ほど強く曲がる）"><span>[ </span>BREAK<span> ]</span></button>
+  </div>
+
+  <!-- 15 TRANSFER -->
+  <div class="ph-transfer-k"><i></i><b>TRANSFER</b><span>— NOTES FOR CG / ANIMATION · 表現に持ち出す</span></div>
+  <div class="ph-transfer">
+    <div tabindex="0"><h3><u>01 </u>LOOK RULES<i>絵の決まり</i></h3><p>虹は自分の影の頭を中心にした半径 42° の輪。外が赤・内が紫。内側の空は明るく、外の 8° は暗い帯。副虹は 51° で色が逆・淡い。</p></div>
+    <div tabindex="0"><h3><u>02 </u>CG</h3><p>虹は物ではなく「向き」の現象。カメラから見て太陽の反対方向との角で色を決める（距離によらない）。雨の幕があるところだけに出し、暗い背景に足し算で重ねる。</p></div>
+    <div tabindex="0"><h3><u>03 </u>GEN CHECK<i>嘘の見つけ方</i></h3><p>太陽が 42° より高いのに虹／中心が自分の影の頭からずれる／色の順が逆／内と外の空が同じ明るさ／副虹の色が同じ順、なら嘘。<em>rainbow / supernumerary / fogbow</em></p></div>
+    <div tabindex="0"><h3><u>04 </u>BREAK<i>わざと外す</i></h3><p>分散を逆にすると赤が内側に回る。水でなくガラス玉（屈折率 1.5）なら虹は約 23° の小さな輪になる（道路標識のビーズの虹）。</p></div>
+    <div tabindex="0"><h3><u>05 </u>FIELD NOTE<i>宿題</i></h3><p>晴れた夕方、太陽を背にホースで霧を作る。粒を細かくすると虹が白く太くなり、少し小さくなるかを見る。自分の影の頭から虹までを手の幅で測る（腕を伸ばした拳 1 つ ≒ 10°）。</p></div>
+  </div>
+</div></div>
+
+<script src="../_shell/shell.js"></script>
+<script src="_law/ph_color.js"></script>
+<script src="_law/ph_w4_law.js"></script>
+<script src="_law/ph_w6_law.js"></script>
+<script>
+'use strict';
+const CO = PH_COLOR, L4 = PH_W4, L = PH_W6, NL = L4.NL, LS = L4.LS, $ = id => document.getElementById(id);
+/* 窓の色：クリーム色の紙・水滴は水色の薄塗り・細い赤〜紫の線（SPEC_02 W6） */
+const K = { paper: '#F2EAD3', ink: '#2B2A30', dim: '#6E6A60', faint: '#A39C8C', rule: 'rgba(43,42,48,.22)', rule2: 'rgba(43,42,48,.08)', water: 'rgba(122,176,214,.30)', waterLine: '#5E8FB4', red: '#C0392B', violet: '#6A3FA0' };
+const S = { alt: 10, a: 1, brk: false, proof: false, pt: 0, auto: false, at: 0, go: null, drag: null, probe: null, b: 0.8609, dirtyBow: true, dirtySky: true };
+const cv = $('cv'), ctx = cv.getContext('2d');
+let W = 1, H = 1, G = {};
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), D2R = Math.PI / 180;
+const LA0 = Math.log(L.A_MIN), LA1 = Math.log(L.A_MAX);
+const aOfU = u => Math.exp(LA0 + u * (LA1 - LA0)), uOfA = a => (Math.log(a) - LA0) / (LA1 - LA0);
+const fmtA = a => a < 0.1 ? a.toFixed(3) : a < 1 ? a.toFixed(2) : a.toFixed(1);
+const mono = (px, w) => (w || 400) + ' ' + px + 'px "JetBrains Mono",ui-monospace,monospace', note = px => px + 'px "M PLUS 1 Code","IBM Plex Sans JP",monospace', jura = (px, w) => (w || 600) + ' ' + px + 'px Jura,sans-serif', jp = (px, w) => (w || 500) + ' ' + px + 'px "IBM Plex Sans JP",sans-serif';
+function txt(s, x, y, o) { o = o || {}; ctx.font = o.f || note(11); ctx.fillStyle = o.c || K.ink; ctx.textAlign = o.a || 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillText(s, x, y); }
+const css = rgb => 'rgb(' + rgb.map(v => Math.round(clamp(v, 0, 1) * 255)).join(',') + ')';
+const n550 = b => L.nOf(550, S.brk);
+
+/* ---- 角の表：0〜64° を 0.05° ごと。粒の大きさが変わったときだけ波長ごとに作り直す（太陽の光は後で掛ける） ---- */
+const TH_DT = 0.05, TH_N = Math.round(64 / TH_DT) + 1, THS = Array.from({ length: TH_N }, (_, j) => Math.max(0.5, j * TH_DT));
+let BOW = null;                                                      // BOW[j] = 波長ごとの強さ（太陽の光を掛ける前）
+let BOWX = new Float64Array(TH_N * 3), BOWY = new Float64Array(TH_N); // いまの太陽の光での XYZ
+const CMF5 = LS.map(l => CO.CMF[l - 380]);
+function buildBow() { BOW = L.bowTable(S.a, S.brk, THS, null); S.dirtyBow = false; S.dirtySun = true; }
+
+/* ---- 画面の色：W4 と同じ（白はその日の正午の太陽・露出は空の明るさ） ---- */
+const REF_AZ = 90, REF_EL = 25, buf = new Float64Array(NL);
+const Y_NOON = L4.xyz(L4.skyAt(L4.setup(60, L4.R_MIN), REF_AZ, REF_EL, buf)).Y;
+const WB = (() => { const x = L4.xyz(L4.setup(60, L4.R_MIN).sun); return [0.9505 * x.Y / x.X, 1, 1.089 * x.Y / x.Z]; })();
+const tone = v => 1 - Math.exp(-1.7 * Math.max(0, v)), gam = CO.gamma;
+function rgbX(X, Y, Z, k) { const l = CO.toLin({ X: X * k * WB[0], Y: Y * k, Z: Z * k * WB[2] }); return [gam(tone(l[0])), gam(tone(l[1])), gam(tone(l[2]))]; }
+/* 虹の濃さ（目安）：1 mm・太陽 10° の虹の山が、同じ時の太陽と反対側の空（高さ 30°）の 0.9 倍の明るさで足されるように一度だけ合わせる。雨の幕は空の 22% の明るさ */
+const CURTAIN = 0.22;
+let GAIN = 1;
+{ const a0 = S.a; const T = L.bowTable(1, false, THS, null), St = L4.setup(10, L4.R_MIN); let mx = 0;
+  for (let j = 0; j < TH_N; j++) { let y = 0; for (let w = 0; w < NL; w++) y += T[j][w] * St.sun[w] * CMF5[w].y; mx = Math.max(mx, y * 5); }
+  const ysky = L4.xyz(L4.skyAt(St, 180, 30, buf)).Y; GAIN = 0.9 * ysky / mx; S.a = a0; }
+
+/* ---- 太陽の高さが変わったら：太陽の光（W4 の地面に届く光）で虹の XYZ を、空を粗い升で ---- */
+const SKY_C = 64, SKY_R = 36;
+let SKY = new Float64Array(SKY_C * SKY_R * 3), D = {};
+function derive() {
+  const St = L4.setup(S.alt, L4.R_MIN), sun = St.sun;
+  for (let j = 0; j < TH_N; j++) { let X = 0, Y = 0, Z = 0; const r = BOW[j];
+    for (let w = 0; w < NL; w++) { const v = r[w] * sun[w]; X += v * CMF5[w].x; Y += v * CMF5[w].y; Z += v * CMF5[w].z; }
+    BOWX[j * 3] = X * 5 * GAIN; BOWX[j * 3 + 1] = Y * 5 * GAIN; BOWX[j * 3 + 2] = Z * 5 * GAIN; BOWY[j] = Y * 5 * GAIN; }
+  for (let r = 0; r < SKY_R; r++) for (let c = 0; c < SKY_C; c++) {
+    const az = G.azSpan * (2 * c / (SKY_C - 1) - 1), el = Math.max(0.6, G.elTop * (1 - r / (SKY_R - 1)));
+    const x = L4.xyz(L4.skyAt(St, 180 + az, el, buf)), p = (r * SKY_C + c) * 3; SKY[p] = x.X; SKY[p + 1] = x.Y; SKY[p + 2] = x.Z; }
+  const yref = L4.xyz(L4.skyAt(St, REF_AZ, REF_EL, buf)).Y, k = 0.42 / (Math.pow(yref, 0.8) * Math.pow(Y_NOON, 0.2));
+  const sunX = L4.xyz(sun), sunRgb = CO.lightColor({ X: sunX.X * WB[0], Y: sunX.Y, Z: sunX.Z * WB[2] }).rgb;
+  // 主虹・副虹の角（550 nm）・色の端
+  const n = n550(), th1 = L.bowDeg(n, 1), th2 = L.bowDeg(n, 2), r7 = L.bowDeg(L.nOf(700, S.brk), 1), v4 = L.bowDeg(L.nOf(400, S.brk), 1);
+  // 地面（芝生）：太陽の光の照り返し＋空
+  const cosS = Math.sin(Math.max(0, S.alt) * D2R), gnd = { X: sunX.X * 0.03 * cosS * 0.8, Y: sunX.Y * 0.03 * cosS, Z: sunX.Z * 0.03 * cosS * 0.55 };   // 芝生の返す割合（目安）
+  D = { St, k, sunRgb, th1, th2, r7, v4, top: th1 - S.alt, gnd, state: L.stateOf(S.a), w: L.widthDeg(S.a), sup: L.supernumDeg(S.a), rho: L.rhoOf(S.a) };
+  S.dirtySky = false; S.dirtySun = false; S.dirtyImg = true;
+}
+
+/* ---- LOOK の絵（1 画素ずつ：太陽の反対の点からの角 → 虹の表）---- */
+let img = null, off = document.createElement('canvas'), octx = off.getContext('2d');
+const curtainTop = az => 43 + 6 * Math.sin(az * 0.055 + 1.2) + 3 * Math.sin(az * 0.17 + 0.4) + 1.5 * Math.sin(az * 0.41);
+function paintLook() {
+  const w = G.lw, h = G.horY - G.ly; if (off.width !== w || off.height !== h) { off.width = w; off.height = h; img = octx.createImageData(w, h); }
+  const ca = Math.cos(S.alt * D2R), sa = Math.sin(S.alt * D2R), k = D.k, data = img.data;
+  for (let y = 0; y < h; y++) {
+    const el = (G.horY - (G.ly + y + 0.5)) / G.ppd, ce = Math.cos(el * D2R), se = Math.sin(el * D2R);
+    const fr = clamp((1 - el / G.elTop) * (SKY_R - 1), 0, SKY_R - 1.001), r0 = Math.floor(fr), tr = fr - r0;
+    for (let x = 0; x < w; x++) {
+      const az = (x + 0.5 - w / 2) / G.ppd, caz = Math.cos(az * D2R);
+      const fc = clamp((az / G.azSpan + 1) / 2 * (SKY_C - 1), 0, SKY_C - 1.001), c0 = Math.floor(fc), tc = fc - c0;
+      const p00 = (r0 * SKY_C + c0) * 3, p01 = p00 + 3, p10 = p00 + SKY_C * 3, p11 = p10 + 3;
+      let X = 0, Y = 0, Z = 0;
+      for (let q = 0; q < 3; q++) { const v = (SKY[p00 + q] * (1 - tc) + SKY[p01 + q] * tc) * (1 - tr) + (SKY[p10 + q] * (1 - tc) + SKY[p11 + q] * tc) * tr; if (q === 0) X = v; else if (q === 1) Y = v; else Z = v; }
+      // 雨の幕（幕の中だけ雨粒がある＝虹が出る）
+      const ct = curtainTop(az), m = clamp((ct - el) / 5, 0, 1), dark = 1 - (1 - CURTAIN) * m;
+      X *= dark; Y *= dark; Z *= dark;
+      if (m > 0) { const cth = clamp(caz * ce * ca - se * sa, -1, 1), th = Math.acos(cth) / D2R, f = th / TH_DT;
+        if (f < TH_N - 1) { const j = Math.floor(f), t = f - j, b0 = j * 3, b1 = b0 + 3, mm = m * (0.75 + 0.25 * clamp(el / 8, 0, 1));
+          X += (BOWX[b0] * (1 - t) + BOWX[b1] * t) * mm; Y += (BOWX[b0 + 1] * (1 - t) + BOWX[b1 + 1] * t) * mm; Z += (BOWX[b0 + 2] * (1 - t) + BOWX[b1 + 2] * t) * mm; } }
+      const c = rgbX(X, Y, Z, k), p = (y * w + x) * 4; data[p] = c[0] * 255; data[p + 1] = c[1] * 255; data[p + 2] = c[2] * 255; data[p + 3] = 255;
+    }
+  }
+  octx.putImageData(img, 0, 0); S.dirtyImg = false;
+}
+
+function layout() {
+  const r = cv.getBoundingClientRect(), kk = r.width / Math.max(1, cv.clientWidth), dpr = Math.min((window.devicePixelRatio || 1) * kk, 2);
+  W = Math.max(1, cv.clientWidth); H = Math.max(1, cv.clientHeight); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const lx = 16, ly = 40, lw = 800, horY = 388, elTop = 55, ppd = (horY - ly) / elTop;
+  G = { lx, ly, lw, horY, elTop, ppd, azSpan: lw / 2 / ppd, cx: 836, dX: 1022, dY: 238, dR: 126, gx: 1214, gw: 360, gY0: 56, gY1: 214, pY0: 274, pY1: 420 };
+  S.dirtySky = true;
+}
+const elToY = el => G.horY - el * G.ppd, yToEl = y => (G.horY - y) / G.ppd, azToX = az => G.lx + G.lw / 2 + az * G.ppd;
+
+function ensure() { if (S.dirtyBow || !BOW) buildBow(); if (S.dirtySky || S.dirtySun) derive(); if (S.dirtyImg) paintLook(); }
+
+function draw() {
+  ensure(); const d = D;
+  ctx.fillStyle = K.paper; ctx.fillRect(0, 0, W, H);
+
+  /* ===== LOOK：太陽を背にした雨の空 ===== */
+  const { lx, ly, lw, horY } = G;
+  ctx.save(); ctx.beginPath(); ctx.rect(lx, ly, lw, H - 16 - ly); ctx.clip();
+  ctx.imageSmoothingEnabled = true; ctx.drawImage(off, lx, ly, lw, horY - ly);
+  // 雨の筋（幕の中・見た目のまね）
+  ctx.strokeStyle = 'rgba(255,255,255,.05)'; ctx.lineWidth = 1;
+  for (let q = 0; q < 140; q++) { const az = ((q * 37.7) % (2 * G.azSpan)) - G.azSpan, x = azToX(az), top = elToY(curtainTop(az) - 2), y0 = top + ((q * 53) % 300); if (y0 > horY) continue; ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x - 4, Math.min(horY, y0 + 40)); ctx.stroke(); }
+  // 地面
+  const g0 = rgbX(d.gnd.X, d.gnd.Y, d.gnd.Z, d.k), g1 = rgbX(d.gnd.X * 0.5, d.gnd.Y * 0.5, d.gnd.Z * 0.5, d.k);
+  const gg = ctx.createLinearGradient(0, horY, 0, H); gg.addColorStop(0, css(g0)); gg.addColorStop(1, css(g1)); ctx.fillStyle = gg;
+  ctx.beginPath(); ctx.moveTo(lx, H); for (let x = lx; x <= lx + lw; x += 4) { const az = (x - lx - lw / 2) / G.ppd; ctx.lineTo(x, horY - (1.2 + 0.8 * Math.sin(az * 0.09 + 2) + 0.4 * Math.sin(az * 0.31)) * G.ppd * 0.5); } ctx.lineTo(lx + lw, H); ctx.closePath(); ctx.fill();
+  // 太陽の正反対の点と、42°・51° の輪（本当は輪。地平線の下へ続く）
+  const ax = azToX(0), ay = elToY(-S.alt);
+  ctx.setLineDash([3, 5]); ctx.lineWidth = 1;
+  for (const [th, lab] of [[d.th1, '主虹 ' + d.th1.toFixed(1) + '°'], [d.th2, '副虹 ' + d.th2.toFixed(1) + '°']]) {
+    ctx.strokeStyle = 'rgba(255,255,255,.32)'; ctx.beginPath(); ctx.arc(ax, ay, th * G.ppd, 0, Math.PI * 2); ctx.stroke(); }
+  ctx.setLineDash([]);
+  if (ay < H - 20) { ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(ax - 7, ay); ctx.lineTo(ax + 7, ay); ctx.moveTo(ax, ay - 7); ctx.lineTo(ax, ay + 7); ctx.stroke();
+    txt('太陽の正反対の点（自分の影の頭）', ax + 10, Math.min(ay + 4, H - 22), { f: note(10), c: 'rgba(255,255,255,.9)' }); }
+  else { txt('↓ 太陽の正反対の点は地平線の下 ' + S.alt.toFixed(1) + '°', ax, H - 22, { a: 'center', f: note(10), c: 'rgba(255,255,255,.9)' }); }
+  ctx.restore();
+  // 目盛り（高さ°）
+  ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 1; ctx.font = mono(10); ctx.textAlign = 'right';
+  for (const el of [10, 20, 30, 40, 50]) { const y = elToY(el) + .5; ctx.beginPath(); ctx.moveTo(lx + lw - 10, y); ctx.lineTo(lx + lw, y); ctx.stroke(); ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillText(el + '°', lx + lw - 14, y + 4); }
+  if (d.top <= 0) { ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.font = jp(15); ctx.textAlign = 'center'; ctx.fillText('太陽が ' + d.th1.toFixed(1) + '° より高いので、主虹は地平線の下（見えない）', lx + lw / 2, ly + 120);
+    ctx.font = note(12); ctx.fillText(d.th2 - S.alt > 0 ? '副虹（' + d.th2.toFixed(1) + '°）の頂だけ、まだ ' + (d.th2 - S.alt).toFixed(1) + '° の高さに残る' : '副虹（' + d.th2.toFixed(1) + '°）も地平線の下', lx + lw / 2, ly + 144); }
+  else { ctx.fillStyle = 'rgba(255,255,255,.88)'; ctx.font = mono(10, 600); ctx.textAlign = 'left'; ctx.fillText('虹の頂 ' + d.top.toFixed(1) + '° ＝ ' + d.th1.toFixed(1) + '° − 太陽 ' + S.alt.toFixed(1) + '°', lx + 10, H - 40); }
+  // 指している点
+  if (S.probe) { const { x, y } = S.probe, el = yToEl(y), az = (x - lx - lw / 2) / G.ppd;
+    if (el > 0.3) { const th = Math.acos(clamp(Math.cos(az * D2R) * Math.cos(el * D2R) * Math.cos(S.alt * D2R) - Math.sin(el * D2R) * Math.sin(S.alt * D2R), -1, 1)) / D2R, t = '太陽の反対から ' + th.toFixed(1) + '°' + (Math.abs(th - d.th1) < 1.2 ? '（主虹）' : Math.abs(th - d.th2) < 2 ? '（副虹）' : th > d.th1 && th < d.th2 ? '（暗い帯）' : '');
+      ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.beginPath(); ctx.arc(x, y, 9, 0, 7); ctx.stroke(); ctx.font = mono(10, 600); const tw = ctx.measureText(t).width, tx = Math.min(lx + lw - tw - 14, x + 14);
+      ctx.fillStyle = K.ink; ctx.fillRect(tx, y - 22, tw + 12, 18); ctx.fillStyle = K.paper; ctx.textAlign = 'left'; ctx.fillText(t, tx + 6, y - 9); } }
+  ctx.strokeStyle = K.rule; ctx.strokeRect(lx + .5, ly + .5, lw - 1, H - 16 - ly - 1);
+
+  drawDrop(d); drawGraph(d); drawProfile(d);
+}
+
+/* ===== CAUSE ① 雨粒 1 つの光線の作図＋分度器 ===== */
+function drawDrop(d) {
+  const { dX: X0, dY: Y0, dR: R } = G, n = n550(), b0 = L.rainbowB(n, 1);
+  const P = (p) => [X0 + p[0] * R, Y0 - p[1] * R];
+  ctx.save(); ctx.beginPath(); ctx.rect(G.cx - 2, 30, G.gx - G.cx - 30, H - 30); ctx.clip();   // LOOK と右の図へはみ出さない
+  txt('ONE DROP · 光の道（1 回はね返る）', G.cx, 48, { f: jura(10, 600), c: K.dim });
+  // 水滴
+  ctx.fillStyle = K.water; ctx.beginPath(); ctx.arc(X0, Y0, R, 0, 7); ctx.fill(); ctx.strokeStyle = K.waterLine; ctx.lineWidth = 1.2; ctx.stroke();
+  // 分度器（中心＝粒の中心・太陽へ戻る向き 0° から下へ測る）
+  const PR = R + 34;
+  // canvas は y 下向き：太陽へ戻る向き（左）を 0° とし、下へ θ。向き (−cos θ, sin θ) の canvas の角は π − θ
+  ctx.strokeStyle = K.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(X0, Y0, PR, Math.PI - 60 * D2R, Math.PI, false); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(X0 - PR - 6, Y0 + .5); ctx.lineTo(X0, Y0 + .5); ctx.stroke();
+  for (let t = 0; t <= 60; t++) { const a = Math.PI - t * D2R, l = t % 10 === 0 ? 10 : t % 5 === 0 ? 7 : 4, c = Math.cos(a), s = Math.sin(a);
+    ctx.lineWidth = t === 42 ? 1.6 : 1; ctx.beginPath(); ctx.moveTo(X0 + c * PR, Y0 + s * PR); ctx.lineTo(X0 + c * (PR - l), Y0 + s * (PR - l)); ctx.stroke();
+    if (t % 10 === 0) txt(t + '°', X0 + c * (PR + 13), Y0 + s * (PR + 13) + 4, { a: 'center', f: 'italic 500 10px Jura,sans-serif', c: K.dim }); }
+  ctx.lineWidth = 1;
+  // 入る光（左から平行・灰色の細い線）と出ていく光
+  const rays = []; for (let q = 1; q <= 13; q++) rays.push(q / 14);
+  ctx.lineWidth = 0.8;
+  for (const b of rays) { const r = L.rayPath(b, n, 1), pts = r.pts.map(P);
+    ctx.strokeStyle = 'rgba(43,42,48,.22)'; ctx.beginPath(); ctx.moveTo(G.cx + 4, pts[0][1]); pts.forEach(p => ctx.lineTo(p[0], p[1])); const e = pts[pts.length - 1]; ctx.lineTo(e[0] + r.out[0] * 90, e[1] - r.out[1] * 90); ctx.stroke(); }
+  // 虹の光（最小偏角）：太め
+  { const r = L.rayPath(b0, n, 1), pts = r.pts.map(P); ctx.strokeStyle = K.ink; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(G.cx + 4, pts[0][1]); pts.forEach(p => ctx.lineTo(p[0], p[1])); const e = pts[pts.length - 1]; ctx.lineTo(e[0] + r.out[0] * 110, e[1] - r.out[1] * 110); ctx.stroke(); }
+  // 調べる光（なぞって動かす b）：赤 700 と紫 400 に分かれる
+  const bp = S.b;
+  for (const [l, col] of [[700, K.red], [400, K.violet]]) { const nn = L.nOf(l, S.brk), r = L.rayPath(bp, nn, 1), pts = r.pts.map(P);
+    ctx.strokeStyle = col; ctx.lineWidth = 1.4; ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); const e = pts[pts.length - 1]; ctx.lineTo(e[0] + r.out[0] * 150, e[1] - r.out[1] * 150); ctx.stroke(); }
+  { const r0 = L.rayPath(bp, n, 1), p0 = P(r0.pts[0]); ctx.strokeStyle = '#E8A23A'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(G.cx + 4, p0[1]); ctx.lineTo(p0[0], p0[1]); ctx.stroke();
+    ctx.fillStyle = '#E8A23A'; ctx.beginPath(); ctx.moveTo(G.cx + 4, p0[1] - 5); ctx.lineTo(G.cx + 12, p0[1]); ctx.lineTo(G.cx + 4, p0[1] + 5); ctx.fill();
+    txt('b ' + bp.toFixed(2), G.cx + 14, p0[1] - 5, { f: mono(10, 600), c: K.ink }); }
+  // 分度器の上の読み：中心から、出ていく光と平行な線
+  const thR = L.thetaDeg(bp, L.nOf(700, S.brk), 1), thV = L.thetaDeg(bp, L.nOf(400, S.brk), 1);
+  for (const [th, col] of [[thR, K.red], [thV, K.violet]]) { if (th < 0 || th > 60) continue; const a = Math.PI - th * D2R; ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(X0, Y0); ctx.lineTo(X0 + Math.cos(a) * PR, Y0 + Math.sin(a) * PR); ctx.stroke(); ctx.setLineDash([]); }
+  { const a = Math.PI - d.th1 * D2R; ctx.strokeStyle = K.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X0 + Math.cos(a) * (PR - 12), Y0 + Math.sin(a) * (PR - 12)); ctx.lineTo(X0 + Math.cos(a) * (PR + 3), Y0 + Math.sin(a) * (PR + 3)); ctx.stroke(); }
+  ctx.restore();
+  txt('赤 ' + thR.toFixed(1) + '° ／ 紫 ' + thV.toFixed(1) + '°', G.cx, H - 30, { f: mono(12, 600) });
+  txt('太い線＝虹の光（b ' + b0.toFixed(3) + '・' + d.th1.toFixed(1) + '°）　粒をなぞって b を動かす', G.cx, H - 14, { f: note(10), c: K.dim });
+}
+
+/* ===== CAUSE ② 入る高さ b と出ていく角 θ（光の集まる所）＋数えた光の山 ===== */
+let HIST = null, HIST_N = 0;
+function drawGraph(d) {
+  const { gx, gw, gY0: y0, gY1: y1 } = G, hw = 54, pw = gw - hw - 8, X = b => gx + b * pw, Y = th => y1 - th / 60 * (y1 - y0);
+  txt('入る高さ b → 出ていく角 θ', gx, y0 - 8, { f: mono(12, 600) });
+  ctx.strokeStyle = K.rule; ctx.lineWidth = 1; ctx.strokeRect(gx + .5, y0 + .5, pw, y1 - y0);
+  ctx.font = mono(9); ctx.fillStyle = K.dim; ctx.textAlign = 'right'; for (const t of [0, 20, 40, 60]) { ctx.fillText(t + '°', gx - 3, Y(t) + 3); ctx.strokeStyle = K.rule2; ctx.beginPath(); ctx.moveTo(gx, Y(t) + .5); ctx.lineTo(gx + pw, Y(t) + .5); ctx.stroke(); }
+  ctx.textAlign = 'center'; for (const b of [0, 0.5, 1]) ctx.fillText(b, X(b), y1 + 11); ctx.textAlign = 'left';
+  const curve = (l, k, col, dash) => { const nn = L.nOf(l, S.brk); ctx.strokeStyle = col; ctx.lineWidth = 1.4; ctx.setLineDash(dash || []); ctx.beginPath(); let mv = true;
+    for (let q = 0; q <= 200; q++) { const b = q / 200, t = L.thetaDeg(b, nn, k); if (t < 0 || t > 60) { mv = true; continue; } mv ? ctx.moveTo(X(b), Y(t)) : ctx.lineTo(X(b), Y(t)); mv = false; } ctx.stroke(); ctx.setLineDash([]); };
+  curve(700, 1, K.red); curve(400, 1, K.violet); curve(550, 2, K.dim, [4, 3]);
+  // 主虹の角の線
+  ctx.strokeStyle = K.ink; ctx.setLineDash([2, 2]); ctx.beginPath(); ctx.moveTo(gx, Y(d.th1) + .5); ctx.lineTo(gx + pw + hw + 8, Y(d.th1) + .5); ctx.stroke(); ctx.setLineDash([]);
+  txt(d.th1.toFixed(1) + '° で折り返す', gx + 6, Y(d.th1) - 5, { f: note(10), c: K.ink });
+  txt('副虹（2 回はね返る）', X(0.30), Y(55) + 3, { f: note(9), c: K.dim });
+  // いまの b
+  const bp = S.b, tb = L.thetaDeg(bp, n550(), 1); ctx.strokeStyle = '#E8A23A'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(X(bp), y1); ctx.lineTo(X(bp), Y(tb)); ctx.stroke(); ctx.fillStyle = '#E8A23A'; ctx.beginPath(); ctx.arc(X(bp), Y(tb), 4, 0, 7); ctx.fill();
+  // 光の山（b を一様に入れたとき、θ の 1° ごとに何本来るか）：PROOF の間は入れた分だけ
+  const hx = gx + pw + 8, NB = 60, cnt = new Float64Array(NB), Nr = 400, upto = S.proof ? clamp(S.pt / 7, 0, 1) : 1;
+  for (let q = 0; q < Nr; q++) { const b = (q + 0.5) / Nr; if (b > upto) break; const t = L.thetaDeg(b, n550(), 1); if (t >= 0 && t < 60) cnt[Math.floor(t)]++; }
+  const mx = 44; ctx.fillStyle = 'rgba(94,58,140,.75)';
+  for (let t = 0; t < NB; t++) { const len = Math.min(hw, cnt[t] / mx * hw); ctx.fillRect(hx, Y(t + 1) + .5, len, Math.max(1, (y1 - y0) / 60 - 0.5)); }
+  ctx.strokeStyle = K.rule; ctx.beginPath(); ctx.moveTo(hx + .5, y0); ctx.lineTo(hx + .5, y1); ctx.stroke();
+  txt('光の本数', hx, y0 - 8 + 0, { f: note(9), c: K.dim });
+  const top1 = cnt[Math.floor(d.th1)] | 0, avg = (Nr * upto / Math.max(1, d.th1)).toFixed(1);
+  txt(top1 + ' 本', hx + 2, Y(d.th1) - 3, { f: mono(9, 600), c: K.ink });
+  if (S.proof) { const st = ['① 光を高さ b = 0 から 1 まで順に入れる', '② 出ていく角は ' + d.th1.toFixed(1) + '° まで増えて折り返す', '③ 折り返しの所に光が重なる＝虹（' + d.th1.toFixed(0) + '° の 1° に ' + top1 + ' 本・平均 ' + avg + ' 本）'], k3 = Math.min(2, Math.floor(S.pt / 3.2));
+    ctx.fillStyle = 'rgba(242,234,211,.92)'; ctx.fillRect(gx + 4, y0 + 4, pw - 8, 16 + k3 * 15);
+    for (let q = 0; q <= k3; q++) txt(st[q], gx + 8, y0 + 16 + q * 15, { f: note(10), c: q === k3 ? K.ink : K.dim }); }
+}
+
+/* ===== CAUSE ③ 角ごとの明るさ（虹の断面）と色の帯 ===== */
+function drawProfile(d) {
+  const { gx, gw, pY0: y0, pY1: y1 } = G, T0 = 34, T1 = 58, X = t => gx + (t - T0) / (T1 - T0) * gw;
+  txt('角ごとの明るさ（虹の断面）', gx, y0 - 10, { f: mono(12, 600) });
+  txt('帯の太さ ' + d.w.toFixed(2) + '°' + (d.sup < 4 ? ' · 過剰虹の間隔 ' + d.sup.toFixed(2) + '°' : ''), gx + gw, y0 - 10, { a: 'right', f: note(10), c: K.dim });
+  // 色の帯（その角の虹＋雨の幕の色）
+  const by = y1 + 2, bh = 14, k = D.k;
+  const bg = L4.xyz(L4.skyAt(d.St, 180, 25, buf));
+  for (let px = 0; px < gw; px++) { const t = T0 + px / gw * (T1 - T0), j = Math.round(t / TH_DT), c = rgbX(bg.X * CURTAIN + BOWX[j * 3], bg.Y * CURTAIN + BOWX[j * 3 + 1], bg.Z * CURTAIN + BOWX[j * 3 + 2], k);
+    ctx.fillStyle = css(c); ctx.fillRect(gx + px, by, 1.2, bh); }
+  // 明るさの曲線（Y）
+  let mx = 1e-12; for (let t = T0; t <= T1; t += TH_DT) mx = Math.max(mx, BOWY[Math.round(t / TH_DT)]);
+  ctx.beginPath(); for (let px = 0; px <= gw; px++) { const t = T0 + px / gw * (T1 - T0), v = BOWY[Math.round(t / TH_DT)] / mx, y = y1 - Math.min(1, v) * (y1 - y0 - 6); px ? ctx.lineTo(gx + px, y) : ctx.moveTo(gx + px, y); }
+  ctx.lineTo(gx + gw, y1); ctx.lineTo(gx, y1); ctx.closePath(); ctx.fillStyle = 'rgba(94,58,140,.12)'; ctx.fill();
+  ctx.beginPath(); for (let px = 0; px <= gw; px++) { const t = T0 + px / gw * (T1 - T0), v = BOWY[Math.round(t / TH_DT)] / mx, y = y1 - Math.min(1, v) * (y1 - y0 - 6); px ? ctx.lineTo(gx + px, y) : ctx.moveTo(gx + px, y); }
+  ctx.strokeStyle = K.ink; ctx.lineWidth = 1.3; ctx.stroke();
+  // 副虹は 6 倍に拡大して点線で
+  ctx.setLineDash([3, 3]); ctx.beginPath(); let mv = true; for (let px = 0; px <= gw; px++) { const t = T0 + px / gw * (T1 - T0); if (t < d.th1 + 3) { mv = true; continue; } const v = BOWY[Math.round(t / TH_DT)] / mx * 6, y = y1 - Math.min(1, v) * (y1 - y0 - 6); mv ? ctx.moveTo(gx + px, y) : ctx.lineTo(gx + px, y); mv = false; }
+  ctx.strokeStyle = K.dim; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle = K.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(gx, y1 + .5); ctx.lineTo(gx + gw, y1 + .5); ctx.stroke();
+  ctx.font = mono(9); ctx.fillStyle = K.dim; ctx.textAlign = 'center'; for (let t = 35; t <= 55; t += 5) ctx.fillText(t + '°', X(t), by + bh + 11);
+  txt('主虹', X(d.th1), y0 + 4, { a: 'center', f: note(10), c: K.ink });
+  txt('暗い帯', X((d.th1 + d.th2) / 2), y1 - 8, { a: 'center', f: note(10), c: K.dim });
+  txt('副虹 ×6', X(Math.min(T1 - 1.5, d.th2 + 1)), y1 - 44, { a: 'center', f: note(9), c: K.dim });
+  txt('← 内（明るい）', gx, y0 + 14, { f: note(9), c: K.faint }); txt('太陽の反対からの角 θ →', gx + gw, y0 + 14, { a: 'right', f: note(9), c: K.faint });
+}
+
+/* ---- 外枠への書き出し ---- */
+const STATE_I = { WHITE: 0, PALE: 1, COLOR: 2 };
+const LW_ = Math.log(L.A_WHITE), LC_ = Math.log(L.A_COLOR);
+const BX = a => { const l = Math.log(clamp(a, L.A_MIN, L.A_MAX)); return l <= LW_ ? 6 + (l - LA0) / (LW_ - LA0) * 66 : l <= LC_ ? 72 + (l - LW_) / (LC_ - LW_) * 68 : 140 + (l - LC_) / (LA1 - LC_) * 66; };
+const setBound = PHShell.boundary($('bound'), { width: 212, zones: ['WHITE', 'PALE', 'COLOR'], cuts: [{ x: BX(L.A_WHITE), label: L.A_WHITE.toFixed(3) + ' mm' }, { x: BX(L.A_COLOR), label: L.A_COLOR.toFixed(2) + ' mm' }] });
+const scaleSvg = $('scale'), NS = 'http://www.w3.org/2000/svg', sEl = (t, a, tx) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (tx != null) e.textContent = tx; scaleSvg.appendChild(e); return e; };
+const sXa = a => uOfA(a) * 960;
+sEl('rect', { x: 0, y: 20, width: sXa(L.A_WHITE), height: 12, fill: 'rgba(232,230,223,.16)' });
+sEl('text', { x: sXa(L.A_WHITE) / 2, y: 14, 'font-family': "'M PLUS 1 Code', monospace", 'font-size': 10, fill: '#9C9A93', 'text-anchor': 'middle' }, '白い虹（帯が色の差より太い）');
+sEl('rect', { x: sXa(L.A_COLOR), y: 20, width: 960 - sXa(L.A_COLOR), height: 12, fill: 'rgba(195,171,232,.32)' });
+sEl('text', { x: (sXa(L.A_COLOR) + 960) / 2, y: 14, 'font-family': "'M PLUS 1 Code', monospace", 'font-size': 10, fill: '#C3ABE8', 'text-anchor': 'middle' }, '色が分かれる');
+sEl('line', { x1: 0, y1: 26, x2: 960, y2: 26, stroke: 'rgba(232,230,223,0.55)' });
+for (const [a, s] of [[0.005, '霧 0.005 mm'], [0.02, '0.02'], [0.1, '霧雨 0.1'], [0.5, '0.5'], [1, '雨 1'], [2.5, '大粒 2.5 mm']]) { const x = sXa(a); sEl('line', { x1: x, y1: 20, x2: x, y2: 32, stroke: '#E8E6DF' }); sEl('text', { x, y: 46, 'font-family': "'M PLUS 1 Code', monospace", 'font-size': 10, fill: '#9C9A93', 'text-anchor': a === 0.005 ? 'start' : a === 2.5 ? 'end' : 'middle' }, s); }
+const scaleMk = sEl('polygon', { points: '0,29 -6,40 6,40', fill: '#C3ABE8' });
+/* SPECIMEN：デカルトの雨粒（法則の光の道から描く） */
+{ const sp = $('specimen'), s = document.createElementNS(NS, 'svg'); s.setAttribute('width', 310); s.setAttribute('height', 174); s.setAttribute('viewBox', '0 0 310 174'); s.style.cssText = 'position:absolute;left:0;top:0';
+  const cx = 196, cy = 86, R = 52, n = L.nWater(550), b0 = L.rainbowB(n, 1);
+  let h = '<rect width="310" height="174" fill="#F2EAD3"/><circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" fill="rgba(122,176,214,.32)" stroke="#5E8FB4"/>';
+  for (let q = 1; q <= 9; q++) { const b = q / 10, r = L.rayPath(b, n, 1), pts = r.pts.map(p => [cx + p[0] * R, cy - p[1] * R]), e = pts[pts.length - 1];
+    h += '<polyline fill="none" stroke="rgba(43,42,48,.3)" stroke-width=".7" points="' + [[cx - 120, pts[0][1]], ...pts, [e[0] + r.out[0] * 70, e[1] - r.out[1] * 70]].map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') + '"/>'; }
+  { const r = L.rayPath(b0, n, 1), pts = r.pts.map(p => [cx + p[0] * R, cy - p[1] * R]), e = pts[pts.length - 1];
+    h += '<polyline fill="none" stroke="#2B2A30" stroke-width="1.4" points="' + [[cx - 120, pts[0][1]], ...pts, [e[0] + r.out[0] * 90, e[1] - r.out[1] * 90]].map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') + '"/>'; }
+  h += '<text x="16" y="150" font-family="Jura,sans-serif" font-style="italic" font-size="11" fill="#2B2A30">Descartes · Météores 1637</text><text x="16" y="166" font-family="M PLUS 1 Code,monospace" font-size="9" fill="#6E6A60">太い線が 42° で戻る虹の光</text>';
+  s.innerHTML = h; sp.insertBefore(s, sp.firstChild); }
+
+function readout() {
+  ensure(); const d = D, si = STATE_I[d.state];
+  PHShell.mark($('states'), si);
+  [...$('states').children].forEach(c => c.classList.toggle('seek', !!S.go && c.dataset.s === S.go.k));
+  $('o_alt').textContent = S.alt.toFixed(1); $('o_top').textContent = d.top > 0 ? '虹の頂 ' + d.top.toFixed(1) + '°' : '虹は地平線の下';
+  $('o_a').textContent = fmtA(S.a); $('o_w').textContent = '帯 ' + d.w.toFixed(2) + '°';
+  $('o_bow').textContent = d.th1.toFixed(1); $('o_sec').textContent = '赤 ' + d.r7.toFixed(1) + ' · 紫 ' + d.v4.toFixed(1);
+  if (document.activeElement !== $('alt')) $('alt').value = S.alt; if (document.activeElement !== $('drop')) $('drop').value = Math.round(uOfA(S.a) * 1000);
+  $('bProof').classList.toggle('on', S.proof); $('bAuto').classList.toggle('on', S.auto); $('bBreak').classList.toggle('on', S.brk); $('win').classList.toggle('broken', S.brk);
+  document.querySelectorAll('#presets .ph-chip').forEach(b => b.classList.toggle('on', !S.auto && Math.abs(+b.dataset.a - S.alt) < 0.01));
+  setBound(BX(S.a), si); scaleMk.setAttribute('transform', 'translate(' + sXa(S.a).toFixed(1) + ' 0)');
+  $('titleField').textContent = 'W6 — WAVE · RAINBOW · STATE ' + d.state + (S.brk ? ' · BREAK 分散が逆' : '');
+  $('bigAm').textContent = d.th1.toFixed(1) + '°';
+  $('toSky').href = '04_sky.html#alt=' + S.alt.toFixed(1);
+  $('nz1').textContent = 'ALT ' + S.alt.toFixed(1) + '  TOP ' + d.top.toFixed(1); $('nz2').textContent = 'A ' + S.a.toFixed(3) + ' MM  RHO ' + d.rho.toFixed(2);
+}
+
+/* ---- STATE を押す：その状態になるように雨粒の大きさ（原因）を 0.9 秒で動かす ---- */
+const GO_A = { WHITE: 0.02, PALE: 0.15, COLOR: 1 };
+function goState(k) { S.proof = false; S.go = { k, a: 0, u0: uOfA(S.a), u1: uOfA(GO_A[k]) }; }
+function setAlt(a) { const v = clamp(a, 0.5, 60); if (v !== S.alt) { S.alt = v; S.dirtySky = true; } }
+function setA(a) { const v = clamp(a, L.A_MIN, L.A_MAX); if (v !== S.a) { S.a = v; S.dirtyBow = true; } }
+function setB(b) { S.b = clamp(b, 0.01, 0.995); }
+function step(dt) {
+  if (S.go) { const q = S.go; q.a = Math.min(1, q.a + dt / 0.9); const e = q.a * q.a * (3 - 2 * q.a); setA(aOfU(q.u0 + (q.u1 - q.u0) * e)); if (q.a >= 1) S.go = null; }
+  if (S.auto) { S.at += dt; setAlt(0.5 + 59.5 * Math.sin(Math.PI * ((S.at % 40) / 40))); }
+  if (S.proof) { S.pt += dt; if (S.pt > 10) S.pt = 0; setB(clamp(S.pt / 7, 0.01, 0.995)); }
+  readout(); draw();
+}
+
+/* ---- 操作 ---- */
+const stopHands = () => { S.go = null; S.auto = false; };
+document.querySelectorAll('#presets .ph-chip').forEach(b => b.addEventListener('click', () => { stopHands(); setAlt(+b.dataset.a); }));
+document.querySelectorAll('#states > div').forEach(b => b.addEventListener('click', () => goState(b.dataset.s)));
+$('bound').addEventListener('click', e => { const r = $('bound').getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 212; goState(x < BX(L.A_WHITE) ? 'WHITE' : x > BX(L.A_COLOR) ? 'COLOR' : 'PALE'); });
+$('alt').addEventListener('input', e => { stopHands(); setAlt(+e.target.value); });
+$('drop').addEventListener('input', e => { S.go = null; setA(aOfU(+e.target.value / 1000)); });
+$('bProof').addEventListener('click', () => { S.go = null; S.proof = !S.proof; S.pt = 0; if (S.proof) S.auto = false; else setB(L.rainbowB(n550(), 1)); });
+$('bAuto').addEventListener('click', () => { S.go = null; S.auto = !S.auto; if (S.auto) { S.proof = false; S.at = Math.asin(clamp((S.alt - 0.5) / 59.5, 0, 1)) / Math.PI * 40; } });
+$('bBreak').addEventListener('click', () => { S.brk = !S.brk; S.dirtyBow = true; });
+
+const pos = e => { const r = cv.getBoundingClientRect(), k = r.width / Math.max(1, cv.clientWidth); return [(e.clientX - r.left) / k, (e.clientY - r.top) / k]; };
+const inLook = (x, y) => x >= G.lx && x <= G.lx + G.lw && y >= G.ly && y <= H - 16;
+const inDrop = (x, y) => x >= G.cx && x <= G.dX + G.dR + 10 && y >= G.dY - G.dR - 10 && y <= G.dY + G.dR + 10;
+/* 虹を引く：指の高さが虹の頂になるように太陽の高さを決める（頂 ＝ 虹の角 − 太陽の高さ） */
+const altFromY = y => D.th1 - yToEl(y);
+cv.addEventListener('pointerdown', e => { const [x, y] = pos(e);
+  if (inLook(x, y)) { stopHands(); S.proof = false; S.drag = 'sky'; setAlt(altFromY(y)); }
+  else if (inDrop(x, y)) { S.proof = false; S.drag = 'drop'; setB((G.dY - y) / G.dR); } else return;
+  try { cv.setPointerCapture(e.pointerId); } catch (_) {} });
+cv.addEventListener('pointermove', e => { const [x, y] = pos(e); const nl = inLook(x, y), nd = inDrop(x, y);
+  $('ctl').classList.toggle('hot', nl || S.drag === 'sky'); cv.style.cursor = nl ? 'ns-resize' : nd ? 'row-resize' : 'default';
+  S.probe = nl && !S.drag ? { x, y } : null;
+  if (S.drag === 'sky') setAlt(altFromY(y)); else if (S.drag === 'drop') setB((G.dY - y) / G.dR); });
+const up = () => { S.drag = null; }; cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+cv.addEventListener('pointerleave', () => { if (!S.drag) { S.probe = null; $('ctl').classList.remove('hot'); } });
+new ResizeObserver(() => { layout(); draw(); }).observe(cv);
+PHShell.onScale(() => { layout(); draw(); });
+if (document.fonts) ["11px 'JetBrains Mono'", "11px 'M PLUS 1 Code'", "13px 'IBM Plex Sans JP'", "12px Jura"].forEach(f => document.fonts.load(f).then(() => draw()));
+
+/* 直リンク：#alt=度&a=mm&b=0〜1&proof=1&auto=1&brk=1 */
+{ const h = new URLSearchParams(location.hash.slice(1)); if (h.has('alt')) setAlt(+h.get('alt')); if (h.has('a')) setA(+h.get('a')); if (h.has('b')) setB(+h.get('b')); if (h.get('brk') === '1') S.brk = true;
+  if (h.get('proof') === '1') S.proof = true; if (h.get('auto') === '1') { S.auto = true; S.at = Math.asin(clamp((S.alt - 0.5) / 59.5, 0, 1)) / Math.PI * 40; } }
+window.__PH = { S, L, L4, CO, get G() { return G; }, get D() { return D; }, step, draw, layout, readout, setAlt, setA, setB, goState, rgbX, get BOWY() { return BOWY; } };   // 検証用
+layout(); let last = performance.now();
+(function loop(now) { step(Math.max(0, Math.min(0.05, (now - last) / 1000))); last = now; requestAnimationFrame(loop); })(last);
+</script>
+</body>
+</html>
