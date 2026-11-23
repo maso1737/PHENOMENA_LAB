@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>W1 ONE OCTAVE 解説 LP — PHENOMENA LAB</title>
+<link rel="stylesheet" href="../../_shell/shell.css">
+<style>
+  /* ★ アクセント＝アプリと同じ 3 変数だけ変える（スクリプトの ACC・ACCL も同じ値に）。下の CSS は 3 本の LP で共通・触らない */
+  :root { --accent: #ECEAE3; --accent-ink: #0B0B0A; --accent-line: #ECEAE3; }
+  html, body { height: auto; overflow-x: hidden; overflow-y: auto; }
+  #track { position: relative; width: 1px; pointer-events: none; }
+  .ph-viewport { z-index: 1; }
+  #cv { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; }
+  .ab { position: absolute; }
+  .lay { position: absolute; inset: 0; pointer-events: none; transition: opacity .25s; opacity: 0; }
+  .lay.on { opacity: 1; }
+  .lay.on .hit { pointer-events: auto; }
+
+  /* ヘッダ */
+  .brand b { display: block; width: 300px; font: 400 22px/1.35 var(--f-wide); letter-spacing: .24em; color: var(--ink); }
+  .brand span { display: block; margin-top: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .2em; color: var(--accent-line); }
+  .ids { display: grid; grid-template-columns: 96px 1fr; row-gap: 6px; width: 340px; font-size: 11px; }
+  .ids dt { font-family: var(--f-thin); letter-spacing: .18em; color: var(--ink-2); }
+  .ids dd { margin: 0; font-family: var(--f-num); color: var(--ink); }
+  .tab { left: 1704px; top: 24px; width: 176px; height: 152px; background: var(--accent); color: var(--accent-ink); padding: 18px 18px 0; }
+  .tab .k { display: flex; justify-content: space-between; font: 600 13px/1 var(--f-thin); letter-spacing: .24em; }
+  .tab .n { font: 400 62px/1 var(--f-wide); margin-top: 12px; }
+  .tab .s { font: 400 12px/1 var(--f-num); margin-top: 10px; }
+  .noise { left: 1130px; top: 44px; font: 400 8.5px/13px var(--f-num); color: var(--ink); opacity: .2; white-space: pre; }
+  #bigTop { left: 1100px; top: 36px; width: 590px; text-align: right; font: 400 72px/1 var(--f-wide); color: var(--accent); opacity: .16; white-space: nowrap; }
+  #kanji { font: 500 300px/1 var(--f-jp); color: var(--accent); opacity: .12; white-space: nowrap; }
+  #kanji.num { font: 400 200px/1 var(--f-wide); }
+
+  /* 00 問い */
+  .band { left: 32px; top: 136px; width: 1316px; height: 330px; background: var(--accent); color: var(--accent-ink); padding: 34px 48px; }
+  .band .f { font: 600 13px/1 var(--f-thin); letter-spacing: .42em; }
+  .band h1 { margin: 26px 0 0; font: 400 128px/118px var(--f-wide); letter-spacing: -.01em; }
+  .q { left: 1376px; top: 190px; width: 480px; }
+  .q .k { font: 600 12px/1 var(--f-thin); letter-spacing: .3em; color: var(--accent-line); }
+  .q p { margin: 22px 0 0; font: 500 28px/1.55 var(--f-jp); color: var(--ink); }
+  .howto { left: 40px; top: 486px; width: 212px; }
+  .howto h3, .stl h3 { margin: 0; display: flex; align-items: center; gap: 10px; font: 400 15px/1 var(--f-wide); letter-spacing: .16em; color: var(--ink); }
+  .howto h3 i, .stl h3 i, .railk i { width: 10px; height: 10px; background: var(--accent); }
+  .howto .st { border-bottom: 1px solid var(--line-sub); padding: 18px 0 14px; }
+  .howto .st span { display: block; font: 600 10px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .howto .st b { font: 400 28px/1 var(--f-num); color: var(--ink); margin-right: 10px; }
+  .howto .st small { font: 400 12px/1 var(--f-jp); color: var(--ink-2); }
+  .hint { font: 600 11px/1 var(--f-thin); letter-spacing: .24em; color: var(--accent-line); }
+  .hint em, .nextk em { font-style: normal; display: inline-block; animation: bob 1.2s ease-in-out infinite; }
+  @keyframes bob { 0%, 100% { transform: translateY(-2px); } 50% { transform: translateY(3px); } }
+
+  /* 駅の一覧 */
+  .stl { left: 40px; top: 140px; width: 212px; }
+  .stl ol { list-style: none; margin: 16px 0 0; padding: 0; }
+  .stl li { display: flex; align-items: center; height: 45px; padding: 0 10px; border-bottom: 1px solid var(--line-sub); cursor: pointer; color: var(--ink-3); }
+  .stl li u { text-decoration: none; font: 400 12px/1 var(--f-num); width: 32px; }
+  .stl li b { font: 400 14px/1 var(--f-jp); flex: 1; }
+  .stl li s { text-decoration: none; font: 600 9px/1 var(--f-thin); letter-spacing: .14em; }
+  .stl li.done { color: var(--ink); }
+  .stl li.done s::before { content: '✓'; font-size: 11px; color: var(--ink-2); }
+  .stl li.done s { font-size: 0; }
+  .stl li.now { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .stl li.now b { font-weight: 500; }
+  .stl li.now s { font-size: 0; }
+  .stl li.now s::after { content: '◀ NOW'; font-size: 9px; }
+  .stl li:hover:not(.now) { color: var(--ink); background: rgba(232,230,223,.04); }
+  .read { margin-top: 26px; display: flex; justify-content: space-between; font: 600 10px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .read b { font: 400 12px/1 var(--f-num); color: var(--ink); }
+  .bar { margin-top: 8px; height: 5px; background: rgba(232,230,223,.1); }
+  .bar i { display: block; height: 100%; background: var(--accent); width: 0; }
+
+  /* 図の札 */
+  .figtag { left: 302px; top: 168px; height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: #0B0B0A; color: var(--ink); }
+  .figtag i { width: 10px; height: 10px; background: var(--accent); }
+  .figtag b { font: 400 15px/1 var(--f-wide); letter-spacing: .1em; }
+  .figtag span { font: 500 12px/1 var(--f-jp); }
+  .brkchip { left: 1166px; top: 168px; height: 30px; padding: 0 12px; display: flex; align-items: center; gap: 8px; background: #0B0B0A; color: var(--ink); font: 600 11px/1 var(--f-thin); letter-spacing: .2em; }
+  .brkchip b { font: 500 12px/1 var(--f-jp); letter-spacing: 0; }
+
+  /* 右の欄 */
+  .rc { left: 1360px; top: 158px; width: 520px; display: flex; flex-direction: column; }
+  .rc .hd { display: flex; align-items: baseline; gap: 22px; }
+  .rc .num { font: 400 82px/1 var(--f-wide); color: var(--accent-line); }
+  .rc .en { font: 600 12px/1 var(--f-thin); letter-spacing: .24em; color: var(--ink-2); }
+  .rc h2 { margin: 18px 0 0; font: 500 40px/1.38 var(--f-jp); color: var(--ink); letter-spacing: .02em; }
+  .rc .body { margin: 20px 0 0; font: 400 16px/1.78 var(--f-jp); color: var(--ink); padding-bottom: 20px; border-bottom: 1px solid var(--line-main); }
+  .rc .kl { margin-top: 20px; font: 600 10px/1 var(--f-thin); letter-spacing: .22em; color: var(--ink-2); }
+  .rc .kv { margin-top: 10px; display: flex; align-items: baseline; gap: 12px; }
+  .rc .kv b { font: 400 64px/1 var(--f-num); color: var(--accent-line); }
+  .rc .kv span { font: 400 18px/1 var(--f-num); color: var(--ink-2); }
+  .rc .kn { margin-top: 12px; font: 400 13px/1.6 var(--f-jp); color: var(--ink-2); }
+  .rc .kn sup { font-size: 9px; }
+  .rc .wow { margin-top: 18px; display: flex; gap: 12px; font: 400 14px/1.65 var(--f-jp); color: var(--ink); }
+  .rc .wow i { flex: none; font: 600 10px/1 var(--f-jp); background: var(--ink); color: #0B0B0A; padding: 5px 8px; height: 20px; margin-top: 2px; font-style: normal; }
+  .nextk { left: 1360px; top: 838px; width: 520px; display: flex; align-items: center; gap: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .24em; color: var(--ink-2); }
+  .nextk hr { flex: 1; border: 0; border-top: 1px solid var(--line-sub); margin: 0; }
+  .nextk span { font: 500 13px/1 var(--f-jp); letter-spacing: 0; color: var(--ink); }
+  .nextk span small { font-size: 12px; color: var(--ink-2); margin-right: 10px; }
+
+  /* 文字の入り方：左から（0.26〜0.34 秒） */
+  .in { clip-path: inset(0 100% 0 0); }
+  .go .in { animation: wipe .32s cubic-bezier(.2,.8,.2,1) forwards; animation-delay: calc(var(--d, 0) * 60ms); }
+  @keyframes wipe { from { clip-path: inset(0 100% 0 0); transform: translateX(-10px); } to { clip-path: inset(0 0 0 0); transform: none; } }
+
+  /* 09 持ち出す */
+  .endh { left: 284px; top: 160px; display: flex; align-items: baseline; gap: 26px; }
+  .endh b { font: 400 96px/1 var(--f-wide); color: var(--accent-line); }
+  .endh span { font: 400 32px/1 var(--f-wide); letter-spacing: .08em; color: var(--ink); }
+  .endh em { font: 500 22px/1 var(--f-jp); font-style: normal; color: var(--ink); }
+  .endn { left: 1300px; top: 230px; width: 580px; text-align: right; font: 600 11px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .cards { left: 280px; top: 272px; width: 1600px; height: 332px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .cards > div { border-left: 2px solid var(--accent); padding: 16px 16px; color: var(--ink); transition: background .2s, color .2s; }
+  .cards > div:hover { background: var(--accent); color: var(--accent-ink); }
+  .cards h4 { margin: 0; font: 400 15px/1 var(--f-wide); letter-spacing: .08em; }
+  .cards h4 u { text-decoration: none; font: 400 12px/1 var(--f-num); color: var(--accent-line); margin-right: 8px; }
+  .cards h4 small { font: 400 11px/1 var(--f-jp); color: var(--ink-2); margin-left: 8px; letter-spacing: 0; }
+  .cards > div:hover h4 u, .cards > div:hover h4 small { color: var(--accent-ink); }
+  .cards p { margin: 26px 0 0; font: 400 15px/1.85 var(--f-jp); }
+  .cards p em { display: block; margin-top: 12px; font: 400 11px/1.5 var(--f-num); font-style: normal; color: var(--ink-2); }
+  .cards > div:hover p em { color: var(--accent-ink); }
+  .cards > div { transform: translateY(16px); opacity: 0; transition: transform .4s cubic-bezier(.2,.8,.2,1), opacity .4s, background .2s, color .2s; }
+  .go .cards > div { transform: none; opacity: 1; }
+  .cta { left: 280px; top: 628px; width: 1254px; height: 200px; background: var(--accent); color: var(--accent-ink); padding: 44px 36px; display: block; text-decoration: none; }
+  .cta .k { font: 600 12px/1 var(--f-thin); letter-spacing: .32em; }
+  .cta b { display: block; margin-top: 18px; font: 400 58px/1 var(--f-wide); }
+  .cta b em { font-style: normal; display: inline-block; transition: transform .2s; }
+  .cta:hover b em { transform: translateX(10px); }
+  .cta span { display: block; margin-top: 16px; font: 500 16px/1 var(--f-jp); }
+  .ctaf { left: 1208px; top: 812px; font: 400 10px/1 var(--f-num); color: var(--accent-ink); }
+  .nextc { left: 1550px; top: 628px; width: 330px; height: 200px; border: 1px solid var(--line-main); padding: 26px; }
+  .nextc .k { font: 600 11px/1 var(--f-thin); letter-spacing: .26em; color: var(--ink-2); }
+  .nextc b { display: block; margin-top: 16px; font: 400 28px/1 var(--f-wide); color: var(--ink); }
+  .nextc p { margin: 14px 0 0; font: 400 14px/1.6 var(--f-jp); color: var(--ink); }
+  .nextc small { display: block; margin-top: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .14em; color: var(--ink-2); }
+
+  /* 式の線路 */
+  .railk { left: 40px; top: 882px; display: flex; align-items: center; gap: 12px; }
+  .railk i { width: 24px; height: 8px; }
+  .railk b { font: 400 15px/1 var(--f-wide); letter-spacing: .16em; color: var(--ink); }
+  .railk span { font: 400 12px/1 var(--f-jp); color: var(--ink-2); }
+  .rail { left: 40px; top: 912px; width: 1840px; height: 120px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .rb { border: 1px solid var(--line-sub); padding: 16px 16px; position: relative; color: var(--ink-3); transition: background .3s, color .3s, border-color .3s; }
+  .rb .rt { display: flex; justify-content: space-between; font: 600 11px/1 var(--f-thin); letter-spacing: .14em; }
+  .rb .rt b { font: 500 11px/1 var(--f-jp); letter-spacing: 0; margin-left: 4px; }
+  .rb .rt i { font-style: normal; }
+  .rb .rf { margin-top: 18px; font: 400 24px/1 var(--f-num); white-space: nowrap; }
+  .rb .rf sup { font-size: 13px; }
+  .rb .rd { margin-top: 14px; font: 400 12px/1.35 var(--f-jp); }
+  .rb .dots { display: none; margin-top: 18px; font: 400 18px/1 var(--f-num); letter-spacing: .9em; }
+  .rb.fut .rf { display: none; }
+  .rb.fut .dots { display: block; }
+  .rb.done { border-color: var(--line-main); color: var(--ink); }
+  .rb.done .rd { color: var(--ink-2); }
+  .rb.ref { border-color: var(--accent-line); color: var(--ink); }
+  .rb.ref .rt i, .rb.ref .rf { color: var(--accent-line); }
+  .rb.now { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); animation: grow .3s cubic-bezier(.2,.8,.2,1); transform-origin: left; }
+  @keyframes grow { from { transform: scaleX(.3); } to { transform: none; } }
+  .rb.lab { border: 1px dashed var(--accent-line); color: var(--accent-line); text-decoration: none; display: block; }
+  .rb.lab .rf { font: 400 25px/1 var(--f-wide); }
+  .rb.lab .rd { color: var(--ink); }
+  .rb.lab:hover, .rb.lab.now { background: var(--accent); color: var(--accent-ink); border-style: solid; }
+  .rb.lab:hover .rd, .rb.lab.now .rd { color: var(--accent-ink); }
+  .foot { left: 300px; top: 1050px; font: 400 9px/1 var(--f-num); letter-spacing: .14em; color: var(--ink-3); }
+
+  /* ♪ 音で聴く（W1 だけ：図のいまの光を ÷2⁴⁰ の音で鳴らす） */
+  .snd { left: 40px; top: 700px; width: 212px; padding: 12px 12px 10px; border: 1px solid var(--line-main); cursor: pointer; pointer-events: auto; z-index: 3; transition: background .2s, color .2s; color: var(--ink); }
+  .snd b { display: block; font: 500 14px/1 var(--f-jp); }
+  .snd span { display: block; margin-top: 8px; font: 400 11px/1.5 var(--f-jp); color: var(--ink-2); }
+  .snd input { width: 100%; margin: 8px 0 0; accent-color: var(--accent); }
+  .snd:hover { border-color: var(--accent-line); }
+  .snd.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .snd.on span { color: var(--accent-ink); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .in, .go .in { clip-path: none; animation: none; }
+    .hint em, .nextk em { animation: none; }
+    .cards > div { transform: none; opacity: 1; transition: none; }
+    .rb.now { animation: none; }
+  }
+</style>
+</head>
+<body>
+<!-- ===== 差し替える所は「★」で探す。構造（外枠・駅の一覧・本文・式の線路・間合い）は触らない ===== -->
+<div class="ph-viewport"><div class="ph-shell" id="shell">
+  <div class="ph-grid"></div>
+  <div class="ab" id="kanji"></div>
+  <div class="ab" id="bigTop"></div>
+  <div class="ab noise" id="noise"></div>
+  <svg class="ab" id="frame" width="1920" height="1080" viewBox="0 0 1920 1080" aria-hidden="true" style="left:0;top:0;pointer-events:none"></svg>
+  <canvas id="cv"></canvas>
+
+  <!-- ヘッダ（全駅共通）★ OBS.No・DOC・FIELD・CARD -->
+  <div class="ab brand" style="left:48px;top:46px"><b>PHENOMENA LAB</b><span>EARTH SURVEY ARCHIVE · EXPLAINER</span></div>
+  <dl class="ab ids" style="left:392px;top:62px;margin:0"><dt>OBS.No</dt><dd>W-001-0412</dd><dt>DOC</dt><dd>SCROLL-W1-LP</dd><dt>TIMESTAMP</dt><dd>2125-07-14T18:27:36Z</dd></dl>
+  <dl class="ab ids" style="left:760px;top:62px;margin:0"><dt>FIELD</dt><dd>WAVE</dd><dt>CARD</dt><dd>W1 / 22</dd><dt>STATION</dt><dd id="o_stn">00</dd></dl>
+  <div class="ab tab"><div class="k"><span>SCROLL</span><span>/</span></div><div class="n">W1</div><div class="s" id="o_tab">LP · 00</div></div>
+
+  <!-- 00 問い ★ 帯の英字・タイトル・問い・HOW TO READ の数 -->
+  <div class="lay" id="L0">
+    <div class="ab band"><div class="f in">W1 — WAVE · LIGHT AS SOUND · SCROLL EXPLAINER</div><h1 class="in" style="--d:1">ONE<br>OCTAVE</h1></div>
+    <div class="ab q"><div class="k in" style="--d:2">QUESTION</div><p class="in" style="--d:3">色とは、光の成分の配分。<br>見える光は、音にすると<br>1 オクターブに足りない。</p></div>
+    <div class="ab howto"><h3><i></i>HOW TO READ</h3>
+      <div class="st"><span>STATIONS</span><b id="o_nst">0</b><small>の駅</small></div>
+      <div class="st"><span>READING</span><b>≈ 5</b><small>分</small></div>
+      <div class="st"><span>FORMULAS</span><b id="o_nrail">0</b><small>本の式</small></div></div>
+    <div class="ab figtag" style="left:302px;top:504px"><i></i><b>LOOK</b><span>— 実物の姿</span></div>
+    <div class="ab hint" style="left:40px;top:842px">SCROLL <em>▼</em>　<span id="o_hint"></span></div>
+  </div>
+
+  <!-- 01〜最後：駅の一覧 -->
+  <div class="lay" id="LS">
+    <div class="ab stl hit"><h3><i></i>STATIONS <small style="font:400 12px var(--f-jp);color:var(--ink-2)">駅</small></h3><ol id="stl"></ol>
+      <div class="read"><span>READ</span><b id="o_read">01</b></div><div class="bar"><i id="o_bar"></i></div></div>
+  </div>
+
+  <!-- 01〜最後の 1 つ前：図と本文 -->
+  <div class="lay" id="L1">
+    <div class="ab figtag in" id="figtag"><i></i><b id="o_fig">FIG. 01</b><span id="o_figt"></span></div>
+    <div class="ab brkchip" id="brkchip" style="display:none">BREAK <b>現実の外</b></div>
+    <div class="ab rc" id="rc">
+      <div class="hd"><span class="num in" id="r_num">01</span><span class="en in" style="--d:1" id="r_en"></span></div>
+      <h2 class="in" style="--d:2" id="r_h"></h2>
+      <p class="body in" style="--d:3" id="r_body"></p>
+      <div class="kl in" style="--d:4" id="r_kl"></div>
+      <div class="kv in" style="--d:5"><b id="r_kv"></b><span id="r_ku"></span></div>
+      <div class="kn in" style="--d:6" id="r_kn"></div>
+      <div class="wow in" style="--d:7"><i>驚き</i><span id="r_wow"></span></div>
+    </div>
+    <div class="ab nextk">SCROLL <em>▼</em><hr><span><small>次の駅</small><b id="r_next"></b></span></div>
+  </div>
+
+  <!-- 最後：持ち出す ★ TRANSFER 5 枚はアプリの TRANSFER と同じ文・NEXT CARD -->
+  <div class="lay" id="LE">
+    <div class="ab endh"><b class="in" id="o_endn">09</b><span class="in" style="--d:1">TRANSFER</span><em class="in" style="--d:2">表現に持ち出す</em></div>
+    <div class="ab endn in" style="--d:3">NOTES FOR CG / ANIMATION · カードに触れると色が変わる</div>
+    <div class="ab cards hit">
+      <div style="transition-delay:0ms"><h4><u>01</u>LOOK RULES<small>絵の決まり</small></h4><p>物の色＝光源の成分 × 物が返す成分。光源が変われば物の色は変わる。同じ黄色に見える光でも、中身が 1 本とは限らない。</p></div>
+      <div style="transition-delay:60ms"><h4><u>02</u>CG</h4><p>ライトとマテリアルの色は「3 つの数字に畳んだ後」の世界。同じ黄色のライトでも 1 本か 2 本かで赤い物の見え方が変わる＝分光レンダーとの違い。</p></div>
+      <div style="transition-delay:120ms"><h4><u>03</u>GEN CHECK<small>嘘の見つけ方</small></h4><p>色の付いた光の下で、物の色が光源の色に寄っているか。寄らずに元の色のままなら嘘。<em>colored light / object color shift</em></p></div>
+      <div style="transition-delay:180ms"><h4><u>04</u>BREAK<small>わざと外す</small></h4><p>受け手を 4 つにすると、A と B の黄色は別の色になる。2 つにすると、赤と緑の区別が消える。</p></div>
+      <div style="transition-delay:240ms"><h4><u>05</u>FIELD NOTE<small>宿題</small></h4><p>オレンジの街灯の下で、赤い物と緑の物を見比べる。色が消えるか、LED の下と比べて記録する。</p></div>
+    </div>
+    <a class="ab cta hit in" style="--d:4" id="cta" href="#"><span class="k" style="margin:0">END OF SCROLL · 終点</span><b>OPEN THE LAB <em>→</em></b><span>成分の棒をなぞって、色と音を一緒に確かめる</span></a>
+    <canvas class="ab" id="tc" width="600" height="300" style="left:1198px;top:652px;width:300px;height:150px"></canvas>
+    <div class="ab ctaf" id="ctaf"></div>
+    <div class="ab nextc in" style="--d:5"><div class="k">NEXT CARD</div><b>W2 BEND</b><p>声は角を曲がるのに、光はなぜ影を作る？</p><small>COMING · 仕様のみ</small></div>
+  </div>
+
+  <!-- ♪ 音（全駅共通・押したときだけ鳴る） -->
+  <div class="ab snd" id="snd" role="button" aria-pressed="false"><b>♪ 音で聴く</b><span>図のいまの光を ÷2⁴⁰ の音で。ヘッドホンは小さめから</span><input type="range" id="sndv" min="0" max="100" value="35" aria-label="音量"></div>
+
+  <!-- 式の線路（全駅共通） -->
+  <div class="ab railk"><i></i><b>FORMULA RAIL</b><span id="o_railk">— 式の線路 · 駅を通るたびに式が入線する</span></div>
+  <div class="ab rail hit" id="rail" style="pointer-events:auto"></div>
+  <div class="ab foot" id="foot"></div>
+</div></div>
+<div id="track"></div>
+
+<script src="../../_shell/shell.js"></script>
+<script src="../_law/ph_color.js"></script>
+<script src="../_law/ph_w1_law.js"></script>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+/* 法則：アプリと同じファイル。図の数・KEY NUMBER・本文の数はここから計算する（書き写さない） */
+const L = PH_W1, CO = PH_COLOR, N = CO.N;
+/* 窓の色＝アプリの窓と同じ（W1 窓：黒の上に白い線・色はスペクトルだけ）。ACC＝アクセント（--accent と同じ値） */
+const C = { paper: '#060606', ink: '#E8E6DF', dim: '#9C9A93', faint: '#6F6D67', rule: 'rgba(232,230,223,.14)', rule2: 'rgba(232,230,223,.06)', up: '#E8E6DF', down: '#9C9A93' };
+const ACC = '#ECEAE3', ACCL = '#ECEAE3';
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const LAB = '../01_one_octave.html';
+const DOC = 'ARCHIVE/EARTH/WAVE/W1/0412/LP';
+
+/* ---- 法則から先に出しておく数 ---- */
+const MET = L.MET, PRE = {}; for (const k of ['SUN', 'BULB', 'LED', 'SODIUM', 'LASER', 'WHITE']) PRE[k] = L.PRESETS[k]();
+const PNAME = { SUN: '太陽', BULB: '電球', LED: '白色 LED', SODIUM: '街灯 ナトリウム', LASER: 'レーザー 赤＋緑' };
+const PLONG = { SUN: '太陽（5778 K の黒体・目安）', BULB: '電球（2700 K の黒体）', LED: '白色 LED（青＋蛍光体・形は目安）', SODIUM: '街灯（ナトリウム 589 nm の 1 本）', LASER: 'レーザー 赤 ' + MET.lR + ' ＋ 緑 ' + MET.lG + ' nm' };
+const SEMI = 12 * L.OCT_EYE, EYE_HI = L.THz(CO.L0) / L.THz(CO.L1);
+const nm = l => { const s = L.empty(); s[L.idx(l)] = 1; return s; };
+const lmsN = s => { const v = CO.lmsOf(s), m = Math.max(...v, 1e-12); return v.map(x => x / m); };
+const qN = s => L.qOf(s) / Math.max(...CO.lmsOf(s));
+const QA = qN(PRE.SODIUM), QB = qN(PRE.LASER);
+function objCols(sp) {   // アプリの derive と同じ：白い球のいちばん明るい成分を 0.85 にそろえる
+  const wX = CO.xyzOf(L.lit(sp, L.WHITE_REFL)), rX = CO.xyzOf(L.lit(sp, L.RED_REFL)), wl = wX.Y > 0 ? Math.max(...CO.clipNeg(CO.toLin(wX)).rgb) : 0, sc = wl > 0 ? 0.85 / wl : 0;
+  const cw = CO.chroma(wX), cr = CO.chroma(rX), dxy = Math.hypot(cw.x - cr.x, cw.y - cr.y), lum = wX.Y > 0 ? rX.Y / wX.Y : 0;
+  return { light: CO.lightColor(CO.xyzOf(sp)), ball: CO.surfaceColor(wX, sc), red: CO.surfaceColor(rX, sc), dxy, lum, say: dxy > 0.04 ? '赤が残る' : lum > 0.12 ? '赤がくすむ' : '赤が消える' };
+}
+const OBJ = {}; for (const k of ['SUN', 'BULB', 'LED', 'SODIUM', 'LASER']) OBJ[k] = objCols(PRE[k]);
+const SPR = {}; for (const k of ['SUN', 'BULB', 'LED', 'LASER']) SPR[k] = L.spread(PRE[k]);
+const fmtHz = hz => hz >= 1e12 ? num(hz / 1e12, 0) + ' THz' : hz >= 1e9 ? num(hz / 1e9, 1) + ' GHz' : hz >= 1e6 ? num(hz / 1e6, 1) + ' MHz' : hz >= 1e3 ? num(hz / 1e3, 1) + ' kHz' : num(hz, 1) + ' Hz';
+const noteTxt = hz => { const n = L.note(hz); return n.name + ' ' + (n.cents >= 0 ? '+' : '−') + Math.abs(n.cents) + '¢'; };
+
+/* ================= 駅の中身 ================= */
+const ST = [
+  { name: '問い', en: '', big: 'W1', kanji: '音', lab: '', noise: '0412 > SCROLL-W1 LOAD OK\nLAW ph_w1_law.js · ph_color.js\nLINK 01_one_octave.html ACK' },
+  { name: '波', en: 'WAVE', big: 'f = c / λ', kanji: '波', lab: '#p=SODIUM', fig: 'FIG. 01', figt: '— 光は波 · 長さと振動数',
+    num: '01', ren: 'WAVE · 光は波', h: '色の正体は、<br>ふるえる速さ。', body: '光は波で、色はその長さ（波長）で決まる。波が短いほど、1 秒にふるえる回数（振動数）が増える。光の速さ c を波長で割れば振動数になる。',
+    kl: 'KEY NUMBER · 赤 700 nm の振動数', kv: () => L.THz(700), kf: 0, ku: 'THz', kn: () => '1 秒に ' + num(L.THz(700), 0) + ' 兆回。c ＝ 299,792,458 m/s（定義値）', wow: () => '赤の端 750 nm と紫の端 380 nm の振動数の比は ' + EYE_HI.toFixed(2) + '。2 倍に、わずかに届かない。', next: '02 40 オクターブ',
+    noise: '0412 > STATION 01 WAVE\nC 299792458 M/S\nF = C / LAMBDA OK' },
+  { name: '40 オクターブ', en: '÷ 2⁴⁰', big: '÷ 2⁴⁰', kanji: '降', lab: '#p=SODIUM', fig: 'FIG. 02', figt: '— 半分を 40 回 · 光を音へ',
+    num: '02', ren: 'DOWN · 40 オクターブ下げる', h: '半分にするたび、<br>1 オクターブ下がる。', body: '振動数を半分にすると、音なら 1 オクターブ下がる。光の振動数を 40 回半分にすると、耳の聞こえる範囲に入ってくる。光と音は同じ「ふるえ」として並べられる。',
+    kl: 'KEY NUMBER · 半分にする回数', kv: () => 40, kf: 0, ku: '回', kn: () => '÷ 2⁴⁰ ＝ ÷ ' + num(L.DOWN, 0) + '（約 1.1 兆）。音名は A4 ＝ 440 Hz の平均律', wow: () => '赤 700 nm の光は ' + num(L.toHz(700), 1) + ' Hz。ピアノの ソ（G4）の少し下になる。', next: '03 1 オクターブ',
+    noise: '0412 > STATION 02 DOWN\nF/A 2^-40\n700NM -> 389.5HZ G4 ACK' },
+  { name: '1 オクターブ', en: 'RANGE', big: '0.98 OCT', kanji: '幅', lab: '#p=WHITE', fig: 'FIG. 03', figt: '— 耳の幅と目の幅',
+    num: '03', ren: 'RANGE · 見える幅', h: '見える光は、<br>1 オクターブに足りない。', body: '耳は 20 Hz から 20 kHz まで、約 10 オクターブを聞き分ける。目が見る光は、音にすると 1 オクターブ弱。虹の色の全部が、鍵盤の 12 鍵に収まってしまう。',
+    kl: 'KEY NUMBER · 目の幅（380–750 nm）', kv: () => L.OCT_EYE, kf: 2, ku: 'oct', kn: () => 'よく見える 400–700 nm は ' + L.OCT_EYE_CORE.toFixed(2) + ' oct。耳は ' + L.OCT_EAR.toFixed(1) + ' oct（目安・年齢で上が下がる）', wow: () => '虹の端から端まで、鍵盤で ' + SEMI.toFixed(1) + ' 鍵。耳の幅の ' + Math.round(L.OCT_EAR / L.OCT_EYE) + ' 分の 1。', next: '04 受け手 3 つ',
+    noise: '0412 > STATION 03 RANGE\nEYE 0.98 OCT · EAR 9.97 OCT\nKEYS 11.8' },
+  { name: '受け手 3 つ', en: 'L · M · S', big: 'L · M · S', kanji: '目', lab: '#p=SUN', fig: 'FIG. 04', figt: '— 3 つの受け手 · 光を 3 つの数字に',
+    num: '04', ren: 'CONES · 目の受け手', h: '目は、光を<br>3 つの数字に畳む。', body: '目の奥には、感じる波長の山が違う 3 種類の受け手（L・M・S）がある。どんな光が来ても、目が受け取るのはこの 3 つの反応の強さだけ。色はこの 3 つの比で決まる。',
+    kl: 'KEY NUMBER · 光が畳まれる数字の数', kv: () => 3, kf: 0, ku: 'つ', kn: () => '山の位置 L ' + CO.CONE_PEAK[0] + ' ・M ' + CO.CONE_PEAK[1] + ' ・S ' + CO.CONE_PEAK[2] + ' nm（Hunt–Pointer–Estévez・近似）', wow: () => N + ' 本の成分がある光も、目には 3 つの数字。耳なら ' + N + ' 音の和音のまま聞こえるのに。', next: '05 同じ黄色',
+    noise: '0412 > STATION 04 CONES\nLMS HPE · PEAK 576/547/448\n371 -> 3 FOLD' },
+  { name: '同じ黄色', en: 'PROOF', big: 'A = B', kanji: '同', lab: '#proof=1', fig: 'FIG. 05', figt: '— PROOF · 1 本と 2 本',
+    num: '05', ren: 'PROOF · 中身の違う同じ色', h: '黄色 1 本と、<br>赤＋緑 2 本は同じ色。', body: '黄色の光 1 本と、赤と緑の光を混ぜた 2 本。成分はまったく違うのに、3 つの受け手の数字がそろうので、目には同じ黄色に見える。音にすると、1 音と 2 音ではっきり違う。',
+    kl: 'KEY NUMBER · A と B の色の差（色度）', kv: () => MET.dxy, kf: 4, ku: '', kn: () => '人が見分けられる差は約 0.003（目安）。黄 ' + MET.lA + ' nm ＝ 赤 ' + MET.lR + ' ＋ 緑 ' + MET.lG + ' nm', wow: '目には同じ。耳には 1 音と 2 音。♪ で聴き比べられる。', next: '06 1 本から白へ',
+    noise: '0412 > STATION 05 PROOF\nA 589 · B 630+551\nDXY 0.0014 · SAME' },
+  { name: '1 本から白へ', en: 'STATE', big: 'W', kanji: '白', lab: '#auto=1', fig: 'FIG. 06', figt: '— 広がり · PURE ⇄ MIXED ⇄ WHITE',
+    num: '06', ren: 'STATE · 成分の広がり', h: '細いと純音、<br>全部そろうと白。', body: '成分が 1 本なら純色で、音なら澄んだ 1 音。幅が広がると色は薄まり、音はにごる。全部の成分が同じ強さになると白い光、音にすると「サー」というノイズになる。',
+    kl: 'KEY NUMBER · PURE の境（実効の幅）', kv: () => L.PURE_W, kf: 0, ku: 'nm 以下', kn: () => '幅 ' + L.WHITE_W + ' nm 以上で WHITE。電球 ' + Math.round(SPR.BULB.W) + '・LED ' + Math.round(SPR.LED.W) + '・太陽 ' + Math.round(SPR.SUN.W) + ' nm', wow: '白い光を音にすると、和音ではなくノイズ。白は「色が無い」のではなく「全部ある」。', next: '07 物の色',
+    noise: '0412 > STATION 06 STATE\nW = (SUM A)^2 / SUM A^2\nPURE 5 · WHITE 300' },
+  { name: '物の色', en: 'OBJECT', big: 'E × R', kanji: '物', lab: '#p=LASER', fig: 'FIG. 07', figt: '— 光 × 物が返す割合',
+    num: '07', ren: 'OBJECT · 物の色は光で決まる', h: '同じ黄色の光でも、<br>赤い物の色が違う。', body: '物の色は、光の成分に、物が返す割合を掛けたもの。赤い物は 600 nm より長い光しか返さない。ナトリウム灯の 1 本には返す相手が無く、赤＋緑の 2 本なら赤い成分が返ってくる。',
+    kl: 'KEY NUMBER · 赤＋緑の下で、赤い物と光の色の差', kv: () => OBJ.LASER.dxy, kf: 3, ku: '', kn: () => 'ナトリウム 1 本の下では ' + OBJ.SODIUM.dxy.toFixed(3) + '（' + OBJ.SODIUM.say + '）。0.04 より大きいと「残る」', wow: '光の色が同じでも、中身が違えば物の色は変わる。RGB のライトでは、この 2 つを区別できない。', next: '08 受け手を変える',
+    noise: '0412 > STATION 07 OBJECT\nRED REFL 600NM LOGISTIC\nSODIUM 0.000 · LASER 0.185' },
+  { name: '受け手を変える', en: 'BREAK', big: 'Q', kanji: '外', lab: '#brk=4', fig: 'FIG. 08', figt: '— BREAK · 受け手 4 つ／2 つ', brk: true,
+    num: '08', ren: 'BREAK · 現実の外', h: '受け手を 1 つ足すと、<br>同じ黄色が分かれる。', body: '590 nm に山を持つ 4 つ目の受け手 Q を仮に足すと、A（黄 1 本）と B（赤＋緑）の数字がずれて、別の色になる。逆に L を抜いて 2 つにすると、赤と緑の区別が消える。',
+    kl: 'KEY NUMBER · 4 つ目の受け手 Q の A ÷ B', kv: () => QA / QB, kf: 1, ku: '倍', kn: () => 'Q：A ' + QA.toFixed(2) + ' ／ B ' + QB.toFixed(2) + '（Q は仮の受け手・2 つの目の見え方も目安）', wow: '「同じ色」は光の性質ではなく、受け取る目の性質。', next: '09 持ち出す',
+    noise: '0412 > STATION 08 BREAK\nCONES 4 · Q 590NM (TENTATIVE)\nCONES 2 · DROP L' },
+  { name: '持ち出す', en: 'TRANSFER', big: '→ LAB', kanji: '渡', lab: '', noise: '0412 > STATION 09 TRANSFER · 5 NOTES\nRAIL COMPLETE · LAB LINK READY\nNEXT W2 BEND · STATUS SPEC' },
+];
+const RAIL = [
+  { k: '① WAVE', ja: '振動数', f: 'f = c / λ', d: '光の速さ ÷ 波の長さ', at: 1 },
+  { k: '② DOWN', ja: '音へ', f: 'f<sub>音</sub> = f ÷ 2<sup>40</sup>', d: '半分を 40 回＝40 オクターブ下', at: 2 },
+  { k: '③ CONES', ja: '受け手', f: 'L = Σ s(λ)·l̄(λ)', d: 'M・S も同じ。3 つの数字に畳む', at: 4 },
+  { k: '④ SPREAD', ja: '広がり', f: 'W = (Σa)² / Σa²', d: '実効の幅。PURE 5 ・WHITE 300 nm', at: 6 },
+  { k: '⑤ OBJECT', ja: '物の色', f: 'X = Σ E·R·x̄', d: '光 × 物が返す割合 → 目', at: 7 },
+];
+const REF = { 3: [1, 2], 5: [3], 8: [3] };
+const LEN = [1.6, 3, 3, 3, 3, 3.4, 3, 3.4, 2.4, 1.4];
+const STEPPED = { 7: true };
+
+/* ================= 描く道具（そのまま使う） ================= */
+const NST = ST.length, LAST = NST - 1, NR = RAIL.length, pad = n => String(n).padStart(2, '0');
+const cv = $('cv'), ctx = cv.getContext('2d');
+let SC = 1;
+function resize() { SC = Math.min(2, (PHShell.scale || 1) * (window.devicePixelRatio || 1)); cv.width = Math.round(1920 * SC); cv.height = Math.round(1080 * SC); }
+const mono = (px, w) => (w || 400) + ' ' + px + 'px "JetBrains Mono",monospace', note = px => px + 'px "M PLUS 1 Code","IBM Plex Sans JP",monospace', jp = (px, w) => (w || 400) + ' ' + px + 'px "IBM Plex Sans JP",sans-serif';
+function clamp(v, a = 0, b = 1) { return Math.max(a, Math.min(b, v)); }
+const ease = v => { v = clamp(v); return v * v * (3 - 2 * v); }, eo = v => 1 - Math.pow(1 - clamp(v), 3);
+function num(v, d) { return v == null ? '—' : (+v).toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+function txt(s, x, y, o) { o = o || {}; ctx.font = o.f || note(12); ctx.fillStyle = o.c || C.ink; ctx.textAlign = o.a || 'left'; ctx.textBaseline = o.b || 'alphabetic'; if (o.bg) { const w = ctx.measureText(s).width, x0 = o.a === 'center' ? x - w / 2 : o.a === 'right' ? x - w : x; ctx.save(); ctx.fillStyle = o.bg; ctx.fillRect(x0 - 3, y - 13, w + 6, 17); ctx.restore(); ctx.fillStyle = o.c || C.ink; } ctx.fillText(s, x, y); }
+function arrow(x0, y0, x1, y1, col, w) {
+  const a = Math.atan2(y1 - y0, x1 - x0), L2 = Math.hypot(x1 - x0, y1 - y0); if (L2 < 3) return;
+  ctx.strokeStyle = ctx.fillStyle = col; ctx.lineWidth = w || 2.5; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1 - Math.cos(a) * 9, y1 - Math.sin(a) * 9); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x1 - Math.cos(a) * 13 + Math.sin(a) * 6, y1 - Math.sin(a) * 13 - Math.cos(a) * 6); ctx.lineTo(x1 - Math.cos(a) * 13 - Math.sin(a) * 6, y1 - Math.sin(a) * 13 + Math.cos(a) * 6); ctx.closePath(); ctx.fill();
+}
+const bob = (t, f, a) => RM ? 0 : Math.sin(t * Math.PI * 2 * (f || 0.9)) * (a || 4);   // 矢印の上下のゆれ
+function plate(x, y, w, h, dashed) {   // 図の紙（四隅のトンボ・BREAK は外に破線）
+  ctx.fillStyle = C.paper; ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath();
+  for (const [bx, by, sx, sy] of [[x + 10, y + 10, 1, 1], [x + w - 10, y + 10, -1, 1], [x + 10, y + h - 10, 1, -1], [x + w - 10, y + h - 10, -1, -1]]) { ctx.moveTo(bx + sx * 20, by); ctx.lineTo(bx, by); ctx.lineTo(bx, by + sy * 20); }
+  ctx.stroke();
+  if (dashed) { ctx.strokeStyle = '#E8E6DF'; ctx.setLineDash([6, 5]); ctx.lineWidth = 2; ctx.strokeRect(x - 7, y - 7, w + 14, h + 14); ctx.setLineDash([]); }
+}
+
+
+/* ================= W1 の図の部品（アプリと同じ描き方：横軸は振動数の対数＝鍵盤が等間隔・左が低い 750 nm） ================= */
+const BIN = Array.from({ length: N }, (_, i) => CO.lightColor(CO.xyzOf(nm(CO.lam(i)))).hex);
+const BIN2 = Array.from({ length: N }, (_, i) => CO.lightColor(CO.dropL(CO.xyzOf(nm(CO.lam(i))))).hex);   // L の無い目（目安）
+const HZ0 = L.toHz(CO.L1), OCT = L.OCT_EYE;
+const XL = (l, x0, x1) => x0 + Math.log2(L.toHz(l) / HZ0) / OCT * (x1 - x0);
+const XH = (hz, x0, x1) => x0 + Math.log2(hz / HZ0) / OCT * (x1 - x0);
+function band(x0, x1, y, h, cols) { for (let i = 0; i < N; i++) { const xa = XL(CO.lam(i) + 0.5, x0, x1), xb = XL(CO.lam(i) - 0.5, x0, x1); ctx.fillStyle = (cols || BIN)[i]; ctx.fillRect(xa, y, xb - xa + .6, h); } }
+function axisNm(x0, x1, y, hz) {
+  ctx.font = mono(11); ctx.textAlign = 'center';
+  for (let l = 750; l >= 380; l -= 10) { const x = Math.round(XL(l, x0, x1)) + .5, big = l % 50 === 0; ctx.strokeStyle = big ? 'rgba(232,230,223,.7)' : 'rgba(232,230,223,.3)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y - (big ? 9 : 4)); ctx.lineTo(x, y); ctx.stroke(); if (big) { ctx.fillStyle = C.dim; ctx.fillText(l, x, y - 13); if (hz) { ctx.fillStyle = C.faint; ctx.font = mono(10); ctx.fillText(L.toHz(l).toFixed(0) + ' Hz', x, y + 16); ctx.font = mono(11); } } }
+  ctx.strokeStyle = 'rgba(232,230,223,.55)'; ctx.beginPath(); ctx.moveTo(x0, y + .5); ctx.lineTo(x1, y + .5); ctx.stroke();
+}
+function bars(sp, x0, x1, base, h, col, alpha) {
+  let mx = 0; for (const v of sp) mx = Math.max(mx, v); if (mx <= 0) return; ctx.save(); ctx.globalAlpha = alpha == null ? 1 : alpha; ctx.fillStyle = col || C.ink;
+  for (let i = 0; i < N;) { if (sp[i] / mx <= 0.002) { i++; continue; } let j = i; while (j + 1 < N && sp[j + 1] / mx > 0.002) j++;
+    if (j === i) { const x = XL(CO.lam(i), x0, x1), hh = sp[i] / mx * h; ctx.fillRect(x - 2.5, base - hh, 5, hh); }
+    else { ctx.beginPath(); ctx.moveTo(XL(CO.lam(i) + 0.5, x0, x1), base); for (let k = i; k <= j; k++) ctx.lineTo(XL(CO.lam(k), x0, x1), base - sp[k] / mx * h); ctx.lineTo(XL(CO.lam(j) - 0.5, x0, x1), base); ctx.closePath(); ctx.fill(); }
+    i = j + 1; }
+  ctx.restore(); ctx.strokeStyle = 'rgba(232,230,223,.55)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0, base + .5); ctx.lineTo(x1, base + .5); ctx.stroke();
+}
+function keys(x0, x1, top, bot, sp, litHz) {   // 平均律の鍵盤。sp の強い成分か litHz を含む鍵盤が点く
+  const m0 = Math.ceil(69 + 12 * Math.log2(HZ0 / 440) - 0.5), m1 = Math.floor(69 + 12 * Math.log2(L.toHz(CO.L0) / 440) + 0.5);
+  let smx = 0; if (sp) for (const v of sp) smx = Math.max(smx, v);
+  let n = 0;
+  for (let m = m0; m <= m1; m++) {
+    const f = 440 * Math.pow(2, (m - 69) / 12), fa = f * Math.pow(2, -1 / 24), fb = f * Math.pow(2, 1 / 24), xa = Math.max(x0, XH(fa, x0, x1)), xb = Math.min(x1, XH(fb, x0, x1)); if (xb - xa < 4) continue;
+    let on = litHz != null && litHz >= fa && litHz < fb;
+    if (sp && smx > 0) { const la = L.SPEED / (fb * L.DOWN) * 1e9, lb = L.SPEED / (fa * L.DOWN) * 1e9; let mm = 0; for (let l = Math.ceil(la); l <= Math.floor(lb); l++) mm = Math.max(mm, sp[L.idx(l)]); if (mm >= 0.3 * smx) on = true; }
+    const blk = [1, 3, 6, 8, 10].includes(((m % 12) + 12) % 12);
+    ctx.fillStyle = on ? 'rgba(232,230,223,.85)' : blk ? '#0d0d0c' : '#161615'; ctx.fillRect(xa, top, xb - xa, bot - top);
+    ctx.strokeStyle = on ? C.ink : 'rgba(232,230,223,.22)'; ctx.lineWidth = 1; ctx.strokeRect(xa + .5, top + .5, xb - xa - 1, bot - top - 1);
+    const nn = L.note(f); ctx.textAlign = 'center'; ctx.font = mono(bot - top > 60 ? 12 : 9, 600); ctx.fillStyle = on ? '#0B0B0A' : C.dim; ctx.fillText(nn.name, (xa + xb) / 2, bot - 8);
+    if (bot - top > 60) { ctx.font = mono(10); ctx.fillStyle = on ? '#0B0B0A' : C.faint; ctx.fillText(Math.round(f), (xa + xb) / 2, top + 16); }
+    if (on) n++;
+  }
+  return n;
+}
+function disc(x, y, r, hex, lab) { ctx.setLineDash([2, 3]); ctx.strokeStyle = 'rgba(232,230,223,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y, r + 7, 0, 7); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = hex; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); if (lab) txt(lab, x, y + r + 28, { a: 'center', f: note(13) }); }
+function shade(rgb, k) { return CO.hex(rgb.map(v => Math.min(1, v * k))); }
+function face(pts, fill) { ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = 'rgba(232,230,223,.55)'; ctx.lineWidth = 1; ctx.stroke(); }
+function cube(bx, by, s, col) { const dp = s * 0.28, rc = col.rgb; face([[bx, by + dp], [bx + s, by + dp], [bx + s, by + dp + s], [bx, by + dp + s]], col.hex); face([[bx, by + dp], [bx + dp, by], [bx + s + dp, by], [bx + s, by + dp]], shade(rc, 1.18)); face([[bx + s, by + dp], [bx + s + dp, by], [bx + s + dp, by + s], [bx + s, by + dp + s]], shade(rc, 0.62)); }
+function ball(x, y, r, col) { const g = ctx.createRadialGradient(x - r * .35, y - r * .4, 3, x, y, r); g.addColorStop(0, shade(col.rgb, 1.08)); g.addColorStop(0.7, col.hex); g.addColorStop(1, shade(col.rgb, 0.45)); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.strokeStyle = 'rgba(232,230,223,.5)'; ctx.lineWidth = 1; ctx.stroke(); }
+function coneCurves(x0, x1, top, base, nC) {
+  const ch = base - top, dash = [[], [10, 5], [2, 4]];
+  for (let k = 0; k < 3; k++) { if (nC === 2 && k === 0) continue; ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.setLineDash(dash[k]); ctx.beginPath(); for (let i = 0; i < N; i++) { const x = XL(CO.lam(i), x0, x1), y = base - CO.CONE[i][k] * ch; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke();
+    const xp = XL(CO.CONE_PEAK[k], x0, x1); txt(['L', 'M', 'S'][k] + ' ' + CO.CONE_PEAK[k], xp + (k === 1 ? -6 : k === 0 ? 6 : 0), top - (k === 1 ? 26 : 8), { a: 'center', f: mono(12, 600) }); }
+  if (nC === 4) { ctx.setLineDash([4, 4]); ctx.strokeStyle = C.dim; ctx.lineWidth = 2; ctx.beginPath(); for (let i = 0; i < N; i++) { const x = XL(CO.lam(i), x0, x1), y = base - L.Q[i] * ch; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke(); txt('Q 590（仮）', XL(590, x0, x1), top + 18, { a: 'center', f: mono(12, 600), c: C.dim }); }
+  ctx.setLineDash([]); ctx.strokeStyle = 'rgba(232,230,223,.55)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0, base + .5); ctx.lineTo(x1, base + .5); ctx.stroke();
+}
+function boxes(vals, names, x, base, bw, gap, hmax, alpha) {   // 反応の箱（いちばん強い受け手を 1）
+  ctx.save(); ctx.globalAlpha = alpha == null ? 1 : alpha;
+  vals.forEach((v, k) => { const bx = x + k * (bw + gap), hh = Math.max(1, Math.min(1.1, v) * hmax); ctx.fillStyle = 'rgba(232,230,223,.85)'; ctx.fillRect(bx, base - hh, bw, hh); ctx.strokeStyle = C.ink; ctx.strokeRect(bx + .5, base - hh + .5, bw - 1, hh - 1);
+    txt(names[k], bx + bw / 2, base + 18, { a: 'center', f: mono(12, 600) }); txt(v.toFixed(2), bx + bw / 2, base - hh - 8, { a: 'center', f: mono(13) }); });
+  ctx.restore();
+}
+
+/* ================= 音（アプリと同じ作り：成分 1 本＝正弦波・1 秒の輪の音・RMS 0.12・リミッター）。♪ を押したときだけ鳴る ================= */
+const SND = { on: false, vol: 0.35, want: null, key: '', last: 0 };
+let AC = null, master = null, curSrc = null;
+const PHASE = Array.from({ length: N }, (_, i) => hash(i) * Math.PI * 2);
+const fromSpec = sp => { let mx = 0; for (const v of sp) mx = Math.max(mx, v); const o = []; if (mx > 0) for (let i = 0; i < N; i++) { const a = sp[i] / mx; if (a >= 0.003) o.push({ hz: L.toHz(CO.lam(i)), a, ph: PHASE[i] }); } return o; };
+function sound(key, make) { if (SND.on && key !== SND.key) SND.want = { key, make }; }   // 図から「いまの音」を頼む（作るのは loop の中・間引いて）
+function buildBuffer(list) {
+  const sr = AC.sampleRate, n = sr, data = new Float32Array(n);
+  for (const p of list) { const f = Math.round(p.hz); if (f < 20 || f > 20000) continue; const w = 2 * Math.PI * f / sr, c = Math.cos(w), s = Math.sin(w); let re = Math.cos(p.ph || 0) * p.a, im = Math.sin(p.ph || 0) * p.a; for (let k = 0; k < n; k++) { data[k] += im; const r2 = re * c - im * s; im = re * s + im * c; re = r2; } }
+  let ss = 0; for (let k = 0; k < n; k++) ss += data[k] * data[k]; const rms = Math.sqrt(ss / n), g = rms > 0 ? 0.12 / rms : 0;
+  const buf = AC.createBuffer(1, n, sr), ch = buf.getChannelData(0); for (let k = 0; k < n; k++) ch[k] = data[k] * g; return buf;
+}
+function swapTo(list) {
+  const t = AC.currentTime; if (curSrc) { const o = curSrc; o.g.gain.setTargetAtTime(0, t, 0.03); o.src.stop(t + 0.3); curSrc = null; }
+  if (!SND.on || !list || !list.length) return;
+  const src = AC.createBufferSource(), g = AC.createGain(); src.buffer = buildBuffer(list); src.loop = true; g.gain.value = 0; src.connect(g).connect(master); src.start(); g.gain.setTargetAtTime(1, t, 0.03); curSrc = { src, g };
+}
+function soundTick() { if (!AC || !SND.want || performance.now() - SND.last < 140) return; const w = SND.want; SND.want = null; SND.key = w.key; SND.last = performance.now(); swapTo(w.make()); }
+async function setSound(on) {
+  SND.on = !!on;
+  if (on && !AC) { const Ctx = window.AudioContext || window.webkitAudioContext; AC = new Ctx(); master = AC.createGain(); master.gain.value = 0; const lim = AC.createDynamicsCompressor(); lim.threshold.value = -10; lim.ratio.value = 20; lim.attack.value = .003; lim.release.value = .15; master.connect(lim).connect(AC.destination); }
+  if (AC && AC.state === 'suspended') await AC.resume();
+  if (AC) { master.gain.setTargetAtTime(SND.on ? SND.vol * 0.8 : 0, AC.currentTime, .06); if (!SND.on) swapTo(null); }
+  SND.key = ''; $('snd').classList.toggle('on', SND.on); $('snd').querySelector('b').textContent = SND.on ? '♪ 音を止める' : '♪ 音で聴く';
+}
+$('snd').addEventListener('click', e => { if (e.target.tagName !== 'INPUT') setSound(!SND.on); });
+$('sndv').addEventListener('input', e => { SND.vol = +e.target.value / 100; if (AC) master.gain.setTargetAtTime(SND.on ? SND.vol * 0.8 : 0, AC.currentTime, .06); });
+
+/* ================= 駅ごとの図 =================
+   FIG[i](a, t)：a＝駅の中の進み（すでに余韻と加速減速がかかっている）・t＝秒。 */
+const PL = { x: 280, y: 150, w: 1040, h: 706 };
+let railLive = '';
+const FIG = [];
+const SEQ0 = ['SUN', 'BULB', 'LED', 'SODIUM', 'LASER'];
+FIG[0] = (a, t) => {   // 00 問い：光が 5 つ入れ替わる。成分（棒）・鍵盤・耳の幅
+  const x = 280, y = 486, w = 1600, h = 370; plate(x, y, w, h);
+  t = Math.max(0, t); const per = 3.2, k = Math.floor(t / per) % SEQ0.length, k2 = (k + 1) % SEQ0.length, f = RM ? 0 : ease((t % per - (per - 0.6)) / 0.6);
+  const sp = PRE[SEQ0[k]].map((v, i) => v * (1 - f) + PRE[SEQ0[k2]][i] * f), lc = CO.lightColor(CO.xyzOf(sp)).hex;
+  disc(x + 150, y + 150, 86, lc, f < 0.5 ? PNAME[SEQ0[k]] : PNAME[SEQ0[k2]]);
+  txt('目には 1 色', x + 150, y + 300, { a: 'center', f: note(12), c: C.dim });
+  const x0 = x + 320, x1 = x + w - 140;
+  axisNm(x0, x1, y + 52); band(x0, x1, y + 60, 9);
+  bars(sp, x0, x1, y + 196, 120);
+  const nk = keys(x0, x1, y + 210, y + 270, sp);
+  txt('光の成分（λ nm）', x1 + 16, y + 140, { f: note(12), c: C.dim }); txt('÷ 2⁴⁰ の鍵盤', x1 + 16, y + 246, { f: note(12), c: C.dim });
+  txt(nk > 1 ? '耳には ' + nk + ' 鍵の和音' : nk === 1 ? '耳には 1 音' : '', x1 + 16, y + 266, { f: note(12) });
+  // 耳 10 オクターブの中の目の幅
+  const ex0 = x0, ex1 = x1, ey = y + 300, ew = ex1 - ex0;
+  ctx.strokeStyle = 'rgba(232,230,223,.45)'; ctx.lineWidth = 1; for (let i = 0; i < 10; i++) ctx.strokeRect(ex0 + i * ew / L.OCT_EAR + .5, ey + .5, ew / L.OCT_EAR, 12);
+  for (let i = 0; i < N; i++) { const xx = ex0 + Math.log2(L.toHz(CO.lam(i)) / 20) / L.OCT_EAR * ew; ctx.fillStyle = BIN[i]; ctx.fillRect(xx, ey + 1, 1.3, 11); }
+  txt('20 Hz', ex0, ey + 32, { f: mono(11), c: C.dim }); txt('20 kHz', ex1, ey + 32, { a: 'right', f: mono(11), c: C.dim });
+  txt('耳 ' + L.OCT_EAR.toFixed(1) + ' オクターブ の中で、目は ' + L.OCT_EYE.toFixed(2), ex0 + Math.log2(L.toHz(750) / 20) / L.OCT_EAR * ew + 90, ey + 32, { f: note(12) });
+  sound('P0' + (f < 0.5 ? k : k2), () => fromSpec(PRE[SEQ0[f < 0.5 ? k : k2]]));
+};
+FIG[1] = (a, t) => {   // 01 光は波：波長を 750 → 380 nm へ。波が縮み、振動数が増える
+  const { x, y, w, h } = PL, l = Math.round(750 - a * 370), col = BIN[L.idx(l)], thz = L.THz(l);
+  txt('λ ' + l + ' nm の光 → 1 秒に ' + num(thz, 0) + ' 兆回ふるえる', x + 40, y + 90, { f: note(15) });
+  const wx0 = x + 60, wx1 = x + w - 60, cy = y + 250, A = 70, lp = l * 0.42, ph = RM ? 0 : t * 1.2;   // 1 nm ＝ 0.42 px で描く
+  ctx.strokeStyle = 'rgba(232,230,223,.12)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(wx0, cy + .5); ctx.lineTo(wx1, cy + .5); ctx.stroke();
+  ctx.strokeStyle = col; ctx.lineWidth = 4; ctx.beginPath(); for (let X = wx0; X <= wx1; X += 2) { const Y = cy - A * Math.sin(((X - wx0) / lp - ph) * Math.PI * 2); X === wx0 ? ctx.moveTo(X, Y) : ctx.lineTo(X, Y); } ctx.stroke();
+  // 1 波長の物差し
+  const k0 = Math.ceil(ph) - ph, bx0 = wx0 + (k0 + 0.25) * lp, bx1 = bx0 + lp, by = cy - A - 26;
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(bx0, by + 8); ctx.lineTo(bx0, by); ctx.lineTo(bx1, by); ctx.lineTo(bx1, by + 8); ctx.stroke();
+  txt('λ = ' + l + ' nm', (bx0 + bx1) / 2, by - 10, { a: 'center', f: mono(14, 600) });
+  // 波長の目盛り（横軸は振動数）
+  const x0 = x + 80, x1 = x + w - 80, ay = y + 470;
+  axisNm(x0, x1, ay); band(x0, x1, ay + 8, 12);
+  const mx = XL(l, x0, x1); ctx.fillStyle = C.ink; ctx.beginPath(); ctx.moveTo(mx, ay + 26); ctx.lineTo(mx - 7, ay + 38); ctx.lineTo(mx + 7, ay + 38); ctx.fill();
+  txt(num(L.THz(750), 0) + ' THz', x0, ay + 60, { f: mono(12), c: C.dim }); txt(num(L.THz(380), 0) + ' THz', x1, ay + 60, { a: 'right', f: mono(12), c: C.dim });
+  txt('← 低い（長い・赤）', x0, ay + 80, { f: note(12), c: C.dim }); txt('高い（短い・紫）→', x1, ay + 80, { a: 'right', f: note(12), c: C.dim });
+  ctx.font = mono(40); txt('f = ' + num(thz, 0) + ' THz', x + w / 2, y + 620, { a: 'center', f: mono(40) });
+  txt('波の長さは見やすく描いた（1 nm ＝ 0.42 px）', x + 40, y + h - 20, { f: note(12), c: C.dim }); txt('THz ＝ 兆回 ／ 秒', x + w - 40, y + h - 20, { a: 'right', f: note(12), c: C.dim });
+  railLive = 'c ÷ ' + l + ' nm ＝ ' + num(thz, 0) + ' THz';
+  sound('L' + l, () => fromSpec(nm(l)));
+};
+const REFS = [[428e12, '赤い光 700 nm'], [2.4e9, 'Wi-Fi 2.4 GHz'], [8e7, 'FM ラジオ 約 80 MHz'], [1e6, 'AM ラジオ 約 1 MHz'], [20000, '耳の上の端 20 kHz'], [440, 'ラ A4 440 Hz'], [20, '耳の下の端 20 Hz']];
+FIG[2] = (a, t) => {   // 02 ÷2⁴⁰：半分にするたび 1 オクターブ。40 回で耳に入る
+  const { x, y, w, h } = PL, kf = a * 40, k = Math.min(40, Math.floor(kf + 1e-6)), hz0 = L.THz(700) * 1e12, hz = hz0 / Math.pow(2, kf), hzk = hz0 / Math.pow(2, k);
+  const ax = x + 150, yt = y + 140, yb = y + h - 70, Y = f => yt + (15 - Math.log10(f)) / 14 * (yb - yt);
+  // 耳の帯
+  ctx.fillStyle = 'rgba(232,230,223,.10)'; ctx.fillRect(ax - 14, Y(20000), 28, Y(20) - Y(20000)); txt('耳', ax - 22, (Y(20000) + Y(20)) / 2 + 5, { a: 'right', f: jp(16, 500) });
+  ctx.strokeStyle = 'rgba(232,230,223,.55)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ax + .5, yt); ctx.lineTo(ax + .5, yb); ctx.stroke();
+  for (let e = 1; e <= 15; e++) { const yy = Y(Math.pow(10, e)); ctx.beginPath(); ctx.moveTo(ax - 5, yy + .5); ctx.lineTo(ax + 5, yy + .5); ctx.stroke(); const u = { 3: 'kHz', 6: 'MHz', 9: 'GHz', 12: 'THz', 15: 'PHz' }[e]; if (u) txt('1 ' + u, ax - 12, yy + 4, { a: 'right', f: mono(11), c: C.dim }); }
+  txt('1 Hz', ax - 12, Y(1) + 4, { a: 'right', f: mono(11), c: C.dim });
+  for (const [f, s] of REFS) { const yy = Y(f); ctx.strokeStyle = 'rgba(232,230,223,.3)'; ctx.beginPath(); ctx.moveTo(ax, yy + .5); ctx.lineTo(ax + 26, yy + .5); ctx.stroke(); txt(s, ax + 32, yy + 4, { f: note(12), c: C.dim }); }
+  // いまの振動数の点
+  const yy = Y(hz); ctx.fillStyle = BIN[L.idx(700)]; ctx.beginPath(); ctx.arc(ax, yy, 8, 0, 7); ctx.fill(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.stroke();
+  if (k < 40) arrow(ax + 250, yy - 30 + bob(t), ax + 250, yy + 24 + bob(t), C.ink, 2);
+  // 右：数え上げ
+  const rx = x + 470; txt('÷ 2 を', rx, y + 190, { f: note(14), c: C.dim }); txt(k + ' 回', rx, y + 250, { f: mono(56) });
+  for (let i = 0; i < 40; i++) { const cx = rx + (i % 20) * 26, cy = y + 290 + Math.floor(i / 20) * 26; ctx.fillStyle = i < k ? C.ink : 'rgba(232,230,223,.08)'; ctx.fillRect(cx, cy, 20, 20); if ((i + 1) % 10 === 0) txt(i + 1, cx + 10, cy + 34 + (i >= 20 ? 0 : -48), { a: 'center', f: mono(10), c: C.faint }); }
+  txt(fmtHz(hzk), rx, y + 420, { f: mono(44) });
+  const audible = hzk <= 20000 && hzk >= 20;
+  txt(audible ? (k === 40 ? '聞こえる · ' + noteTxt(hzk) : '聞こえる') : hzk > 20000 ? '高すぎて聞こえない' : '', rx, y + 456, { f: note(15), c: audible ? C.ink : C.dim });
+  if (k === 40) { txt('700 nm の赤 ＝ ' + num(L.toHz(700), 1) + ' Hz', rx, y + 520, { f: note(16) }); txt('赤の端 750 nm ＝ ' + num(L.toHz(750), 1) + ' Hz（' + noteTxt(L.toHz(750)) + '）／ 紫の端 380 nm ＝ ' + num(L.toHz(380), 1) + ' Hz（' + noteTxt(L.toHz(380)) + '）', rx, y + 548, { f: note(12), c: C.dim }); }
+  txt('1 回ごとに 1 オクターブ下がる（縦軸は対数）', x + 40, y + 90, { f: note(15) });
+  txt('ラジオの数は目安の代表値', x + 40, y + h - 20, { f: note(12), c: C.dim }); txt('Hz ＝ 回 ／ 秒', x + w - 40, y + h - 20, { a: 'right', f: note(12), c: C.dim });
+  railLive = '428 THz ÷ 2^' + k + ' ＝ ' + fmtHz(hzk);
+  sound('K' + k, () => [{ hz: hzk, a: 1 }]);
+};
+FIG[3] = (a, t) => {   // 03 1 オクターブに足りない：耳の 10 オクターブ → 目の幅を拡大 → 鍵盤
+  const { x, y, w, h } = PL, ex0 = x + 60, ex1 = x + w - 60, ey = y + 150, ew = ex1 - ex0, z = ease(a / 0.35);
+  ctx.strokeStyle = 'rgba(232,230,223,.5)'; ctx.lineWidth = 1; for (let i = 0; i < 10; i++) ctx.strokeRect(ex0 + i * ew / L.OCT_EAR + .5, ey + .5, ew / L.OCT_EAR, 22);
+  for (let i = 1; i <= 10; i++) txt(i, ex0 + (i - .5) * ew / L.OCT_EAR, ey + 40, { a: 'center', f: mono(10), c: C.faint });
+  const sx0 = ex0 + Math.log2(L.toHz(750) / 20) / L.OCT_EAR * ew, sx1 = ex0 + Math.log2(L.toHz(380) / 20) / L.OCT_EAR * ew;
+  for (let i = 0; i < N; i++) { const xx = ex0 + Math.log2(L.toHz(CO.lam(i)) / 20) / L.OCT_EAR * ew; ctx.fillStyle = BIN[i]; ctx.fillRect(xx, ey + 1, 1.3, 21); }
+  txt('20 Hz', ex0, ey - 10, { f: mono(11), c: C.dim }); txt('20 kHz', ex1, ey - 10, { a: 'right', f: mono(11), c: C.dim }); txt('耳 ' + L.OCT_EAR.toFixed(1) + ' オクターブ', (ex0 + ex1) / 2, ey - 10, { a: 'center', f: note(13) });
+  const kx0 = x + 60, kx1 = x + w - 60, ky0 = y + 330, ky1 = y + 540;
+  // 拡大の線
+  ctx.save(); ctx.globalAlpha = z; ctx.strokeStyle = 'rgba(232,230,223,.35)'; ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(sx0, ey + 24); ctx.lineTo(kx0, ky0 - 24); ctx.moveTo(sx1, ey + 24); ctx.lineTo(kx1, ky0 - 24); ctx.stroke(); ctx.setLineDash([]);
+  band(kx0, kx1, ky0 - 22, 14);
+  const l = Math.round(750 - clamp((a - 0.35) / 0.65) * 370), hz = L.toHz(l), mk = a > 0.35 ? hz : null;
+  keys(kx0, kx1, ky0, ky1, null, mk);
+  // 1 オクターブ（12 鍵）との差
+  const ox = XH(HZ0 * 2, kx0, kx1), by = ky1 + 34;
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(kx0, by - 8); ctx.lineTo(kx0, by); ctx.lineTo(kx1, by); ctx.lineTo(kx1, by - 8); ctx.stroke();
+  ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(kx1, by); ctx.lineTo(ox, by); ctx.lineTo(ox, by - 8); ctx.stroke(); ctx.setLineDash([]);
+  txt('目 380–750 nm ＝ ' + L.OCT_EYE.toFixed(2) + ' oct ＝ 鍵盤 ' + SEMI.toFixed(1) + ' 鍵', (kx0 + kx1) / 2, by + 24, { a: 'center', f: mono(14, 600) });
+  txt('1 oct まで あと ' + ((1 - L.OCT_EYE) * 12 * 100).toFixed(0) + '¢', ox, by + 48, { a: 'right', f: note(12), c: C.dim });
+  if (mk) { const mx = XL(l, kx0, kx1); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(mx + .5, ky0 - 24); ctx.lineTo(mx + .5, ky1); ctx.stroke(); }
+  ctx.restore();
+  txt(mk ? 'λ ' + l + ' nm → ' + num(hz, 1) + ' Hz（' + noteTxt(hz) + '）' : '耳の 10 オクターブの中の、目の幅', x + 40, y + 90, { f: note(15) });
+  txt('耳の幅は目安（年齢で上の端が下がる）', x + 40, y + h - 20, { f: note(12), c: C.dim }); txt('横軸は振動数の対数', x + w - 40, y + h - 20, { a: 'right', f: note(12), c: C.dim });
+  railLive = 'log₂(750 ÷ 380) ＝ ' + L.OCT_EYE.toFixed(2) + ' oct';
+  if (mk) sound('L' + l, () => fromSpec(nm(l))); else sound('none', () => []);
+};
+FIG[4] = (a, t) => {   // 04 受け手 3 つ：1 本の光を動かすと、3 つの箱の高さが変わる
+  const { x, y, w, h } = PL, x0 = x + 80, x1 = x + w - 80, l = Math.round(750 - a * 370), i = L.idx(l), v = CO.CONE[i];
+  axisNm(x0, x1, y + 150); band(x0, x1, y + 158, 10);
+  coneCurves(x0, x1, y + 210, y + 420, 3);
+  const mx = XL(l, x0, x1); ctx.strokeStyle = BIN[i]; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(mx, y + 172); ctx.lineTo(mx, y + 420); ctx.stroke();
+  for (let k = 0; k < 3; k++) if (v[k] > 0.02) { const yy = y + 420 - v[k] * 210; ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(mx, yy, 5, 0, 7); ctx.fill(); }
+  boxes(v, ['L', 'M', 'S'], x + 120, y + 620, 90, 50, 150);
+  arrow(x + 560, y + 545 + bob(t, .6, 3), x + 660, y + 545 + bob(t, .6, 3), C.ink, 2);
+  disc(x + 780, y + 545, 62, CO.lightColor(CO.xyzOf(nm(l))).hex, '見える色');
+  txt('λ ' + l + ' nm の 1 本 → L ' + v[0].toFixed(2) + ' · M ' + v[1].toFixed(2) + ' · S ' + v[2].toFixed(2), x + 40, y + 90, { f: note(15) });
+  txt('受け手の形は Hunt–Pointer–Estévez の行列から（近似）・山を 1 にそろえた', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = 'λ ' + l + ' → L ' + v[0].toFixed(2) + ' · M ' + v[1].toFixed(2) + ' · S ' + v[2].toFixed(2);
+  sound('L' + l, () => fromSpec(nm(l)));
+};
+function column(cx, top, sp, title, sub, alpha, hi) {   // PROOF の 1 列：光の色・成分・受け手・鍵盤
+  ctx.save(); ctx.globalAlpha = alpha;
+  if (hi) { ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.strokeRect(cx - 236, top - 6, 472, 556); }
+  txt(title, cx, top + 22, { a: 'center', f: mono(26, 600) }); txt(sub, cx, top + 46, { a: 'center', f: note(13), c: C.dim });
+  disc(cx, top + 130, 58, CO.lightColor(CO.xyzOf(sp)).hex);
+  const x0 = cx - 210, x1 = cx + 210; band(x0, x1, top + 222, 7); bars(sp, x0, x1, top + 320, 90);
+  txt('成分', x0, top + 214, { f: note(11), c: C.dim });
+  boxes(lmsN(sp), ['L', 'M', 'S'], cx - 110, top + 470, 50, 30, 110);
+  const n = keys(x0, x1, top + 494, top + 540, sp);
+  ctx.restore(); return n;
+}
+FIG[5] = (a, t) => {   // 05 PROOF：A 黄 1 本 と B 赤＋緑 2 本
+  const { x, y, w, h } = PL, aA = clamp(a / 0.22), aB = clamp((a - 0.3) / 0.22), cmp = clamp((a - 0.6) / 0.18);
+  const play = a < 0.3 ? 0 : a < 0.6 ? 1 : (RM ? 0 : Math.floor(t / 1.25) % 2);
+  const cA = x + 270, cB = x + w - 270, top = y + 112;
+  const nA = column(cA, top, PRE.SODIUM, 'A', '黄 ' + MET.lA + ' nm の 1 本', aA, cmp > 0 && play === 0);
+  const nB = column(cB, top, PRE.LASER, 'B', '赤 ' + MET.lR + ' ＋ 緑 ' + MET.lG + ' nm の 2 本', aB, cmp > 0 && play === 1);
+  ctx.save(); ctx.globalAlpha = cmp; const mx = x + w / 2;
+  txt('＝', mx, top + 146, { a: 'center', f: mono(54, 600) }); txt('目には同じ色', mx, top + 186, { a: 'center', f: note(13) });
+  txt('＝', mx, top + 430, { a: 'center', f: mono(54, 600) }); txt('3 つの数字も同じ', mx, top + 466, { a: 'center', f: note(13) });
+  txt('≠', mx, top + 520, { a: 'center', f: mono(54, 600) }); txt(nA + ' 音 と ' + nB + ' 音', mx, top + 556, { a: 'center', f: note(13) });
+  ctx.restore();
+  txt(a < 0.3 ? 'A：黄色の光 1 本' : a < 0.6 ? 'B：赤と緑の光 2 本（強さを解いて X と Y をそろえた）' : '色度の差 ' + MET.dxy.toFixed(4) + ' ＝ 見分けられない／音は ' + (play ? 'B' : 'A') + ' を鳴らしている', x + 40, y + 90, { f: note(15) });
+  txt('2 本で「完全に同じ」は作れない（虹の縁がわずかに外へふくらむ）。残る差は数値で出した', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = 'A ' + lmsN(PRE.SODIUM).map(v => v.toFixed(2)).join(' · ') + ' ＝ B ' + lmsN(PRE.LASER).map(v => v.toFixed(2)).join(' · ');
+  sound('AB' + play, () => fromSpec(play ? PRE.LASER : PRE.SODIUM));
+};
+function stateSpec(a) { const sg = 0.4 * Math.pow(2500, a), c = 565, s = L.empty(); for (let i = 0; i < N; i++) { const v = Math.exp(-0.5 * ((CO.lam(i) - c) / sg) ** 2); s[i] = v < 1e-3 ? 0 : v; } return { s, sg }; }
+FIG[6] = (a, t) => {   // 06 STATE：細い 1 本 → 山 → 白
+  const { x, y, w, h } = PL, { s, sg } = stateSpec(a), sp = L.spread(s), x0 = x + 80, x1 = x + w - 220;
+  axisNm(x0, x1, y + 150); band(x0, x1, y + 158, 10); bars(s, x0, x1, y + 400, 200);
+  disc(x + w - 110, y + 290, 66, CO.lightColor(CO.xyzOf(s)).hex, '見える色');
+  // 境界の目盛り（実効の幅 W・対数）
+  const bx0 = x + 80, bx1 = x + w - 80, byy = y + 520, la = Math.log(L.PURE_W), lb = Math.log(L.WHITE_W), le = Math.log(N), BX = W => { const lw = Math.log(Math.max(1, W)), u = lw <= la ? lw / la * 0.3 : lw <= lb ? 0.3 + (lw - la) / (lb - la) * 0.45 : 0.75 + Math.min(1, (lw - lb) / (le - lb)) * 0.25; return bx0 + u * (bx1 - bx0); };   // アプリの BOUNDARY と同じ区切り方（3 区間を見やすい幅に）
+  const zones = [[1, L.PURE_W, 'PURE · 1 本・純音'], [L.PURE_W, L.WHITE_W, 'MIXED · 和音・山'], [L.WHITE_W, N, 'WHITE · ノイズ']];
+  zones.forEach(([w0, w1, s2], k) => { const on = ['PURE', 'MIXED', 'WHITE'][k] === sp.state; ctx.fillStyle = on ? ACC : 'rgba(232,230,223,.06)'; ctx.fillRect(BX(w0), byy, BX(w1) - BX(w0) - 2, 36); txt(s2, (BX(w0) + BX(w1)) / 2, byy + 23, { a: 'center', f: mono(12, 600), c: on ? '#0B0B0A' : C.dim }); });
+  for (const W of [1, 5, 30, 100, 300, N]) txt(W, BX(W), byy + 54, { a: 'center', f: mono(10), c: C.faint });
+  const tx = BX(sp.W); ctx.fillStyle = C.ink; ctx.beginPath(); ctx.moveTo(tx, byy - 2); ctx.lineTo(tx - 8, byy - 16); ctx.lineTo(tx + 8, byy - 16); ctx.fill();
+  for (const k of ['BULB', 'LED', 'SUN']) { const xx = BX(SPR[k].W); ctx.strokeStyle = C.dim; ctx.beginPath(); ctx.moveTo(xx + .5, byy + 62); ctx.lineTo(xx + .5, byy + 72); ctx.stroke(); txt(PNAME[k] + ' ' + Math.round(SPR[k].W), xx, byy + 90 + (k === 'LED' ? 18 : k === 'SUN' ? 0 : 36), { a: 'center', f: note(11), c: C.dim }); }
+  txt('BOUNDARY · 実効の幅 W（nm・区間ごとに対数）▼＝いま', bx0, byy - 24, { f: note(12), c: C.dim });
+  txt('幅 σ ' + (sg < 10 ? sg.toFixed(1) : Math.round(sg)) + ' nm の山 → 実効の幅 W ' + (sp.W < 10 ? sp.W.toFixed(1) : Math.round(sp.W)) + ' nm → ' + sp.state, x + 40, y + 90, { f: note(15) });
+  txt('中心 565 nm の山の幅を広げていく（アプリの AUTO と同じ考え方）', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = 'W ＝ ' + (sp.W < 10 ? sp.W.toFixed(1) : Math.round(sp.W)) + ' nm → ' + sp.state;
+  sound('W' + Math.round(a * 40), () => fromSpec(s));
+};
+FIG[7] = (a, t) => {   // 07 物の色：光を 5 つ順に当てる（1 つずつ・最後の 2 つが同じ黄色）
+  const { x, y, w, h } = PL, k = Math.min(4, Math.floor(a * 5)), key = SEQ0[k], sp = PRE[key], o = OBJ[key], x0 = x + 60, x1 = x + 600;
+  axisNm(x0, x1, y + 150); band(x0, x1, y + 158, 8); bars(sp, x0, x1, y + 360, 170);
+  ctx.strokeStyle = BIN[L.idx(650)]; ctx.lineWidth = 2.5; ctx.setLineDash([7, 5]); ctx.beginPath(); for (let i = 0; i < N; i++) { const xx = XL(CO.lam(i), x0, x1), yy = y + 360 - L.RED_REFL[i] * 170; i ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); } ctx.stroke(); ctx.setLineDash([]);
+  txt('光の成分 E', x0, y + 182, { f: note(12) }); txt('- - 赤い物が返す割合 R', x0 + 120, y + 182, { f: note(12), c: BIN[L.idx(650)] });
+  // 右：光・白い球・赤い物
+  disc(x + 700, y + 250, 48, o.light.hex); txt('光', x + 700, y + 330, { a: 'center', f: note(12), c: C.dim });
+  ball(x + 830, y + 250, 46, o.ball); txt('白い球', x + 830, y + 330, { a: 'center', f: note(12), c: C.dim });
+  cube(x + 912, y + 200, 70, o.red); txt('赤い物', x + 960, y + 330, { a: 'center', f: note(12), c: C.dim });
+  txt(o.say + '（差 ' + o.dxy.toFixed(3) + '）', x + 830, y + 370, { a: 'center', f: note(15) });
+  // 下：5 つの光の表
+  const tx0 = x + 60, cw = (w - 120) / 5, ty = y + 420;
+  SEQ0.forEach((kk, j) => { const oo = OBJ[kk], cx = tx0 + j * cw + cw / 2, on = j === k, seen = j <= k;
+    ctx.fillStyle = on ? 'rgba(232,230,223,.12)' : 'rgba(232,230,223,.03)'; ctx.fillRect(tx0 + j * cw + 4, ty, cw - 8, 200); if (on) { ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.strokeRect(tx0 + j * cw + 4.5, ty + .5, cw - 9, 199); }
+    txt(PNAME[kk], cx, ty + 28, { a: 'center', f: note(13), c: on ? C.ink : C.dim });
+    if (!seen) { txt('·  ·  ·', cx, ty + 120, { a: 'center', f: mono(16), c: C.faint }); return; }
+    ctx.fillStyle = oo.light.hex; ctx.beginPath(); ctx.arc(cx - 52, ty + 92, 20, 0, 7); ctx.fill();
+    ball(cx, ty + 92, 22, oo.ball); cube(cx + 34, ty + 70, 34, oo.red);
+    txt(oo.say, cx, ty + 160, { a: 'center', f: note(13), c: on ? C.ink : C.dim }); txt('差 ' + oo.dxy.toFixed(3), cx, ty + 184, { a: 'center', f: mono(12), c: C.faint }); });
+  if (k >= 4) { ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; const xa = tx0 + 3 * cw + cw / 2, xb = tx0 + 4 * cw + cw / 2, yy = ty + 214; ctx.beginPath(); ctx.moveTo(xa, yy - 8); ctx.lineTo(xa, yy); ctx.lineTo(xb, yy); ctx.lineTo(xb, yy - 8); ctx.stroke(); txt('光は同じ黄色（色度の差 ' + MET.dxy.toFixed(4) + '）なのに、赤い物が違う', (xa + xb) / 2, yy + 22, { a: 'center', f: note(13) }); }
+  txt(PLONG[key] + ' の下で：' + o.say, x + 40, y + 90, { f: note(15) });
+  txt('赤い物の返し方は 600 nm から上をよく返す塗料の目安', x + 40, y + h - 20, { f: note(12), c: C.dim }); txt('差＝白い球と赤い物の色度の差', x + w - 40, y + h - 20, { a: 'right', f: note(12), c: C.dim });
+  railLive = PNAME[key] + '：赤 × 光 → 差 ' + o.dxy.toFixed(3) + '（' + o.say + '）';
+  sound('O' + k, () => fromSpec(sp));
+};
+FIG[8] = (a, t) => {   // 08 BREAK：受け手 4 つ（Q）／2 つ（L なし）
+  const { x, y, w, h } = PL, x0 = x + 80, x1 = x + 560, p2 = clamp((a - 0.45) / 0.25), play = RM ? 0 : Math.floor(t / 1.25) % 2;
+  txt('もし受け手が 4 つなら', x + 40, y + 140, { f: jp(18, 500) });
+  axisNm(x0, x1, y + 190); coneCurves(x0, x1, y + 230, y + 380, 4);
+  const qx = x + 640, qb = y + 380, qh = 150;
+  [[QA, 'A 黄 1 本'], [QB, 'B 赤＋緑']].forEach(([q, s], j) => { const bx = qx + j * 170, hh = Math.min(1.1, q) * qh; ctx.fillStyle = 'rgba(232,230,223,.85)'; ctx.fillRect(bx, qb - hh, 70, hh); ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.strokeRect(bx + .5, qb - hh + .5, 69, hh - 1); txt('Q ' + q.toFixed(2), bx + 35, qb - hh - 10, { a: 'center', f: mono(15, 600) }); txt(s, bx + 35, qb + 22, { a: 'center', f: note(12) }); });
+  txt('→ A と B は別の色', qx, qb + 54, { f: note(15) });
+  ctx.save(); ctx.globalAlpha = p2;
+  txt('もし受け手が 2 つなら（L が無い目・見え方は目安）', x + 40, y + 470, { f: jp(18, 500) });
+  const bx0 = x + 80, bx1 = x + w - 80; txt('3 つ', bx0 - 12, y + 520, { a: 'right', f: note(12), c: C.dim }); band(bx0, bx1, y + 502, 26);
+  txt('2 つ', bx0 - 12, y + 574, { a: 'right', f: note(12), c: C.dim }); band(bx0, bx1, y + 556, 26, BIN2); axisNm(bx0, bx1, y + 620);
+  txt('赤と緑の区別が消える', bx0 + 20, y + 660, { f: note(15) });
+  ctx.restore();
+  txt(a < 0.45 ? '590 nm に山を持つ仮の受け手 Q を足す（音は ' + (play ? 'B' : 'A') + '）' : 'L を抜くと、虹の赤と緑が同じ色の側へ寄る', x + 40, y + 90, { f: note(15) });
+  txt('Q は仮の受け手（目安）', x + w - 40, y + h - 20, { a: 'right', f: note(12), c: C.dim });
+  railLive = 'Q：A ' + QA.toFixed(2) + ' ≠ B ' + QB.toFixed(2);
+  sound('B' + play, () => fromSpec(play ? PRE.LASER : PRE.SODIUM));
+};
+function wait() { const { x, y, w, h } = PL; txt('法則で計算中…', x + w / 2, y + h / 2, { a: 'center', f: mono(16, 600), c: C.dim }); }
+/* 最後の駅：アプリの小さな見本（黒い窓・スペクトルの帯・成分の棒） */
+function thumb(g2) {
+  g2.fillStyle = '#0B0B0A'; g2.fillRect(0, 0, 300, 150); g2.fillStyle = '#060606'; g2.fillRect(14, 14, 272, 122);
+  for (let i = 0; i < N; i++) { g2.fillStyle = BIN[i]; g2.fillRect(30 + (N - 1 - i) / N * 240, 60, 1.2, 6); }
+  g2.fillStyle = '#E8E6DF'; g2.fillRect(30 + (N - 1 - L.idx(589)) / N * 240 - 1.5, 76, 3, 40);
+  g2.fillStyle = CO.lightColor(CO.xyzOf(PRE.SODIUM)).hex; g2.beginPath(); g2.arc(50, 36, 12, 0, 7); g2.fill();
+  g2.strokeStyle = ACCL; g2.lineWidth = 1; g2.strokeRect(8, 8, 284, 134);
+}
+
+/* ================= 画面の部品（そのまま使う） ================= */
+$('o_nst').textContent = LAST; $('o_nrail').textContent = NR; $('o_hint').textContent = '01 ' + ST[1].name; $('o_endn').textContent = pad(LAST);
+$('ctaf').textContent = LAB.split('/').pop(); $('cta').href = LAB;
+{ const g2 = $('tc').getContext('2d'); g2.setTransform(2, 0, 0, 2, 0, 0); thumb(g2); }
+const stl = $('stl'); ST.forEach((s, i) => { const li = document.createElement('li'); li.innerHTML = '<u>' + pad(i) + '</u><b>' + s.name + '</b><s>' + s.en + '</s>'; li.addEventListener('click', () => goTo(i)); stl.appendChild(li); });
+const rail = $('rail'); rail.style.gridTemplateColumns = 'repeat(' + (NR + 1) + ', 1fr)';
+RAIL.forEach(r => { const d = document.createElement('div'); d.className = 'rb'; d.innerHTML = '<div class="rt"><span>' + r.k + '<b>' + r.ja + '</b></span><i></i></div><div class="rf">' + r.f + '</div><div class="dots">···</div><div class="rd"></div>'; rail.appendChild(d); });
+const labA = document.createElement('a'); labA.className = 'rb lab'; labA.href = LAB; labA.innerHTML = '<div class="rt"><span>LAB<b>終点</b></span><i></i></div><div class="rf">OPEN THE LAB →</div><div class="rd">いつでもアプリへ飛べる</div>'; rail.appendChild(labA);
+function frame() { const svg = $('frame'), M = 'rgba(232,230,223,0.55)', S = 'rgba(232,230,223,0.10)'; let s = '';
+  for (const p of ['52,24 24,24 24,52', '1868,24 1896,24 1896,52', '52,1056 24,1056 24,1028', '1868,1056 1896,1056 1896,1028']) s += '<polyline points="' + p + '" fill="none" stroke="' + M + '" stroke-width="1.5"/>';
+  for (const yy of [124, 870]) s += '<line x1="24" y1="' + yy + '" x2="1896" y2="' + yy + '" stroke="' + S + '"/>';
+  s += '<line x1="372" y1="44" x2="372" y2="108" stroke="' + ACCL + '" stroke-width="2"/><line x1="1090" y1="78" x2="1110" y2="78" stroke="' + ACCL + '"/><line x1="1100" y1="68" x2="1100" y2="88" stroke="' + ACCL + '"/>';
+  svg.innerHTML = s; }
+frame();
+
+const val = v => typeof v === 'function' ? v() : v;
+let cur = -1, kvAnim = { t0: 0 };
+function setStation(i) {
+  if (i === cur) return; cur = i; const s = ST[i], two = pad(i), of = two + ' / ' + pad(LAST);
+  $('o_stn').textContent = of; $('o_tab').textContent = 'LP · ' + of; $('noise').textContent = s.noise; $('bigTop').textContent = s.big;
+  const kj = $('kanji'); kj.textContent = s.kanji; kj.classList.toggle('num', /\d/.test(s.kanji));
+  Object.assign(kj.style, i === 0 ? { left: '1300px', top: '806px' } : /\d/.test(s.kanji) ? { left: '30px', top: '900px' } : { left: '-6px', top: '560px' });
+  $('L0').classList.toggle('on', i === 0); $('LS').classList.toggle('on', i > 0); $('L1').classList.toggle('on', i > 0 && i < LAST); $('LE').classList.toggle('on', i === LAST);
+  [...stl.children].forEach((li, k) => { li.className = k < i ? 'done' : k === i ? 'now' : ''; });
+  $('o_read').textContent = of; $('o_bar').style.width = (i / LAST * 100) + '%';
+  if (i > 0 && i < LAST) { $('o_fig').textContent = s.fig; $('o_figt').textContent = s.figt; $('r_num').textContent = s.num; $('r_en').textContent = s.ren; $('r_h').innerHTML = s.h; $('r_body').textContent = s.body; $('r_kl').textContent = s.kl; $('r_ku').textContent = s.ku; $('r_kn').innerHTML = val(s.kn); $('r_wow').textContent = val(s.wow); $('r_next').textContent = s.next; }
+  $('brkchip').style.display = s.brk ? 'flex' : 'none';
+  $('foot').textContent = DOC + ' — ' + (i === LAST ? 'END OF RECORD' : 'STATION ' + two + (s.fig ? ' · ' + s.fig.replace('. ', '.') : ''));
+  [...rail.children].forEach((d, j) => {
+    if (j === NR) { d.className = 'rb lab' + (i === LAST ? ' now' : ''); d.querySelector('.rt i').textContent = i === LAST ? 'NOW' : ''; d.querySelector('.rd').textContent = i === LAST ? NR + ' つの式を、アプリで確かめる' : 'いつでもアプリへ飛べる'; d.href = LAB + (s.lab || ''); return; }
+    const r = RAIL[j], ref = (REF[i] || []).includes(j + 1), st = i < r.at ? 'fut' : i === r.at ? 'now' : ref ? 'ref' : 'done';
+    d.className = 'rb ' + st; d.querySelector('.rt i').textContent = st === 'fut' ? '— 未着' : st === 'now' ? 'NOW' : st === 'ref' ? 'REF · 再登場' : '✓';
+    d.querySelector('.rd').textContent = st === 'fut' ? pad(r.at) + ' の駅で入線' : r.d; d.dataset.st = st;
+  });
+  for (const id of ['L0', 'L1', 'LE']) { const el = $(id); el.classList.remove('go'); void el.offsetWidth; if (el.classList.contains('on')) el.classList.add('go'); }
+  kvAnim.t0 = performance.now();
+}
+function keyNumber() {   // KEY NUMBER は 0 から数え上げる（0.6 秒）
+  const s = ST[cur]; if (!s || !s.kv) return; const v = s.kv(), el = $('r_kv');
+  if (v == null) { el.textContent = '—'; return; } if (typeof v === 'string') { el.textContent = v; return; }
+  const f = RM ? 1 : eo((performance.now() - kvAnim.t0 - 300) / 600); el.textContent = (s.kp || '') + num(v * f, s.kf);
+}
+function railLiveSet() { [...rail.children].forEach((d, j) => { if (j < NR && d.dataset.st === 'now' && railLive) d.querySelector('.rd').textContent = railLive; }); }
+
+/* ================= スクロールと間合い（数値はユーザーの赤で決まった物・変えるなら聞く） =================
+   駅の長さ LEN（画面の枚数）・駅の頭 12% と終わり 18% は図を止める・間は smootherstep・追いかけ dt×4.5 */
+const OFF = LEN.reduce((o, l, i) => (o.push(o[i] + l), o), [0]);
+const track = $('track'); let vh = innerHeight; function size() { vh = innerHeight; track.style.height = (OFF[NST] * vh) + 'px'; }
+function toP(y) { const u = y / vh; for (let i = 0; i < NST; i++) if (u < OFF[i + 1] || i === NST - 1) return Math.min(NST - 0.001, i + clamp((u - OFF[i]) / LEN[i], 0, 0.999)); }
+const fromP = v => { const i = Math.min(NST - 1, Math.floor(v)); return (OFF[i] + (v - i) * LEN[i]) * vh; };
+const hold = a => { const t = clamp((a - 0.12) / 0.7); return t * t * t * (t * (t * 6 - 15) + 10); };
+const holdLin = a => clamp((a - 0.12) / 0.7);
+size(); addEventListener('resize', () => { size(); resize(); });
+let P = 0, last = performance.now(), tSec = 0, FIX = null;   // FIX：検証用 #s=..&fix=1 でスクロールせずにその位置で止める
+const target = () => FIX != null ? FIX : toP(scrollY);
+function goTo(i) { scrollTo({ top: OFF[i] * vh + 2, behavior: RM ? 'auto' : 'smooth' }); }
+addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); goTo(Math.min(NST - 1, Math.floor(P + 0.02) + 1)); } if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); goTo(Math.max(0, Math.ceil(P - 0.02) - 1)); } });
+PHShell.onScale(resize); resize();
+function render(P) {
+  const i = Math.min(NST - 1, Math.floor(P + 1e-6)), a = P - i; setStation(i);
+  ctx.setTransform(SC, 0, 0, SC, 0, 0); ctx.clearRect(0, 0, 1920, 1080);
+  if (i === 0) FIG[0](a, tSec);
+  else if (i < LAST) { plate(PL.x, PL.y, PL.w, PL.h, ST[i].brk); ctx.save(); ctx.beginPath(); ctx.rect(PL.x, PL.y, PL.w, PL.h); ctx.clip(); railLive = ''; FIG[i](RM ? a : STEPPED[i] ? holdLin(a) : hold(a), tSec); ctx.restore(); }
+  keyNumber(); railLiveSet();
+}
+function loop(now) {
+  const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now; tSec += dt;
+  const T = target(); P = RM ? T : P + (T - P) * Math.min(1, dt * 4.5); if (Math.abs(T - P) < 1e-4) P = T;
+  render(P); soundTick();
+  requestAnimationFrame(loop);
+}
+// 直リンク：#s=駅&p=駅の中の進み（例 #s=1&p=0.5）・&fix=1（検証の撮影用）
+{ const Q = new URLSearchParams(location.hash.slice(1)); if (Q.has('s')) { const s = clamp(+Q.get('s') + (+Q.get('p') || 0), 0, NST - 1); if (Q.get('fix') === '1') { FIX = s; P = s; } else requestAnimationFrame(() => { scrollTo(0, fromP(s)); P = s; }); } }
+if (document.fonts) ["13px 'M PLUS 1 Code'", "13px 'IBM Plex Sans JP'", "19px Michroma", "12px 'JetBrains Mono'"].forEach(f => document.fonts.load(f));
+window.__LP = { ST, FIG, LEN, get P() { return P; }, render, setP: v => { P = v; FIX = v; render(v); }, setFix: v => { FIX = v; }, setSound, SND, audio: () => AC && { state: AC.state, playing: !!curSrc, key: SND.key } };   // 検証用
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
