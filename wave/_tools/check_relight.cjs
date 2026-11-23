@@ -3,7 +3,8 @@
    2. 画面（GPU）と同じ 32 帯の計算が、1 nm の計算と合う（全部の光 × 全部の絵具 × 目の慣れ 0／1）
    3. クベルカ–ムンクの性質（白を混ぜると明るく・青＋黄で緑・量 0 は紙）
    4. 光源を替えたときの見え方（このラボの主張）：水銀灯で赤が茶に化ける／ナトリウム灯で色が全部消える／CG の掛け算では起きない
-   5. 夕日：太陽が低いほど赤い（エアマスが増える） */
+   5. 夕日：太陽が低いほど赤い（エアマスが増える）
+   6. 条件等色のペア　7. 空の下（W4 SKY の光）：日陰は青い・低い太陽は赤い・目が日なたに慣れたままだと日陰の紙は青い */
 const PG = require('../_law/ph_pigment.js');
 const { PIGMENTS, PAPER, LIGHTS, LIGHT_ORDER, E_DAY, render, rgbMultiply, mixRefl, vec, bands, renderBands, viewMatrix, labOfLin, hexLin, dE, chromaOf, REFL_PAPER } = PG;
 let ok = 0, ng = 0;
@@ -75,5 +76,16 @@ console.log('── 6. 条件等色のペア（ph_mix_solve.js・実測の絵具
   const s = pair('SODIUM'); check('ナトリウム灯：同じに見えて（ΔE 1 未満）昼で大きく違う（ΔE 60 以上）ペアがある', s.dL < 1 && s.dD > 60, 'ΔE ' + s.dL.toFixed(2) + ' / 昼 ' + s.dD.toFixed(0));
   const h = pair('MERCURY'); check('水銀灯：同じに見えて（ΔE 2 未満）昼で違う（ΔE 10 以上）ペアがある', h.dL < 2 && h.dD > 10, 'ΔE ' + h.dL.toFixed(2) + ' / 昼 ' + h.dD.toFixed(0));
   const d = pair('DAY'); check('昼光どうしでは、昼で違うペアは作れない（昼の差 ≦ 光の下のずれ ＋ 2）', d.dD < 2 + d.dL, 'ΔE ' + d.dL.toFixed(2) + ' / 昼 ' + d.dD.toFixed(2)); }
+console.log('── 7. 空の下（W4 SKY の光・ph_w4_law.js の illum）');
+{ PG.setSource('measured'); const L4 = require('../_law/ph_w4_law.js'), sky = p => PG.LIGHTS.SKY.make(p), cct = E => { const w = PG.whiteXYZ(E), t = w[0] + w[1] + w[2], x = w[0] / t, y = w[1] / t, n = (x - 0.3320) / (0.1858 - y); return 449 * n ** 3 + 3525 * n ** 2 + 6823.3 * n + 5520.33; };
+  const sun60 = sky({ sunAlt: 60 }), sh60 = sky({ sunAlt: 60, shade: true }), sun3 = sky({ sunAlt: 3 });
+  check('日陰は日なたより青い（色温度：日陰 > 日なた・60°）', cct(sh60) > cct(sun60) + 400, Math.round(cct(sun60)) + ' K → 日陰 ' + Math.round(cct(sh60)) + ' K');
+  check('太陽が低いと日なたは赤い（60° > 3°）', cct(sun60) > cct(sun3) + 1000, Math.round(cct(sun60)) + ' K → 3° ' + Math.round(cct(sun3)) + ' K');
+  const W = L4.illum(60, 0.0003, false); check('日なたは太陽がいちばん多い（60°：太陽 > 空＋地面）', W.Y.sun > W.Y.sky + W.Y.gnd, '太陽 ' + W.Y.sun.toFixed(1) + ' / 空 ' + W.Y.sky.toFixed(1) + ' / 地面 ' + W.Y.gnd.toFixed(1));
+  const RW = mixRefl(vec({ WHITE: 1 })), wSun = lab(render(RW, sun60, 1)), wSh = lab(render(RW, sh60, 1));
+  check('目が日なたに慣れたまま見ると、日陰の白い紙は青い（b* が 3 以上小さい）', wSh[2] < wSun[2] - 3, 'b* ' + wSun[2].toFixed(1) + ' → 日陰 ' + wSh[2].toFixed(1));
+  { const up = sky({ sunAlt: 60, shade: true, face: 'up' }); check('寝かせた紙の日陰は、立てた紙の日陰より青い（空の真上の青を多く受ける）', cct(up) > cct(sh60) + 1000, Math.round(cct(sh60)) + ' K → ' + Math.round(cct(up)) + ' K'); }
+  const R = mixRefl(vec({ VERMILION: 1 })), M = viewMatrix(sh60, 1), a = renderBands(vec({ VERMILION: 1 }), bands(sh60), M), b = render(R, sh60, 1), dd = dE(labOfLin(a.lin.map(v => Math.max(0, v))), lab(b));
+  check('画面（32 帯）の計算が 1 nm と合う（空の下・日陰・バーミリオン）', dd < 1, 'ΔE ' + dd.toFixed(2)); }
 console.log('\n' + ok + ' OK / ' + ng + ' NG');
 process.exit(ng ? 1 : 0);

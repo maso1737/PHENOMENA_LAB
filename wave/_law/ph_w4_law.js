@@ -66,6 +66,34 @@
     for (let i = 0; i < NL; i++) { const b = S.tr[i] / 8 + S.tp[i] / 1.5, T = Math.exp(-b * d); out[i] = obj[i] * T + hor[i] * (1 - T); }
     return out;
   }
+  /* 地面の近くの紙に当たる光（RELIGHT POSTER の光源「空の下」・LP の駅 10 と同じ）
+     face 'wall'（既定）＝太陽の方を向いて縦に立てた紙（壁のポスター）／'up'＝上を向けて寝かせた紙（地面・机の上）。
+     当たる光は 3 つの足し算：
+       太陽 ＝ 地面に届く太陽の光 × cos(面と太陽の角)（縦の面は cos(高さ)・上向きは sin(高さ)）
+       空   ＝ Σ 空の光 L(方位, 高さ) × 面への向き(cos) × 立体角（空の半球を 10°×5° の升で足す）
+       地面 ＝ 縦の面だけ：灰色の地面（返す割合 0.2）が返す光 × 1/2（下半分が地面を見る。地面は水平面に当たる太陽＋空の光を一様に返す）
+     shade：太陽だけを遮る（建物の影）＝空と地面だけ。 → { E, sun, sky, gnd, Y:{sun,sky,gnd} }（どれも波長ごと・LS の並び） */
+  const GROUND = 0.2;
+  function illum(alt, r, shade, brk, face) {
+    const up = face === 'up', S = setup(alt, r, brk), sun = new Float64Array(NL), sky = new Float64Array(NL), hor = new Float64Array(NL), buf = new Float64Array(NL);
+    const sa = Math.sin(Math.max(0, alt) * D2R), ca = Math.cos(Math.max(0, alt) * D2R);
+    for (let i = 0; i < NL; i++) { sun[i] = S.sun[i] * (up ? sa : ca); hor[i] = S.sun[i] * sa; }
+    const dAz = 10, dEl = 5, dO = (dAz * D2R) * (dEl * D2R);
+    for (let el = dEl / 2; el < 90; el += dEl) {
+      const ce = Math.cos(el * D2R), se = Math.sin(el * D2R);
+      for (let az = -180 + dAz / 2; az < 180; az += dAz) {
+        skyAt(S, az, el, buf); const cv = up ? se : Math.cos(az * D2R) * ce, w = ce * dO;     // 面への cos・立体角の cos(高さ)
+        for (let i = 0; i < NL; i++) { if (cv > 0) sky[i] += buf[i] * cv * w; hor[i] += buf[i] * se * w; }
+      }
+    }
+    const gnd = Float64Array.from(hor, v => up ? 0 : v * GROUND * 0.5), E = new Float64Array(NL);
+    for (let i = 0; i < NL; i++) E[i] = (shade ? 0 : sun[i]) + sky[i] + gnd[i];
+    const Y = s => xyz(s).Y;
+    return { E, sun, sky, gnd, Y: { sun: shade ? 0 : Y(sun), sky: Y(sky), gnd: Y(gnd) }, S };
+  }
+  /* 光の色温度の目安（McCamy の式・xy から）。青いほど大きい */
+  const cctOf = s => { const q = xyz(s), t = q.X + q.Y + q.Z, x = q.X / t, y = q.Y / t, n = (x - 0.3320) / (0.1858 - y); return 449 * n ** 3 + 3525 * n ** 2 + 6823.3 * n + 5520.33; };
+
   const xyz = s => { let X = 0, Y = 0, Z = 0; for (let i = 0; i < NL; i++) { const c = CM[i], a = s[i]; X += a * c.x; Y += a * c.y; Z += a * c.z; } return { X: X * STEP, Y: Y * STEP, Z: Z * STEP }; };
 
   // ── 状態（粒の大きさで決まる散り方）：α ≥ 2.5 BLUE（粒 ≪ 波長）／0.8〜2.5 MILKY／α < 0.8 WHITE（粒 ≳ 波長）
@@ -86,7 +114,7 @@
   /* 画面の色（0〜1 の rgb）にいちばん近い目盛り：明るさより色みを重く見る（空の青さを比べる道具なので） */
   function cyanometer(rgb) { const L = labOf(rgb); let best = 0, bd = 1e9; CY_LAB.forEach((q, n) => { const d = 0.5 * (L[0] - q[0]) ** 2 + (L[1] - q[1]) ** 2 + (L[2] - q[2]) ** 2; if (d < bd) { bd = d; best = n; } }); return { n: best, dE: Math.sqrt(bd) }; }
 
-  const api = { STEP, LS, NL, E0, TR, tauRay, tauP, tauO3, alphaOf, P_AMT, airmass, o3mass, setup, skyAt, aerial, xyz, PR, HG, blueRed,
+  const api = { STEP, LS, NL, E0, TR, tauRay, tauP, tauO3, alphaOf, P_AMT, airmass, o3mass, setup, skyAt, aerial, xyz, PR, HG, blueRed, illum, GROUND, cctOf,
     A_BLUE, A_WHITE, R_BLUE, R_WHITE, R_MIN, R_MAX, stateOf, CYAN_N, cyanHex, cyanometer, labOf };
   if (isNode) module.exports = api;
   root.PH_W4 = api;

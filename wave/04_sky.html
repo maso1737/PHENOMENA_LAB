@@ -63,7 +63,7 @@
 
   <!-- 07 FORMAT -->
   <div class="ph-format"><span class="k">FORMAT</span><span class="ja">青さの目盛りの輪
-＋ 光の通り道</span><span class="en">CYANOMETER + LIGHT PATH</span></div>
+＋ 光の通り道</span><span class="en">CYANOMETER + LIGHT PATH</span><a id="toRL" href="relight_poster.html#light=SKY" style="margin-top:8px;font:600 11px/1 var(--f-thin);letter-spacing:.16em;color:var(--accent-line);text-decoration:none">RELIGHT <span style="font:500 12px var(--f-jp);letter-spacing:0">この空の光で絵を見る →</span></a></div>
 
   <!-- 08 READOUT -->
   <div class="ph-readout">
@@ -316,6 +316,7 @@ function readout() {
   [...$('states').children].forEach(c => c.classList.toggle('seek', !!S.go && c.dataset.s === S.go.k));
   $('o_alt').textContent = S.alt.toFixed(1); $('o_am').textContent = '空気 ×' + d.ms.toFixed(1);
   const [rv, ru] = fmtR(S.r); $('o_r').textContent = rv; $('o_ru').textContent = ru; $('o_a').textContent = 'α ' + d.a.toFixed(2);
+  $('toRL').href = 'relight_poster.html#light=SKY&sun=' + Math.min(60, S.alt).toFixed(1) + '&skyr=' + S.r.toPrecision(3);   // RELIGHT POSTER の光源「空の下」へ同じ空で
   $('o_cy').textContent = d.cy.n; $('o_br').textContent = '青÷赤 ' + d.br.toFixed(1);
   if (document.activeElement !== $('alt')) $('alt').value = S.alt; if (document.activeElement !== $('psize')) $('psize').value = Math.round(uOfR(S.r) * 1000);
   $('bProof').classList.toggle('on', S.proof); $('bAuto').classList.toggle('on', S.auto); $('bBreak').classList.toggle('on', S.brk); $('win').classList.toggle('broken', S.brk);

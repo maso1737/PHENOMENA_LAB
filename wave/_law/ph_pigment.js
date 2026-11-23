@@ -20,7 +20,8 @@
    - 夕日：5778 K の黒体 × 大気の通り抜け。レイリー散乱の厚み τ(λ) = 0.008569 λ⁻⁴ (1 + 0.0113 λ⁻² + 0.00013 λ⁻⁴)（λ は µm・Hansen & Travis 1974 の式）
      ＋薄いもや 0.08 (λ/0.55)⁻¹·³（目安）。通る空気の量（エアマス）は Kasten & Young 1989。
    - 水銀灯・3 波長蛍光灯：線の位置は水銀（405・436・546・577/579 nm）・希土類の蛍光体（450・545・611 nm）。強さの比は目安。
-   - ナトリウム灯：W1 と同じ 589 nm の 1 本（低圧ナトリウム灯）。 */
+   - ナトリウム灯：W1 と同じ 589 nm の 1 本（低圧ナトリウム灯）。
+   - 空の下：W4 SKY の法則（ph_w4_law.js の illum）。太陽の方を向いて立てた紙に当たる 太陽＋空＋地面（返す割合 0.2）。日陰は太陽を除く。 */
 (function (root) {
   'use strict';
   const isNode = typeof module !== 'undefined' && module.exports;
@@ -45,8 +46,23 @@
     LED:     { jp: '白色 LED',     en: 'WHITE LED', note: '青 450 nm ＋黄色い蛍光体（形は目安）', make: () => norm(empty().map((_, i) => { const l = lam(i); return gs(l, 450, 10) + 0.62 * Math.exp(-0.5 * ((l - 565) / (l < 565 ? 40 : 60)) ** 2); })) },
     TRI:     { jp: '3 波長蛍光灯', en: 'TRI-BAND',  note: '450・545・611 nm（強さは目安）', make: () => lines([[450, 11, 0.45], [487, 3, 0.22], [545, 3.2, 1], [587, 3, 0.18], [611, 3.2, 0.85]], 0.02) },
     MERCURY: { jp: '水銀灯',       en: 'MERCURY',   note: '405・436・546・578 nm（強さは目安）', make: () => lines([[405, 2, 0.35], [436, 2, 0.8], [546, 2, 1], [578, 2.2, 0.8]], 0.015) },
-    SODIUM:  { jp: 'ナトリウム灯', en: 'SODIUM',    note: '589 nm の 1 本（トンネルの橙）', make: () => { const s = empty(); s[idx(589)] = 1; return s; } }
+    SODIUM:  { jp: 'ナトリウム灯', en: 'SODIUM',    note: '589 nm の 1 本（トンネルの橙）', make: () => { const s = empty(); s[idx(589)] = 1; return s; } },
+    SKY:     { jp: '空の下',       en: 'SKY · W4',  note: 'W4 SKY の空＝太陽＋空＋地面（太陽の方を向いて立てた紙）', make: p => skyLight(p || {}), param: 'sunAlt' }
   };
+  /* 空の下（W4 SKY の法則 ph_w4_law.js の illum をそのまま使う）。p = { sunAlt 度, skyR 粒の大きさ µm, shade 日陰, face 'wall' 立てた紙／'up' 寝かせた紙 }
+     日陰のときは「目は日なたに慣れたまま」＝ adaptRef に同じ空の日なた（太陽の方を向いて立てた紙）の光を付ける（viewMatrix が白の基準に使う）。
+     W4 は 5 nm 刻み 75 本なので、1 nm に直線でつなぐ。ph_w4_law.js が読まれていないと昼光で代わりにする。 */
+  const W4 = () => isNode ? require('./ph_w4_law.js') : root.PH_W4;
+  function fromW4(arr, LS) { const s = empty(); for (let i = 0; i < N; i++) { const l = lam(i), u = (l - LS[0]) / (LS[1] - LS[0]), k = Math.max(0, Math.min(LS.length - 2, Math.floor(u))), f = clamp(u - k, 0, 1); s[i] = arr[k] * (1 - f) + arr[k + 1] * f; } return norm(s); }
+  const SKY_DEF = { sunAlt: 60, skyR: 0.0003, shade: false, face: 'wall' };
+  function skyLight(p) {
+    const L4 = W4(); if (!L4) return LIGHTS.DAY.make();
+    const alt = p.sunAlt != null ? p.sunAlt : SKY_DEF.sunAlt, r = p.skyR != null ? p.skyR : SKY_DEF.skyR;
+    const face = p.face || SKY_DEF.face, a = L4.illum(alt, r, !!p.shade, false, face), E = fromW4(a.E, L4.LS);
+    if (p.shade) E.adaptRef = fromW4(L4.illum(alt, r, false, false, 'wall').E, L4.LS);   // 目は「太陽の方を向いた日なた」に慣れている（どちらの紙の日陰でも同じ）
+    E.parts = a.Y;
+    return E;
+  }
   const LIGHT_ORDER = ['DAY', 'SUNSET', 'BULB', 'LED', 'TRI', 'MERCURY', 'SODIUM'];
 
   // ── 絵具の返す割合（形の項を足して 0.004〜0.96 に切る）
@@ -124,9 +140,10 @@
   function whiteXYZ(E) { let X = 0, Y = 0, Z = 0; for (let i = 0; i < N; i++) { const e = E[i]; if (!e) continue; X += e * CMF[i].x; Y += e * CMF[i].y; Z += e * CMF[i].z; } return Y > 0 ? [X / Y, 1, Z / Y] : [D65[0], 1, D65[2]]; }
   const E_DAY = LIGHTS.DAY.make();
   const W_DAY = whiteXYZ(E_DAY);
-  /* 目の慣れ：白の受け手の反応を、昼光の白（adapt=0）〜この光の白（adapt=1）の間に取り、D65 の白へ割り直す */
+  /* 目の慣れ：白の受け手の反応を、昼光の白（adapt=0）〜この光の白（adapt=1）の間に取り、D65 の白へ割り直す
+     E.adaptRef があれば、慣れる先はその光（空の下の日陰＝目は日なたに慣れたまま） */
   function viewMatrix(E, adapt) {
-    const wl = whiteXYZ(E), lD = mv(HPE, W_DAY), lL = mv(HPE, wl), lT = mv(HPE, D65);
+    const wl = whiteXYZ(E.adaptRef || E), lD = mv(HPE, W_DAY), lL = mv(HPE, wl), lT = mv(HPE, D65);
     const src = lD.map((v, k) => v + (lL[k] - v) * adapt);
     const vk = [[lT[0] / src[0], 0, 0], [0, lT[1] / src[1], 0], [0, 0, lT[2] / src[2]]];
     return mm(XYZ2RGB, mm(HPE_INV, mm(vk, HPE)));
@@ -195,7 +212,7 @@
   }
 
   const api = {
-    LIGHTS, LIGHT_ORDER, sunAt, airmass, tauRay, PIGMENTS, PAPER, NP, PID, FIT, setFit, reflOf, REFL, REFL_PAPER, ks, kmR, mixRefl,
+    LIGHTS, LIGHT_ORDER, SKY_DEF, skyLight, sunAt, airmass, tauRay, PIGMENTS, PAPER, NP, PID, FIT, setFit, reflOf, REFL, REFL_PAPER, ks, kmR, mixRefl,
     whiteXYZ, viewMatrix, xyzUnder, render, rgbMultiply, E_DAY, hexLin, labOfLin, dE, chromaOf, RECIPES, vec, NB, bands, renderBands, toHex, mv,
     MEASURED, MEASURED_GAIN, setSource, SOURCE
   };
