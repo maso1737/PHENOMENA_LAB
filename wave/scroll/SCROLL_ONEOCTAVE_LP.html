@@ -563,10 +563,10 @@ FIG[4] = (a, t) => {   // 04 受け手 3 つ：1 本の光を動かすと、3 �
 };
 function column(cx, top, sp, title, sub, alpha, hi) {   // PROOF の 1 列：光の色・成分・受け手・鍵盤
   ctx.save(); ctx.globalAlpha = alpha;
-  if (hi) { ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.strokeRect(cx - 236, top - 6, 472, 556); }
+  if (hi) { ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.strokeRect(cx - 204, top - 6, 408, 556); }   // 枠は列の中だけ（真ん中の ＝ と字に掛からない）
   txt(title, cx, top + 22, { a: 'center', f: mono(26, 600) }); txt(sub, cx, top + 46, { a: 'center', f: note(13), c: C.dim });
   disc(cx, top + 130, 58, CO.lightColor(CO.xyzOf(sp)).hex);
-  const x0 = cx - 210, x1 = cx + 210; band(x0, x1, top + 222, 7); bars(sp, x0, x1, top + 320, 90);
+  const x0 = cx - 190, x1 = cx + 190; band(x0, x1, top + 222, 7); bars(sp, x0, x1, top + 320, 90);
   txt('成分', x0, top + 214, { f: note(11), c: C.dim });
   boxes(lmsN(sp), ['L', 'M', 'S'], cx - 110, top + 470, 50, 30, 110);
   const n = keys(x0, x1, top + 494, top + 540, sp);
@@ -575,7 +575,7 @@ function column(cx, top, sp, title, sub, alpha, hi) {   // PROOF の 1 列：光
 FIG[5] = (a, t) => {   // 05 PROOF：A 黄 1 本 と B 赤＋緑 2 本
   const { x, y, w, h } = PL, aA = clamp(a / 0.22), aB = clamp((a - 0.3) / 0.22), cmp = clamp((a - 0.6) / 0.18);
   const play = a < 0.3 ? 0 : a < 0.6 ? 1 : (RM ? 0 : Math.floor(t / 1.25) % 2);
-  const cA = x + 270, cB = x + w - 270, top = y + 112;
+  const cA = x + 230, cB = x + w - 230, top = y + 112;
   const nA = column(cA, top, PRE.SODIUM, 'A', '黄 ' + MET.lA + ' nm の 1 本', aA, cmp > 0 && play === 0);
   const nB = column(cB, top, PRE.LASER, 'B', '赤 ' + MET.lR + ' ＋ 緑 ' + MET.lG + ' nm の 2 本', aB, cmp > 0 && play === 1);
   ctx.save(); ctx.globalAlpha = cmp; const mx = x + w / 2;
