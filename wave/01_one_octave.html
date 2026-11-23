@@ -9,6 +9,11 @@
   /* W1 のアクセント＝白（光そのもの。スペクトルの色とぶつからない）。外枠で変えてよいのはこの 3 つだけ */
   :root { --accent: #ECEAE3; --accent-ink: #0B0B0A; --accent-line: #ECEAE3; }
   .ph-title, .ph-question { color: var(--accent-ink); }
+  /* STATE と BOUNDARY は押せる（その状態になるように原因＝光の成分を動かす。▼ は結果なので後からついてくる）＝E1・A1 と同じ */
+  #states > div { cursor: pointer; }
+  #states > div:hover:not(.now) { border-color: var(--accent-line); color: var(--ink); }
+  #states > div.seek { outline: 1px dashed var(--accent-line); outline-offset: 2px; }
+  #bound { cursor: pointer; }
   .w1-sound { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; margin-top: 6px; }
 </style>
 </head>
@@ -63,9 +68,9 @@
     <div class="ph-h"><i class="sq"></i><b>READOUT</b><span class="id">RD-W1-01</span></div>
     <span class="ph-lab" style="margin-top:14px">STATE</span>
     <div class="ph-states" id="states">
-      <div><b>PURE</b><span>1 本・純音</span></div>
-      <div><b>MIXED</b><span>和音・山</span></div>
-      <div><b>WHITE</b><span>全部・ノイズ</span></div>
+      <div data-s="PURE" title="いまの山の位置に、細い 1 本だけを残す"><b>PURE</b><span>1 本・純音</span></div>
+      <div data-s="MIXED" title="いまの山の位置を中心に、幅のある山（幅 σ 30 nm）にする"><b>MIXED</b><span>和音・山</span></div>
+      <div data-s="WHITE" title="全部の成分を同じ強さに"><b>WHITE</b><span>全部・ノイズ</span></div>
     </div>
     <div class="ph-vals">
       <div class="ph-val"><span class="k">PEAK λ <i>いちばん強い成分</i></span><div class="v"><b id="o_peak">—</b><u>nm</u><em id="o_thz"></em></div></div>
@@ -73,7 +78,7 @@
         <div class="w1-sound"><button class="ph-chip" id="bSound" aria-pressed="false">♪ 音を出す</button><input class="ph-range" type="range" id="vol" min="0" max="100" step="1" value="35" aria-label="音量"></div></div>
       <div class="ph-val"><span class="k">SEEN AS <i>目にはこう見える</i></span><div class="v"><b id="o_seen">—</b><u id="o_seenU">nm</u><em id="o_seenName"></em></div></div>
     </div>
-    <div class="ph-boundary"><span class="ph-lab">BOUNDARY</span><svg id="bound" role="img" aria-label="境界の目盛り：PURE・MIXED・WHITE"></svg></div>
+    <div class="ph-boundary"><span class="ph-lab">BOUNDARY <i style="font-style:normal;letter-spacing:0;text-transform:none">押すとその側へ</i></span><svg id="bound" role="img" aria-label="境界の目盛り：PURE・MIXED・WHITE"></svg></div>
   </div>
 
   <!-- 09 LOOK ⇄ CAUSE の窓 -->
@@ -120,8 +125,8 @@
 'use strict';
 const C = PH_COLOR, L = PH_W1, N = C.N, $ = id => document.getElementById(id);
 const K = { bg: '#060606', ink: '#E8E6DF', dim: '#9C9A93', faint: '#6F6D67', rule: 'rgba(232,230,223,.14)', rule2: 'rgba(232,230,223,.06)' };
-const PNAME = { SUN: '太陽（5778 K の黒体）', BULB: '電球（2700 K の黒体）', LED: '白色 LED（青＋蛍光体）', LASER: '赤＋緑のレーザー', SODIUM: '街灯（ナトリウム 589 nm）', WHITE: '白（全部同じ強さ）', CLEAR: '光なし', DRAW: '自分で描いた光', AUTO: 'AUTO（山が動く）' };
-const S = { spec: L.PRESETS.SODIUM(), preset: 'SODIUM', proof: false, proofAB: 0, auto: false, brk: false, cones: 4, sound: false, vol: 0.35, t: 0, drag: null, probe: null, saved: null };
+const PNAME = { SUN: '太陽（5778 K の黒体）', BULB: '電球（2700 K の黒体）', LED: '白色 LED（青＋蛍光体）', LASER: '赤＋緑のレーザー', SODIUM: '街灯（ナトリウム 589 nm）', WHITE: '白（全部同じ強さ）', CLEAR: '光なし', DRAW: '自分で描いた光', STATE: 'STATE から作った光', AUTO: 'AUTO（山が動く）' };
+const S = { go: null, spec: L.PRESETS.SODIUM(), preset: 'SODIUM', proof: false, proofAB: 0, auto: false, brk: false, cones: 4, sound: false, vol: 0.35, t: 0, drag: null, probe: null, saved: null };
 const cv = $('cv'), ctx = cv.getContext('2d');
 let W = 1, H = 1, G = {};
 
@@ -302,6 +307,7 @@ const scaleMk = sEl('polygon', { points: '0,29 -6,40 6,40', fill: '#ECEAE3' });
 function readout() {
   const d = derive(), si = STATE_I[d.state];
   PHShell.mark($('states'), si);
+  [...$('states').children].forEach(c => c.classList.toggle('seek', !!S.go && c.dataset.s === S.go.k));
   $('o_peak').textContent = d.peak ? d.peak : '—'; $('o_thz').textContent = d.peak ? L.THz(d.peak).toFixed(0) + ' THz' : '';
   $('o_hz').textContent = d.hz ? d.hz.toFixed(0) : '—'; $('o_note').textContent = d.note ? d.note.name + ' ' + (d.note.cents >= 0 ? '+' : '') + d.note.cents + '¢' : '';
   if (!d.dom) { $('o_seen').textContent = '—'; $('o_seenU').textContent = ''; $('o_seenName').textContent = '暗い'; }
@@ -349,8 +355,18 @@ async function setSound(on) {
 }
 const markDirty = () => { dirty = true; };
 
+/* ---- STATE を押す：その状態になるように光の成分（原因）を 0.9 秒でなめらかに動かす。▼（結果）は直接は動かさない ---- */
+function goState(k) {
+  S.proof = false; S.auto = false;
+  const d = derive(), c = d.peak || (d.dom && d.dom.kind === 'spectral' ? d.dom.l : 565), to = L.empty();
+  if (k === 'PURE') to[L.idx(Math.round(c))] = 1;
+  else if (k === 'MIXED') for (let i = 0; i < N; i++) { const v = Math.exp(-0.5 * ((C.lam(i) - c) / 30) ** 2); to[i] = v < 1e-3 ? 0 : v; }
+  else to.fill(1);
+  S.go = { k, a: 0, from: S.spec.slice(), to }; S.preset = 'STATE';
+}
 function step(dt) {
   S.t += dt;
+  if (S.go) { const g = S.go; g.a = Math.min(1, g.a + dt / 0.9); const e = g.a * g.a * (3 - 2 * g.a); S.spec = g.from.map((v, i) => v + (g.to[i] - v) * e); dirty = true; if (g.a >= 1) { S.spec = g.to.slice(); S.go = null; } }
   if (S.auto) {                                                                         // 山が 1 オクターブを往復し、細い ⇄ 広い をくり返す（PURE → MIXED → WHITE）
     const c = 565 + 175 * Math.sin(S.t * 2 * Math.PI / 24), wd = 0.4 + 150 * (0.5 - 0.5 * Math.cos(S.t * 2 * Math.PI / 40));
     const sp = L.empty(); for (let i = 0; i < N; i++) sp[i] = Math.exp(-0.5 * ((C.lam(i) - c) / wd) ** 2); S.spec = sp.map(v => v < 1e-3 ? 0 : v); S.preset = 'AUTO'; dirty = true;
@@ -362,13 +378,15 @@ function step(dt) {
 }
 
 /* ---- 操作 ---- */
-function setPreset(p) { S.auto = false; if (S.proof) { S.proof = false; } S.spec = L.PRESETS[p](); S.preset = p; markDirty(); }
+function setPreset(p) { S.go = null; S.auto = false; if (S.proof) { S.proof = false; } S.spec = L.PRESETS[p](); S.preset = p; markDirty(); }
 document.querySelectorAll('#presets .ph-chip').forEach(b => b.addEventListener('click', () => setPreset(b.dataset.p)));
+document.querySelectorAll('#states > div').forEach(b => b.addEventListener('click', () => goState(b.dataset.s)));
+$('bound').addEventListener('click', e => { const r = $('bound').getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 212; goState(x < 60 ? 'PURE' : x > 150 ? 'WHITE' : 'MIXED'); });
 $('bSound').addEventListener('click', () => setSound(!S.sound));
 $('vol').addEventListener('input', e => { S.vol = +e.target.value / 100; if (AC) master.gain.setTargetAtTime(S.sound ? S.vol * 0.8 : 0, AC.currentTime, .06); });
 $('cones').addEventListener('input', e => { S.cones = +e.target.value; });
-$('bProof').addEventListener('click', () => { S.proof = !S.proof; if (S.proof) { S.auto = false; S.saved = { spec: S.spec.slice(), preset: S.preset }; S.proofSet = false; S.t = 0; } else if (S.saved) { S.spec = S.saved.spec; S.preset = S.saved.preset; } markDirty(); });
-$('bAuto').addEventListener('click', () => { S.auto = !S.auto; if (S.auto) { S.proof = false; S.t = 0; } else { S.preset = 'DRAW'; } markDirty(); });
+$('bProof').addEventListener('click', () => { S.go = null; S.proof = !S.proof; if (S.proof) { S.auto = false; S.saved = { spec: S.spec.slice(), preset: S.preset }; S.proofSet = false; S.t = 0; } else if (S.saved) { S.spec = S.saved.spec; S.preset = S.saved.preset; } markDirty(); });
+$('bAuto').addEventListener('click', () => { S.go = null; S.auto = !S.auto; if (S.auto) { S.proof = false; S.t = 0; } else { S.preset = 'DRAW'; } markDirty(); });
 $('bBreak').addEventListener('click', () => { S.brk = !S.brk; });
 
 const pos = e => { const r = cv.getBoundingClientRect(), k = r.width / Math.max(1, cv.clientWidth); return [(e.clientX - r.left) / k, (e.clientY - r.top) / k]; };
@@ -379,7 +397,7 @@ function paint(x, y) {
   if (lastI == null) S.spec[i] = a; else { const [i0, i1] = lastI.i < i ? [lastI.i, i] : [i, lastI.i]; for (let j = i0; j <= i1; j++) { const t = i1 === i0 ? 1 : (j - lastI.i) / (i - lastI.i); S.spec[j] = lastI.a + (a - lastI.a) * (isFinite(t) ? t : 1); } }
   lastI = { i, a }; markDirty();
 }
-cv.addEventListener('pointerdown', e => { const [x, y] = pos(e); if (!inBars(x, y)) return; S.auto = false; S.proof = false; S.preset = 'DRAW'; S.drag = 'draw'; S.spec = S.spec.slice(); lastI = null; paint(x, y); try { cv.setPointerCapture(e.pointerId); } catch (_) {} });
+cv.addEventListener('pointerdown', e => { const [x, y] = pos(e); if (!inBars(x, y)) return; S.go = null; S.auto = false; S.proof = false; S.preset = 'DRAW'; S.drag = 'draw'; S.spec = S.spec.slice(); lastI = null; paint(x, y); try { cv.setPointerCapture(e.pointerId); } catch (_) {} });
 cv.addEventListener('pointermove', e => { const [x, y] = pos(e); const near = inBars(x, y); $('ctl').classList.toggle('hot', near || S.drag === 'draw');
   S.probe = near ? LofX(Math.max(G.X0, Math.min(G.X1, x))) : null; cv.style.cursor = near ? 'crosshair' : 'default'; if (S.drag === 'draw') paint(x, y); });
 const up = () => { S.drag = null; lastI = null; }; cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
@@ -391,7 +409,7 @@ if (document.fonts) ["11px 'JetBrains Mono'", "11px 'M PLUS 1 Code'", "13px 'IBM
 /* 直リンク：#p=LASER（プリセット）&brk=2〜4（BREAK と受け手の数）&proof=1&auto=1 */
 { const h = new URLSearchParams(location.hash.slice(1)); if (L.PRESETS[h.get('p')]) setPreset(h.get('p')); if (h.get('brk')) { S.brk = true; S.cones = Math.max(2, Math.min(4, +h.get('brk') || 4)); }
   if (h.get('proof') === '1') $('bProof').click(); if (h.get('auto') === '1') $('bAuto').click(); }
-window.__PH = { S, C, L, get G() { return G; }, derive, step, draw, layout, Xof, LofX, setPreset, setSound, buffer: () => AC && buildBuffer(), audio: () => AC && { state: AC.state, master: master.gain.value, playing: !!cur, gain: cur && cur.g.gain.value } };   // 検証用
+window.__PH = { goState, readout, S, C, L, get G() { return G; }, derive, step, draw, layout, Xof, LofX, setPreset, setSound, buffer: () => AC && buildBuffer(), audio: () => AC && { state: AC.state, master: master.gain.value, playing: !!cur, gain: cur && cur.g.gain.value } };   // 検証用
 layout(); let last = performance.now();
 (function loop(now) { step(Math.min(0.05, (now - last) / 1000)); last = now; requestAnimationFrame(loop); })(last);
 </script>
