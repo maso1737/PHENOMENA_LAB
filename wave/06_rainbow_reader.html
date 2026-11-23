@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>W6+ RAINBOW READER 虹から雨粒を読む — PHENOMENA LAB</title>
+<link rel="stylesheet" href="../_shell/shell.css">
+<style>
+  /* W6 と同じアクセント。外枠の部品は W6 から写し、窓を縦に広げた（写真を大きく見せるため）。TRANSFER は下の 3 欄に縮めた */
+  :root { --accent: #5E3A8C; --accent-ink: #FFFFFF; --accent-line: #C3ABE8; }
+  .ph-question { height: auto; }
+  #win { height: 560px; }
+  #states > div { cursor: pointer; }
+  #states > div:hover:not(.now) { border-color: var(--accent-line); color: var(--ink); }
+  .rd-btns { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+  .rd-btns button { font: 600 11px/1 var(--f-thin); letter-spacing: .14em; text-align: left; padding: 9px 10px; background: transparent; color: var(--ink); border: 1px solid var(--line-main); }
+  .rd-btns button span { font: 500 12px var(--f-jp); letter-spacing: 0; margin-left: 6px; color: var(--ink-2); }
+  .rd-btns button:hover { border-color: var(--accent-line); color: var(--accent-line); }
+  .rd-btns button.go { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .rd-btns button.go span { color: var(--accent-ink); }
+  .rd-btns button:disabled { opacity: .35; cursor: default; }
+  .rd-focal { margin-top: 14px; font: 500 11px var(--f-jp); color: var(--ink-2); }
+  .rd-focal input[type=number] { width: 48px; background: transparent; color: var(--ink); border: 1px solid var(--line-main); font: 400 13px var(--f-num); padding: 3px 6px; margin: 0 4px; }
+  .rd-note { position: absolute; left: 280px; top: 948px; width: 1600px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .rd-note div { border-top: 1px solid var(--line-main); padding-top: 8px; }
+  .rd-note h3 { margin: 0 0 4px; font: 600 11px/1.2 var(--f-thin); letter-spacing: .16em; color: var(--accent-line); }
+  .rd-note p { margin: 0; font: 400 12px/1.6 var(--f-jp); color: var(--ink-2); }
+  #file { display: none; }
+</style>
+</head>
+<body>
+<div class="ph-viewport"><div class="ph-shell">
+  <div class="ph-grid"></div>
+  <svg class="ph-big" viewBox="0 0 1920 1080" aria-hidden="true">
+    <rect x="0" y="682" width="1920" height="12"></rect>
+    <text x="-6" y="646" font-family="'IBM Plex Sans JP', sans-serif" font-size="300" font-weight="500">粒</text>
+    <text x="1690" y="112" font-family="Michroma, sans-serif" font-size="96" text-anchor="end">a = ?</text>
+  </svg>
+  <svg class="ph-noise" viewBox="0 0 1920 1080" aria-hidden="true">
+    <text font-family="Jura, sans-serif" font-size="9" letter-spacing="2" transform="translate(13 1040) rotate(-90)">SECTOR 06-B · OBS W-006-R · INVERSE · AIRY 1838 · SUPERNUMERARY SPACING ∝ a^-2/3 · ARCHIVE/EARTH/WAVE/W6/READER</text>
+    <text font-family="Jura, sans-serif" font-size="9" letter-spacing="2" transform="translate(1909 40) rotate(90)">PINHOLE CAMERA · FOCAL 35MM EQ · PROFILE FIT LINEAR + QUADRATIC BACKGROUND · NODE 06-R</text>
+  </svg>
+  <svg class="ph-frame" viewBox="0 0 1920 1080" aria-hidden="true"></svg>
+
+  <div class="ph-brand"><b>PHENOMENA LAB</b><span>EARTH SURVEY ARCHIVE · SHELL v0.1</span></div>
+  <dl class="ph-ids" style="left:392px"><dt>OBS.No</dt><dd>W-006-R</dd><dt>MODE</dt><dd>INVERSE</dd><dt>FROM</dt><dd>W6 RAINBOW</dd></dl>
+  <dl class="ph-ids" style="left:760px"><dt>FIELD</dt><dd>WAVE</dd><dt>CARD</dt><dd>W6+ / 22</dd><dt>REF</dt><dd>ph_w6_law.js</dd></dl>
+  <div class="ph-stagetab"><span class="k">STAGE</span><span class="n">W6+</span><span class="s">READER</span>
+    <svg width="14" height="22" viewBox="0 0 14 22" aria-hidden="true"><line x1="1" y1="21" x2="13" y2="1" stroke-width="1.5"/></svg></div>
+
+  <div class="ph-title"><span class="field" id="titleField">W6+ — WAVE · RAINBOW READER</span><h1>READER</h1><span class="ja">虹から雨粒を読む</span></div>
+  <div class="ph-question"><span class="k">QUESTION</span><p>虹の写真 1 枚から、<br>その日の雨粒の大きさは<br>読めるか。</p></div>
+  <div class="ph-specimen" id="specimen"><span class="tag">SPECIMEN · SPACING ∝ a^−2/3</span></div>
+  <div class="ph-format"><span class="k">FORMAT</span><span class="ja">写真の上の物差し
+＋ 断面の重ね合わせ</span><span class="en">PROFILE FIT</span><a href="06_rainbow.html" style="margin-top:8px;font:600 11px/1 var(--f-thin);letter-spacing:.16em;color:var(--accent-line);text-decoration:none">W6 RAINBOW <span style="font:500 12px var(--f-jp);letter-spacing:0">へ戻る →</span></a></div>
+
+  <div class="ph-readout">
+    <div class="ph-h"><i class="sq"></i><b>READOUT</b><span class="id">RD-W6R-01</span></div>
+    <span class="ph-lab" style="margin-top:14px">STATE <i style="font-style:normal;letter-spacing:0;text-transform:none">押すとその見本</i></span>
+    <div class="ph-states" id="states">
+      <div data-s="WHITE" title="霧の白い虹の見本を作る"><b>WHITE</b><span>霧</span></div>
+      <div data-s="PALE" title="霧雨の虹の見本を作る（過剰虹）"><b>PALE</b><span>霧雨</span></div>
+      <div data-s="COLOR" title="雨の虹の見本を作る"><b>COLOR</b><span>雨</span></div>
+    </div>
+    <div class="ph-vals">
+      <div class="ph-val"><span class="k">READ <i>読んだ雨粒の半径</i></span><div class="v"><b id="o_a">—</b><u>mm</u><em id="o_rng"></em></div></div>
+      <div class="ph-val"><span class="k">FIT <i>重なり具合</i></span><div class="v"><b id="o_fit">—</b><u>%</u><em id="o_ans"></em></div></div>
+    </div>
+    <div class="rd-focal">焦点距離（35 mm 換算）<input type="number" id="focal" value="26" min="10" max="200" step="1">mm<br><span style="font-size:10px;color:var(--ink-3)">2 倍まちがえると a は約 2.3 倍ずれる（スマホの広角は 24〜26）</span></div>
+    <div class="rd-btns">
+      <button id="bSample">SAMPLE<span>見本の写真を作る（答えは隠す）</span></button>
+      <button id="bOpen">OPEN<span>自分の写真を開く</span></button>
+      <button id="bRead" class="go">READ<span>線の所を読む</span></button>
+      <button id="bAns">ANSWER<span>見本の答えを見る</span></button>
+    </div>
+  </div>
+
+  <div class="ph-winhead"><i class="sq"></i><span class="t">PHOTO ⇄ PROFILE</span><span class="s">DRAG ACROSS THE BOW · INSIDE → OUTSIDE</span>
+    <div class="r"><b id="srcName">—</b></div></div>
+  <div class="ph-window" id="win">
+    <canvas id="cv"></canvas>
+    <div class="ph-tag" style="left:16px;top:8px"><i></i><b>PHOTO</b><span>— 写真</span><small id="tagSmall">SAMPLE · RENDERED BY THE LAW</small></div>
+    <div class="ph-tag" style="left:996px;top:8px"><i></i><b>PROFILE</b><span>— 断面を法則と重ねる</span></div>
+    <div class="ph-control" id="ctl" style="left:16px;top:44px"><span class="k">◆ CONTROL ▶</span><span class="d">虹を横切るように引く（内 → 外）</span></div>
+  </div>
+  <input type="file" id="file" accept="image/*">
+
+  <div class="rd-note">
+    <div><h3>01 HOW IT READS · 読み方</h3><p>虹の帯の太さと内側の縞（過剰虹）の間隔は、雨粒の半径 a の −2/3 乗で決まる。線の上の明るさを、法則で作った 30 通りの粒の断面と重ね、いちばん重なる a を選ぶ。</p></div>
+    <div><h3>02 CG · GEN CHECK</h3><p>CG の虹に縞があるなら、その間隔で粒の大きさが決まっている。縞が 1° 間隔なら半径 0.25 mm 前後。縞があるのに帯が白い／縞の間隔が外ほど広い、なら嘘。</p></div>
+    <div><h3>03 FIELD NOTE · 宿題</h3><p>虹の写真を撮ったら、焦点距離（35 mm 換算）を控えて OPEN で読む。夕立の終わり（大粒）と霧雨の日で、読んだ a を比べる。</p></div>
+  </div>
+</div></div>
+
+<script src="../_shell/shell.js"></script>
+<script src="_law/ph_color.js"></script>
+<script src="_law/ph_w4_law.js"></script>
+<script src="_law/ph_w6_law.js"></script>
+<script>
+'use strict';
+const CO = PH_COLOR, L4 = PH_W4, L = PH_W6, NL = L4.NL, LS = L4.LS, $ = id => document.getElementById(id);
+const K = { paper: '#F2EAD3', ink: '#2B2A30', dim: '#6E6A60', faint: '#A39C8C', rule: 'rgba(43,42,48,.22)', rule2: 'rgba(43,42,48,.08)', violet: '#5E3A8C' };
+const D2R = Math.PI / 180, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const cv = $('cv'), ctx = cv.getContext('2d');
+let W = 1, H = 1, G = {};
+const mono = (px, w) => (w || 400) + ' ' + px + 'px "JetBrains Mono",ui-monospace,monospace', note = px => px + 'px "M PLUS 1 Code","IBM Plex Sans JP",monospace', jura = (px, w) => (w || 600) + ' ' + px + 'px Jura,sans-serif';
+function txt(s, x, y, o) { o = o || {}; ctx.font = o.f || note(11); ctx.fillStyle = o.c || K.ink; ctx.textAlign = o.a || 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillText(s, x, y); }
+const CMF = LS.map(l => CO.CMF[l - 380]);
+const lin = v => v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+
+/* 状態：写真（canvas）・線（写真の画素）・読んだ結果 */
+const S = { img: null, iw: 0, ih: 0, focal: 26, line: null, drag: false, res: null, sample: null, showAns: false, busy: 0, name: '—' };
+
+/* =====================================================================
+   見本の写真：W6 と同じ法則で、ピンホールカメラ（35 mm 換算 26 mm）で撮った絵を作る
+   答え（雨粒の半径）は S.sample.a に隠す。雑音・わずかなぼけ・地面・雨の幕つき
+   ===================================================================== */
+const SW = 1200, SH = 800;
+function rng(seed) { let s = seed >>> 0 || 1; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+function makeSample(a, alt, seed) {
+  const R = rng(seed), F = 26, fpx = SW * F / 36, n = L.nWater(550), th1 = L.bowDeg(n, 1), top = th1 - alt;
+  const pitch = clamp(top - 14 + (R() - 0.5) * 6, 4, 40) * D2R, yaw = (R() - 0.5) * 16 * D2R;
+  // 虹の表（5 nm・0〜64°）×その時の太陽の光
+  const TH_DT = 0.04, TH_N = Math.round(64 / TH_DT) + 1, THS = Array.from({ length: TH_N }, (_, j) => Math.max(0.5, j * TH_DT));
+  const T = L.bowTable(a, false, THS, null), St = L4.setup(alt, L4.R_MIN), sun = St.sun, BX = new Float64Array(TH_N * 3);
+  // 濃さ：W6 と同じ合わせ方（1 mm・太陽 10° の山＝反対側の空 30° の 0.9 倍）。比べる基準は毎回同じ
+  if (!makeSample.GAIN) { const T1 = L.bowTable(1, false, THS, null), S10 = L4.setup(10, L4.R_MIN); let mx = 0; for (let j = 0; j < TH_N; j++) { let y = 0; for (let w = 0; w < NL; w++) y += T1[j][w] * S10.sun[w] * CMF[w].y; mx = Math.max(mx, y); }
+    makeSample.GAIN = 0.9 * L4.xyz(L4.skyAt(S10, 180, 30, new Float64Array(NL))).Y / mx; }
+  for (let j = 0; j < TH_N; j++) { let X = 0, Y = 0, Z = 0; for (let w = 0; w < NL; w++) { const v = T[j][w] * sun[w] * makeSample.GAIN; X += v * CMF[w].x; Y += v * CMF[w].y; Z += v * CMF[w].z; } BX[j * 3] = X; BX[j * 3 + 1] = Y; BX[j * 3 + 2] = Z; }
+  // 空（粗い升）
+  const AZ = 60, EL = 80, SC = 48, SR = 40, SKY = new Float64Array(SC * SR * 3), buf = new Float64Array(NL);
+  for (let r = 0; r < SR; r++) for (let c = 0; c < SC; c++) { const az = AZ * (2 * c / (SC - 1) - 1), el = Math.max(0.6, EL * (1 - r / (SR - 1))), x = L4.xyz(L4.skyAt(St, 180 + az, el, buf)), p = (r * SC + c) * 3; SKY[p] = x.X; SKY[p + 1] = x.Y; SKY[p + 2] = x.Z; }
+  const WB = (() => { const x = L4.xyz(L4.setup(60, L4.R_MIN).sun); return [0.9505 * x.Y / x.X, 1, 1.089 * x.Y / x.Z]; })();
+  const Y_NOON = L4.xyz(L4.skyAt(L4.setup(60, L4.R_MIN), 90, 25, buf)).Y, yref = L4.xyz(L4.skyAt(St, 90, 25, buf)).Y, k = 0.42 / (Math.pow(yref, 0.8) * Math.pow(Y_NOON, 0.2)) * (0.85 + R() * 0.3);
+  const sunX = L4.xyz(sun), cosS = Math.sin(alt * D2R), gnd = [sunX.X * 0.03 * cosS * 0.8, sunX.Y * 0.03 * cosS, sunX.Z * 0.03 * cosS * 0.55];
+  const ph1 = R() * 6, ph2 = R() * 6, cBase = Math.max(46, top + 20), cTop = az => cBase + 7 * Math.sin(az * 0.05 + ph1) + 3 * Math.sin(az * 0.17 + ph2);   // 雨の幕は虹の頂より 10° 以上上まで（線に幕の端が入らない）
+  const ca = Math.cos(alt * D2R), sa = Math.sin(alt * D2R), cp = Math.cos(pitch), sp = Math.sin(pitch), cy = Math.cos(yaw), sy = Math.sin(yaw);
+  const c = document.createElement('canvas'); c.width = SW; c.height = SH; const cx = c.getContext('2d'), im = cx.createImageData(SW, SH), d = im.data;
+  const tone = v => 1 - Math.exp(-1.7 * Math.max(0, v)), g = CO.gamma;
+  for (let v = 0; v < SH; v++) for (let u = 0; u < SW; u++) {
+    // カメラの光線 → 世界（x 右・y 前＝太陽の反対・z 上）
+    const xc = u + 0.5 - SW / 2, yc = -(v + 0.5 - SH / 2), zc = fpx, nn = 1 / Math.hypot(xc, yc, zc);
+    let wx = xc * nn, wy = -yc * nn * sp + zc * nn * cp, wz = yc * nn * cp + zc * nn * sp;
+    const wx2 = wx * cy + wy * sy, wy2 = -wx * sy + wy * cy; wx = wx2; wy = wy2;
+    const el = Math.asin(clamp(wz, -1, 1)) / D2R, az = Math.atan2(wx, wy) / D2R;
+    let X, Y, Z;
+    if (el < 0.4 + 0.5 * Math.sin(az * 0.13 + ph1) * 0.6) { const f = 0.85 + 0.15 * Math.sin(az * 0.31 + ph2); X = gnd[0] * f; Y = gnd[1] * f; Z = gnd[2] * f; }
+    else {
+      const fr = clamp((1 - el / EL) * (SR - 1), 0, SR - 1.001), r0 = Math.floor(fr), tr = fr - r0, fc = clamp((az / AZ + 1) / 2 * (SC - 1), 0, SC - 1.001), c0 = Math.floor(fc), tc = fc - c0;
+      const p00 = (r0 * SC + c0) * 3, p01 = p00 + 3, p10 = p00 + SC * 3, p11 = p10 + 3, bl = q => (SKY[p00 + q] * (1 - tc) + SKY[p01 + q] * tc) * (1 - tr) + (SKY[p10 + q] * (1 - tc) + SKY[p11 + q] * tc) * tr;
+      X = bl(0); Y = bl(1); Z = bl(2);
+      const m = clamp((cTop(az) - el) / 5, 0, 1), dk = 1 - 0.78 * m; X *= dk; Y *= dk; Z *= dk;
+      if (m > 0) { const th = Math.acos(clamp(wx * 0 + wy * ca - wz * sa, -1, 1)) / D2R, f = th / TH_DT; if (f < TH_N - 1) { const j = Math.floor(f), t = f - j, b0 = j * 3; X += (BX[b0] * (1 - t) + BX[b0 + 3] * t) * m; Y += (BX[b0 + 1] * (1 - t) + BX[b0 + 4] * t) * m; Z += (BX[b0 + 2] * (1 - t) + BX[b0 + 5] * t) * m; } }
+    }
+    const l = CO.toLin({ X: X * k * WB[0], Y: Y * k, Z: Z * k * WB[2] }), p = (v * SW + u) * 4;
+    for (let q = 0; q < 3; q++) { const nz = (R() + R() + R() - 1.5) * 0.012; d[p + q] = clamp(g(tone(l[q])) + nz, 0, 1) * 255; } d[p + 3] = 255;
+  }
+  cx.putImageData(im, 0, 0);
+  // わずかなぼけ（レンズ・圧縮の代わり）
+  const c2 = document.createElement('canvas'); c2.width = SW; c2.height = SH; const x2 = c2.getContext('2d'); x2.filter = 'blur(0.7px)'; x2.drawImage(c, 0, 0);
+  // 線の自動の位置：虹の頂の方位で、虹の角の −7° から +3° まで（太陽の反対の点を通る大きな円の上）
+  const proj = (az, el) => { let vx = Math.sin(az * D2R) * Math.cos(el * D2R), vy = Math.cos(az * D2R) * Math.cos(el * D2R), vz = Math.sin(el * D2R);
+    const ux = vx * cy - vy * sy, uy = vx * sy + vy * cy; vx = ux; vy = uy;
+    const zc = vy * cp + vz * sp, yc = -vy * sp + vz * cp; return [SW / 2 + fpx * vx / zc, SH / 2 - fpx * yc / zc]; };
+  const azTop = -yaw / D2R * 0 + 0;   // 頂は方位 0（太陽の反対の方位）
+  const line = [proj(azTop, top - 9), proj(azTop, top + 3.5)];
+  return { canvas: c2, a, alt, seed, line, focal: F, th1 };
+}
+
+/* =====================================================================
+   読む：線の上の明るさ（3 色）を、30 通りの粒の断面（法則）と重ねる
+   - 線の上の点どうしの角はカメラの焦点距離から（ピンホール：2 本の光線の間の角）
+   - 背景（空・雨の幕）は 2 次式で逃がす。色ごとの倍率も自由（ホワイトバランスに強い）
+   - 角の基準（線の始まりが虹の角の何度か）は 0.04° 刻みで全部試す。内⇄外の向きも両方
+   ===================================================================== */
+const A_GRID = Array.from({ length: 31 }, (_, i) => Math.exp(Math.log(0.01) + i / 30 * (Math.log(2.5) - Math.log(0.01))));
+const M_DT = 0.04, M_T0 = 20, M_N = Math.round((60 - M_T0) / M_DT) + 1, M_TH = Array.from({ length: M_N }, (_, j) => M_T0 + j * M_DT);
+const LSUB = LS.filter((l, i) => i % 2 === 0);                            // 10 nm ごと（速さのため）
+const MODEL = {};                                                          // a → Float64Array(M_N*3)：線形の sRGB（白＝太陽の光）
+function modelOf(a) {
+  if (MODEL[a]) return MODEL[a];
+  const sun = L4.setup(20, L4.R_MIN).sun, sx = L4.xyz(sun), wb = [0.9505 * sx.Y / sx.X, 1, 1.089 * sx.Y / sx.Z], col = new Float64Array(M_N), out = new Float64Array(M_N * 3), X = new Float64Array(M_N), Y = new Float64Array(M_N), Z = new Float64Array(M_N);
+  for (const l of LSUB) { const w = LS.indexOf(l); col.fill(0); L.bandOne(l, a, 1, false, M_TH, col, true); L.bandOne(l, a, 2, false, M_TH, col, true);
+    for (let j = 0; j < M_N; j++) { const v = col[j] * sun[w]; X[j] += v * CMF[w].x; Y[j] += v * CMF[w].y; Z[j] += v * CMF[w].z; } }
+  for (let j = 0; j < M_N; j++) { const l3 = CO.toLin({ X: X[j] * wb[0], Y: Y[j], Z: Z[j] * wb[2] }); out[j * 3] = l3[0]; out[j * 3 + 1] = l3[1]; out[j * 3 + 2] = l3[2]; }
+  return (MODEL[a] = out);
+}
+/* 線の上の明るさ：NP 点・線に直角に ±HALF 画素を平均。戻り値 t（線の始まりからの角・度）と rgb（線形） */
+const NP = 360, HALF = 5;
+function sampleLine() {
+  const [p0, p1] = S.line, c = S.img.getContext('2d', { willReadFrequently: true }), dat = c.getImageData(0, 0, S.iw, S.ih).data;
+  const dx = p1[0] - p0[0], dy = p1[1] - p0[1], len = Math.hypot(dx, dy), nx = -dy / len, ny = dx / len, fpx = S.iw * S.focal / 36;
+  const ray = (x, y) => { const v = [x - S.iw / 2, -(y - S.ih / 2), fpx], n = Math.hypot(...v); return v.map(q => q / n); }, r0 = ray(p0[0], p0[1]);
+  const t = new Float64Array(NP), rgb = [new Float64Array(NP), new Float64Array(NP), new Float64Array(NP)];
+  for (let i = 0; i < NP; i++) { const f = i / (NP - 1), x = p0[0] + dx * f, y = p0[1] + dy * f, r = ray(x, y); t[i] = Math.acos(clamp(r[0] * r0[0] + r[1] * r0[1] + r[2] * r0[2], -1, 1)) / D2R;
+    const s = [0, 0, 0]; let cnt = 0;
+    for (let k = -HALF; k <= HALF; k++) { const xx = Math.round(x + nx * k), yy = Math.round(y + ny * k); if (xx < 0 || yy < 0 || xx >= S.iw || yy >= S.ih) continue; const p = (yy * S.iw + xx) * 4; for (let q = 0; q < 3; q++) s[q] += lin(dat[p + q] / 255); cnt++; }
+    for (let q = 0; q < 3; q++) rgb[q][i] = cnt ? s[q] / cnt : 0; }
+  return { t, rgb, span: t[NP - 1] };
+}
+/* 多項式（1, t, t²）の正規直交の基底（線の点の上で） */
+function polyBasis(t) { const B = [Float64Array.from(t, () => 1), Float64Array.from(t), Float64Array.from(t, v => v * v)], Q = [];
+  for (const b of B) { const v = Float64Array.from(b); for (const q of Q) { let d = 0; for (let i = 0; i < v.length; i++) d += v[i] * q[i]; for (let i = 0; i < v.length; i++) v[i] -= d * q[i]; } let n = 0; for (let i = 0; i < v.length; i++) n += v[i] * v[i]; n = Math.sqrt(n); for (let i = 0; i < v.length; i++) v[i] /= n; Q.push(v); } return Q; }
+function readNow() {
+  if (!S.img || !S.line) return null;
+  const smp = sampleLine(), Q = polyBasis(smp.t), np = NP;
+  // 測った値から背景（2 次式）を引いた y⊥
+  const yp = smp.rgb.map(y => { const v = Float64Array.from(y); for (const q of Q) { let d = 0; for (let i = 0; i < np; i++) d += v[i] * q[i]; for (let i = 0; i < np; i++) v[i] -= d * q[i]; } return v; });
+  const yy = yp.reduce((s, v) => s + v.reduce((a, b) => a + b * b, 0), 0);
+  const scores = [], best = { s: -1 };
+  const msam = new Float64Array(np * 3);
+  for (const a of A_GRID) {
+    const M = modelOf(a); let sa = -1, sa0 = 0, sdir = 1;
+    for (const dir of [1, -1]) {
+      for (let t0 = M_T0; t0 + smp.span <= 60; t0 += M_DT) {
+        // 模型を線の点へ（dir=1：線の始まり＝内側）
+        for (let i = 0; i < np; i++) { const th = dir > 0 ? t0 + smp.t[i] : t0 + smp.span - smp.t[i], f = (th - M_T0) / M_DT, j = Math.min(M_N - 2, Math.floor(f)), u = f - j;
+          for (let q = 0; q < 3; q++) msam[i * 3 + q] = M[j * 3 + q] * (1 - u) + M[j * 3 + 3 + q] * u; }
+        let ex = 0, ok = true;
+        for (let q = 0; q < 3; q++) { let ym = 0, mm = 0; const qd = [0, 0, 0];
+          for (let i = 0; i < np; i++) { const m = msam[i * 3 + q]; ym += yp[q][i] * m; mm += m * m; qd[0] += Q[0][i] * m; qd[1] += Q[1][i] * m; qd[2] += Q[2][i] * m; }
+          const mp = mm - qd[0] ** 2 - qd[1] ** 2 - qd[2] ** 2; if (mp <= 1e-18 || ym <= 0) { ok = false; break; } ex += ym * ym / mp; }
+        if (!ok) continue; const sc = ex / yy; if (sc > sa) { sa = sc; sa0 = t0; sdir = dir; }
+      }
+    }
+    scores.push({ a, s: sa, t0: sa0, dir: sdir }); if (sa > best.s) Object.assign(best, { s: sa, a, t0: sa0, dir: sdir });
+  }
+  // 最良の近くを 2 次式で補間（対数の a で）
+  const i = A_GRID.indexOf(best.a); let aBest = best.a;
+  if (i > 0 && i < A_GRID.length - 1) { const s0 = scores[i - 1].s, s1 = scores[i].s, s2 = scores[i + 1].s, den = s0 - 2 * s1 + s2; if (den < 0) { const off = clamp(0.5 * (s0 - s2) / den, -0.5, 0.5), st = Math.log(A_GRID[1] / A_GRID[0]); aBest = Math.exp(Math.log(best.a) + off * st); } }
+  // 幅：最良から 2 ポイント（重なり具合）以内の a の範囲
+  const ok = scores.filter(q => q.s >= best.s - 0.02), hs = Math.sqrt(A_GRID[1] / A_GRID[0]);   // 格子の刻みの半分も幅に入れる
+  const lo = Math.max(A_GRID[0], Math.min(...ok.map(q => q.a)) / hs), hi = Math.min(A_GRID[A_GRID.length - 1], Math.max(...ok.map(q => q.a)) * hs);
+  return { smp, scores, best, aBest, lo, hi, state: L.stateOf(aBest) };
+}
+
+/* ===================================================================== 画面 */
+function layout() {
+  const r = cv.getBoundingClientRect(), kk = r.width / Math.max(1, cv.clientWidth), dpr = Math.min((window.devicePixelRatio || 1) * kk, 2);
+  W = Math.max(1, cv.clientWidth); H = Math.max(1, cv.clientHeight); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  G = { px: 16, py: 40, pw: 960, ph: H - 56, gx: 1010, gw: 572, aY0: 60, aY1: 300, sY0: 358, sY1: 520 };
+  if (S.img) { const k = Math.min(G.pw / S.iw, G.ph / S.ih); G.k = k; G.ix = G.px + (G.pw - S.iw * k) / 2; G.iy = G.py + (G.ph - S.ih * k) / 2; }
+}
+const toImg = (x, y) => [(x - G.ix) / G.k, (y - G.iy) / G.k], toScr = (u, v) => [G.ix + u * G.k, G.iy + v * G.k];
+
+function draw() {
+  ctx.fillStyle = K.paper; ctx.fillRect(0, 0, W, H);
+  // 写真
+  ctx.fillStyle = '#1A1A1C'; ctx.fillRect(G.px, G.py, G.pw, G.ph);
+  if (S.img) {
+    ctx.drawImage(S.img, G.ix, G.iy, S.iw * G.k, S.ih * G.k);
+    if (S.line) { const [a, b] = S.line.map(p => toScr(p[0], p[1])), dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy), nx = -dy / len, ny = dx / len, hw = HALF * G.k;
+      ctx.fillStyle = 'rgba(255,255,255,.14)'; ctx.beginPath(); ctx.moveTo(a[0] + nx * hw, a[1] + ny * hw); ctx.lineTo(b[0] + nx * hw, b[1] + ny * hw); ctx.lineTo(b[0] - nx * hw, b[1] - ny * hw); ctx.lineTo(a[0] - nx * hw, a[1] - ny * hw); ctx.fill();
+      ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+      // 1° ごとの目盛り（焦点距離から）
+      const fpx = S.iw * S.focal / 36, ray = (u, v) => { const r = [u - S.iw / 2, -(v - S.ih / 2), fpx], n = Math.hypot(...r); return r.map(q => q / n); }, r0 = ray(...S.line[0]);
+      let lastDeg = 0; for (let q = 1; q <= 400; q++) { const f = q / 400, u = S.line[0][0] + (S.line[1][0] - S.line[0][0]) * f, v = S.line[0][1] + (S.line[1][1] - S.line[0][1]) * f, r = ray(u, v), t = Math.acos(clamp(r[0] * r0[0] + r[1] * r0[1] + r[2] * r0[2], -1, 1)) / D2R;
+        if (Math.floor(t) > lastDeg) { lastDeg = Math.floor(t); const [x, y] = toScr(u, v), l = lastDeg % 5 === 0 ? 9 : 5; ctx.beginPath(); ctx.moveTo(x - nx * l, y - ny * l); ctx.lineTo(x + nx * l, y + ny * l); ctx.stroke(); if (lastDeg % 5 === 0) { ctx.fillStyle = '#FFF'; ctx.font = mono(10, 600); ctx.textAlign = 'left'; ctx.fillText(lastDeg + '°', x + nx * 12, y + ny * 12 + 4); } } }
+      ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(a[0], a[1], 4, 0, 7); ctx.fill(); ctx.font = note(10); ctx.fillText('内', a[0] - nx * 16 - 4, a[1] - ny * 16);
+      ctx.beginPath(); ctx.moveTo(b[0], b[1]); ctx.lineTo(b[0] - dx / len * 10 + nx * 5, b[1] - dy / len * 10 + ny * 5); ctx.lineTo(b[0] - dx / len * 10 - nx * 5, b[1] - dy / len * 10 - ny * 5); ctx.fill(); ctx.fillText('外', b[0] + dx / len * 10, b[1] + dy / len * 10 + 4); }
+  } else { txt('SAMPLE で見本の写真を作るか、OPEN で虹の写真を開く（ここへ落としても開く）', G.px + G.pw / 2, G.py + G.ph / 2, { a: 'center', f: note(13), c: '#C9C3B4' }); }
+  if (S.busy) { ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(G.px, G.py, G.pw, 30); txt(S.busy === 1 ? '法則で写真を作っています…' : '法則の断面と重ねています…', G.px + 12, G.py + 20, { f: note(12), c: '#FFF' }); }
+  ctx.strokeStyle = K.rule; ctx.strokeRect(G.px + .5, G.py + .5, G.pw - 1, G.ph - 1);
+  drawProfile(); drawScores();
+}
+
+/* 右上：線の上の 3 色の明るさ（点）と、読んだ粒の法則の断面（線）。背景の 2 次式は引いてある */
+function drawProfile() {
+  const { gx, gw, aY0: y0, aY1: y1 } = G; txt('線の上の明るさ ⇄ 法則の断面', gx, y0 - 14, { f: mono(12, 600) });
+  ctx.strokeStyle = K.rule; ctx.strokeRect(gx + .5, y0 + .5, gw, y1 - y0);
+  const R = S.res; if (!R) { txt('READ で重ねる', gx + gw / 2, (y0 + y1) / 2, { a: 'center', f: note(11), c: K.dim }); return; }
+  const { smp, best } = R, M = modelOf(best.a), Q = polyBasis(smp.t), np = NP;
+  const th = i => best.dir > 0 ? best.t0 + smp.t[i] : best.t0 + smp.span - smp.t[i];
+  const T0 = Math.min(th(0), th(np - 1)), T1 = Math.max(th(0), th(np - 1)), X = t => gx + (t - T0) / (T1 - T0) * gw;
+  const cols = ['#C0392B', '#2E8B57', '#3A5FB0'];
+  const fit = [], meas = [];
+  for (let q = 0; q < 3; q++) {
+    const y = Float64Array.from(smp.rgb[q]), m = Float64Array.from({ length: np }, (_, i) => { const f = (th(i) - M_T0) / M_DT, j = Math.min(M_N - 2, Math.floor(f)), u = f - j; return M[j * 3 + q] * (1 - u) + M[j * 3 + 3 + q] * u; });
+    const deb = v => { const o = Float64Array.from(v); for (const qq of Q) { let d = 0; for (let i = 0; i < np; i++) d += o[i] * qq[i]; for (let i = 0; i < np; i++) o[i] -= d * qq[i]; } return o; };
+    const yp = deb(y), mp = deb(m); let ym = 0, mm = 0; for (let i = 0; i < np; i++) { ym += yp[i] * mp[i]; mm += mp[i] * mp[i]; } const al = ym / mm;
+    meas.push(yp); fit.push(mp.map(v => v * al));
+  }
+  let mx = 1e-9, mn = 1e9; for (let q = 0; q < 3; q++) for (let i = 0; i < np; i++) { mx = Math.max(mx, meas[q][i], fit[q][i]); mn = Math.min(mn, meas[q][i], fit[q][i]); }
+  const Y = v => y1 - 8 - (v - mn) / (mx - mn) * (y1 - y0 - 30);
+  for (let q = 0; q < 3; q++) { ctx.fillStyle = cols[q]; for (let i = 0; i < np; i += 2) ctx.fillRect(X(th(i)) - 1, Y(meas[q][i]) - 1, 2, 2);
+    ctx.strokeStyle = cols[q]; ctx.lineWidth = 1.4; ctx.beginPath(); for (let i = 0; i < np; i++) { const x = X(th(i)), yv = Y(fit[q][i]); i ? ctx.lineTo(x, yv) : ctx.moveTo(x, yv); } ctx.stroke(); }
+  ctx.font = mono(9); ctx.fillStyle = K.dim; ctx.textAlign = 'center'; for (let t = Math.ceil(T0); t <= T1; t++) if (t % 2 === 0) ctx.fillText(t + '°', X(t), y1 + 12);
+  txt('点＝写真（背景の 2 次式を引いた）　線＝法則（半径 ' + best.a.toFixed(3) + ' mm）　横＝太陽の反対からの角（読んだ位置）', gx, y0 + 14, { f: note(9), c: K.dim });
+  const th1 = L.bowDeg(L.nWater(550), 1); if (th1 > T0 && th1 < T1) { ctx.strokeStyle = K.ink; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(X(th1), y0 + 20); ctx.lineTo(X(th1), y1); ctx.stroke(); ctx.setLineDash([]); txt('主虹 ' + th1.toFixed(1) + '°', X(th1) + 4, y0 + 30, { f: note(9) }); }
+}
+/* 右下：粒の大きさごとの重なり具合（30 通り）。山の所が読んだ a。WHITE/PALE/COLOR の帯つき */
+const big2 = () => S.res && S.res.hi >= 2.49;
+function drawScores() {
+  const { gx, gw, sY0: y0, sY1: y1 } = G, LA0 = Math.log(0.01), LA1 = Math.log(2.5), X = a => gx + (Math.log(a) - LA0) / (LA1 - LA0) * gw;
+  txt('雨粒の半径ごとの重なり具合', gx, y0 - 14, { f: mono(12, 600) });
+  // 状態の帯
+  const zones = [[0.01, L.A_WHITE, 'WHITE'], [L.A_WHITE, L.A_COLOR, 'PALE'], [L.A_COLOR, 2.5, 'COLOR']];
+  zones.forEach(([a0, a1, nm], i) => { ctx.fillStyle = ['rgba(43,42,48,.05)', 'rgba(94,58,140,.07)', 'rgba(94,58,140,.15)'][i]; ctx.fillRect(X(a0), y0, X(a1) - X(a0), y1 - y0); txt(nm, (X(a0) + X(a1)) / 2, y0 + 12, { a: 'center', f: jura(9, 600), c: K.dim }); });
+  ctx.strokeStyle = K.rule; ctx.strokeRect(gx + .5, y0 + .5, gw, y1 - y0);
+  ctx.font = mono(9); ctx.fillStyle = K.dim; ctx.textAlign = 'center'; for (const a of [0.01, 0.03, 0.1, 0.3, 1, 2.5]) ctx.fillText(a + ' mm', X(a), y1 + 12);
+  const R = S.res; if (!R) return;
+  const smin = Math.min(...R.scores.map(q => q.s)), Y = s => y1 - 4 - (s - smin) / Math.max(1e-6, R.best.s - smin) * (y1 - y0 - 26);
+  ctx.fillStyle = 'rgba(94,58,140,.22)'; ctx.fillRect(X(R.lo), y0 + 18, Math.max(2, X(R.hi) - X(R.lo)), y1 - y0 - 18);
+  ctx.strokeStyle = K.ink; ctx.lineWidth = 1.4; ctx.beginPath(); R.scores.forEach((q, i) => i ? ctx.lineTo(X(q.a), Y(q.s)) : ctx.moveTo(X(q.a), Y(q.s))); ctx.stroke();
+  ctx.fillStyle = K.ink; R.scores.forEach(q => { ctx.beginPath(); ctx.arc(X(q.a), Y(q.s), 2, 0, 7); ctx.fill(); });
+  ctx.fillStyle = K.violet; ctx.beginPath(); ctx.moveTo(X(R.aBest), y0 + 18); ctx.lineTo(X(R.aBest) - 6, y0 + 8); ctx.lineTo(X(R.aBest) + 6, y0 + 8); ctx.fill();
+  txt((big2() ? '≥ ' : '') + $('o_a').textContent + ' mm', X(R.aBest), y0 - 2, { a: 'center', f: mono(11, 700), c: K.violet });
+  if (S.sample && S.showAns) { const x = X(S.sample.a); ctx.strokeStyle = '#C0392B'; ctx.lineWidth = 2; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(x, y0 + 18); ctx.lineTo(x, y1); ctx.stroke(); ctx.setLineDash([]); txt('答え ' + S.sample.a.toFixed(3), x + 4, y1 - 8, { f: mono(10, 600), c: '#C0392B' }); }
+}
+
+/* SPECIMEN：過剰虹の間隔と粒の大きさ（法則の線） */
+{ const NS = 'http://www.w3.org/2000/svg', sp = $('specimen'), s = document.createElementNS(NS, 'svg'); s.setAttribute('width', 310); s.setAttribute('height', 174); s.style.cssText = 'position:absolute;left:0;top:0';
+  let h = '<rect width="310" height="174" fill="#F2EAD3"/>'; const X = a => 40 + (Math.log(a) - Math.log(0.05)) / (Math.log(2.5) - Math.log(0.05)) * 250, Y = d => 140 - d / 3.2 * 100;
+  let pth = ''; for (let i = 0; i <= 60; i++) { const a = Math.exp(Math.log(0.05) + i / 60 * (Math.log(2.5) - Math.log(0.05))); pth += (i ? 'L' : 'M') + X(a).toFixed(1) + ',' + Y(L.supernumDeg(a)).toFixed(1); }
+  h += '<path d="' + pth + '" fill="none" stroke="#2B2A30" stroke-width="1.4"/><line x1="40" y1="140" x2="292" y2="140" stroke="#2B2A30" stroke-width=".6"/><line x1="40" y1="36" x2="40" y2="140" stroke="#2B2A30" stroke-width=".6"/>';
+  for (const a of [0.1, 0.3, 1]) h += '<text x="' + X(a) + '" y="154" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle" fill="#6E6A60">' + a + '</text>';
+  h += '<text x="44" y="44" font-family="M PLUS 1 Code,monospace" font-size="9" fill="#6E6A60">縞の間隔（度）</text><text x="292" y="168" font-family="M PLUS 1 Code,monospace" font-size="9" text-anchor="end" fill="#6E6A60">雨粒の半径 mm</text>';
+  s.innerHTML = h; sp.insertBefore(s, sp.firstChild); }
+
+function readout() {
+  const R = S.res;
+  const big = R && R.hi >= 2.49, tiny = R && R.lo <= 0.0101;
+  $('o_a').textContent = R ? (big ? R.lo.toFixed(2) : tiny ? R.hi.toFixed(3) : R.aBest.toFixed(3)) : '—';
+  $('o_rng').textContent = R ? (big ? '以上 · 上は決まらない' : tiny ? '以下 · 下は決まらない' : R.lo.toFixed(3) + '〜' + R.hi.toFixed(3)) : '';
+  $('o_fit').textContent = R ? (R.best.s * 100).toFixed(0) : '—';
+  $('o_ans').textContent = S.sample && S.showAns ? '答え ' + S.sample.a.toFixed(3) + ' mm' + (R ? '（' + ((R.aBest / S.sample.a - 1) * 100 >= 0 ? '+' : '') + ((R.aBest / S.sample.a - 1) * 100).toFixed(0) + '%）' : '') : R && R.best.s < 0.5 ? '虹が読みにくい' : '';
+  PHShell.mark($('states'), R ? { WHITE: 0, PALE: 1, COLOR: 2 }[R.state] : -1);
+  $('bRead').disabled = !S.img || !S.line || !!S.busy; $('bAns').disabled = !S.sample;
+  $('srcName').textContent = S.name; $('tagSmall').textContent = S.sample ? 'SAMPLE · RENDERED BY THE LAW · 26 MM' : S.img ? 'YOUR PHOTO · FOCAL ' + S.focal + ' MM' : '—';
+  $('titleField').textContent = 'W6+ — WAVE · RAINBOW READER' + (R ? ' · READ ' + (big ? '≥ ' : tiny ? '≤ ' : '') + $('o_a').textContent + ' MM · ' + R.state : '');
+}
+const later = fn => new Promise(r => setTimeout(() => r(fn()), 30));
+function setImage(canvas, name) { S.img = canvas; S.iw = canvas.width; S.ih = canvas.height; S.res = null; S.name = name; layout(); }
+async function newSample(a, alt, seed) {
+  seed = seed || (Math.random() * 1e9) | 0; const R = rng(seed + 7);
+  if (a == null) a = Math.exp(Math.log(0.02) + R() * (Math.log(1.5) - Math.log(0.02)));
+  if (alt == null) alt = 4 + R() * 22;
+  S.busy = 1; S.showAns = false; readout(); draw();
+  const smp = await later(() => makeSample(a, alt, seed)); S.busy = 0;
+  S.sample = smp; S.focal = 26; $('focal').value = 26; setImage(smp.canvas, 'SAMPLE #' + (seed % 10000)); S.line = smp.line.map(p => p.slice()); readout(); draw(); return smp;
+}
+async function doRead() { if (!S.img || !S.line) return null; S.busy = 2; readout(); draw(); S.res = await later(readNow); S.busy = 0; readout(); draw(); return S.res; }
+function openFile(f) { if (!f) return; const url = URL.createObjectURL(f), im = new Image(); im.onload = () => { const mx = 1600, k = Math.min(1, mx / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+  S.sample = null; S.showAns = false; setImage(c, f.name); S.line = null; readout(); draw(); URL.revokeObjectURL(url); }; im.src = url; }
+
+/* 操作 */
+const GO = { WHITE: 0.025, PALE: 0.15, COLOR: 0.8 };
+document.querySelectorAll('#states > div').forEach(b => b.addEventListener('click', () => newSample(GO[b.dataset.s] * Math.exp((Math.random() - 0.5) * 0.6))));
+$('bSample').addEventListener('click', () => newSample());
+$('bOpen').addEventListener('click', () => $('file').click());
+$('file').addEventListener('change', e => openFile(e.target.files[0]));
+$('bRead').addEventListener('click', doRead);
+$('bAns').addEventListener('click', () => { S.showAns = !S.showAns; readout(); draw(); });
+$('focal').addEventListener('input', e => { S.focal = clamp(+e.target.value || 26, 10, 200); S.res = null; readout(); draw(); });
+cv.addEventListener('dragover', e => e.preventDefault()); cv.addEventListener('drop', e => { e.preventDefault(); openFile(e.dataTransfer.files[0]); });
+const pos = e => { const r = cv.getBoundingClientRect(), k = r.width / Math.max(1, cv.clientWidth); return [(e.clientX - r.left) / k, (e.clientY - r.top) / k]; };
+const inPhoto = (x, y) => S.img && x >= G.ix && y >= G.iy && x <= G.ix + S.iw * G.k && y <= G.iy + S.ih * G.k;
+cv.addEventListener('pointerdown', e => { const [x, y] = pos(e); if (!inPhoto(x, y)) return; const p = toImg(x, y); S.line = [p, p.slice()]; S.drag = true; S.res = null; try { cv.setPointerCapture(e.pointerId); } catch (_) {} readout(); draw(); });
+cv.addEventListener('pointermove', e => { const [x, y] = pos(e); $('ctl').classList.toggle('hot', !!inPhoto(x, y) || S.drag); cv.style.cursor = inPhoto(x, y) ? 'crosshair' : 'default';
+  if (S.drag) { const p = toImg(x, y); S.line[1] = [clamp(p[0], 0, S.iw - 1), clamp(p[1], 0, S.ih - 1)]; draw(); } });
+const up = () => { if (S.drag) { S.drag = false; if (S.line && Math.hypot(S.line[1][0] - S.line[0][0], S.line[1][1] - S.line[0][1]) < 20) S.line = null; readout(); draw(); } };
+cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+new ResizeObserver(() => { layout(); draw(); }).observe(cv);
+PHShell.onScale(() => { layout(); draw(); });
+if (document.fonts) ["11px 'JetBrains Mono'", "11px 'M PLUS 1 Code'", "12px Jura"].forEach(f => document.fonts.load(f).then(() => draw()));
+
+/* 直リンク：#a=mm&alt=度&seed=数&read=1&ans=1（見本を作って開く） */
+window.__RD = { S, L, newSample, doRead, readNow, makeSample, modelOf, A_GRID, get G() { return G; } };
+layout(); readout(); draw();
+{ const h = new URLSearchParams(location.hash.slice(1)); if (h.has('a') || h.has('seed')) newSample(h.has('a') ? +h.get('a') : null, h.has('alt') ? +h.get('alt') : null, h.has('seed') ? +h.get('seed') : 1).then(async () => { if (h.get('read') === '1') await doRead(); if (h.get('ans') === '1') { S.showAns = true; readout(); draw(); } }); }
+</script>
+</body>
+</html>
