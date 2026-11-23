@@ -24,6 +24,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 #main { position: relative; flex: 1; min-width: 0; background: #151513; overflow: hidden; }
 #cv { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
 #boardFrame { position: absolute; outline: 1px solid var(--line-sub); pointer-events: none; }
+#splitLine { position: absolute; width: 0; border-left: 1px dashed rgba(255,255,255,.7); pointer-events: none; display: none; }
+#splitLine span { position: absolute; top: 8px; font: 600 11px/1 var(--f-jp); color: #fff; background: rgba(11,11,10,.72); padding: 5px 8px; white-space: nowrap; }
+#splitLine .l { right: 8px; } #splitLine .r { left: 8px; }
 #cursor { position: absolute; left: 0; top: 0; border: 1px solid rgba(255,255,255,.8); outline: 1px solid rgba(0,0,0,.35); pointer-events: none; opacity: 0; transform-origin: 50% 50%; }
 #cursor.round { border-radius: 50%; }
 #cursor.dropper { border-radius: 50%; border-width: 2px; }
@@ -84,6 +87,7 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
   <main id="main">
     <canvas id="cv"></canvas>
     <div id="boardFrame"></div>
+    <div id="splitLine"><span class="l">← 日なた</span><span class="r" id="splitR">日陰 →</span></div>
     <div id="cursor"></div>
     <div id="badge">RELIGHT POSTER · <b>W1 × POSTER BG</b></div>
     <div id="robot">AUTO PAINTING</div>
@@ -120,6 +124,9 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
       <div class="row" style="margin-top:6px">
         <button class="bt" id="tg-rgb" style="flex:1">RGB × で比べる<span class="k">CG の掛け算（キー R）</span></button>
         <button class="bt" id="tg-cycle" style="flex:1">1 日を回す<span class="k">AUTO LIGHT 48 秒</span></button>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <button class="bt" id="tg-skyday" style="flex:1">空の 1 日を回す<span class="k">SKY DAY 40 秒・左＝日なた｜右＝日陰（W4 の空）</span></button>
       </div>
     </div>
 
@@ -250,7 +257,7 @@ const P = JSON.parse(JSON.stringify(DEF));
 try { const s = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); if (s) for (const k in P) if (k in s && k !== 'a' && k !== 'b') P[k] = k === 'sizes' ? Object.assign(P.sizes, s.sizes) : s[k]; } catch (e) { /* */ }
 const persist = () => { try { const o = Object.assign({}, P); delete o.a; delete o.b; localStorage.setItem(LS_KEY, JSON.stringify(o)); } catch (e) { /* */ } };
 let colA = SW[P.a].w.slice(), colB = SW[P.b].w.slice(), nameA = P.a, nameB = P.b;
-const S = { light: P.light, E: null, rgb: false, cycle: false, cycleT: 0, custom: null, dirtyLight: true };
+const S = { light: P.light, E: null, rgb: false, cycle: false, cycleT: 0, custom: null, dirtyLight: true, skyDay: false, skyT: 0 };
 const hash = new URLSearchParams(location.hash.slice(1));
 if (hash.get('light') && (PG.LIGHTS[hash.get('light')] || hash.get('light') === 'CUSTOM')) S.light = hash.get('light');
 if (hash.get('adapt') != null) P.adapt = clamp(+hash.get('adapt'), 0, 1);
@@ -260,6 +267,7 @@ if (hash.get('shade') != null) P.skyShade = hash.get('shade') === '1';
 if (hash.get('face')) P.skyFace = hash.get('face') === 'up' ? 'up' : 'wall';
 if (hash.get('rgb') === '1') S.rgb = true;
 if (hash.get('cycle') === '1') S.cycle = true;
+if (hash.get('skyday') === '1') { S.skyDay = true; S.light = 'SKY'; if (hash.get('t') != null) S.skyT = +hash.get('t'); }
 
 function mulberry32 (a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 
@@ -757,7 +765,18 @@ function wetStep (dt) {
 /* ════════════════ 光 → 画面の計算に渡す値 ════════════════ */
 /* 光の複製：空の下の日陰は「目の慣れる先」（adaptRef＝日なたの光）を持つので、一緒に写す */
 const copyE = E_ => { const c = Float32Array.from(E_); if (E_.adaptRef) c.adaptRef = E_.adaptRef; return c; };
-const U = { KS: new Float32Array(96 * 4), RP: new Float32Array(32), WX: new Float32Array(32), WY: new Float32Array(32), WZ: new Float32Array(32), M: new Float32Array(9), LRGB: [1, 1, 1] };
+const mkU = () => ({ KS: new Float32Array(96 * 4), RP: new Float32Array(32), WX: new Float32Array(32), WY: new Float32Array(32), WZ: new Float32Array(32), M: new Float32Array(9), LRGB: [1, 1, 1] });
+const U = mkU(), U2 = mkU();   // U2＝空の 1 日の右半分（日陰）
+/* 空の 1 日（40 秒）：日の出 0.5° → 正午 60° → 日の入り 0.5°。左＝日なた・右＝日陰（目は日なたに慣れたまま）。紙の向きは「立てた紙／寝かせた紙」のまま */
+const SKYDAY_LEN = 40, skyDayAlt = t => { const u = ((t % SKYDAY_LEN) + SKYDAY_LEN) % SKYDAY_LEN / SKYDAY_LEN; return Math.max(0.5, Math.round(60 * Math.sin(Math.PI * u) * 4) / 4); };
+function fillU (Uo, E_) {
+  const Eb = S.rgb ? PG.E_DAY : E_;                 // RGB × は「昼光で塗った色 × 光の白」
+  const B = PG.bands(Eb), M = PG.viewMatrix(Eb, S.rgb ? 0 : P.adapt);
+  for (let j = 0; j < NP; j++) for (let b = 0; b < NB; b++) Uo.KS[(j * 8 + (b >> 2)) * 4 + (b & 3)] = B.KS[j][b];
+  for (let b = 0; b < NB; b++) { Uo.RP[b] = B.RP[b]; Uo.WX[b] = B.W[b][0]; Uo.WY[b] = B.W[b][1]; Uo.WZ[b] = B.W[b][2]; }
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) Uo.M[c * 3 + r] = M[r][c];   // 列優先
+  const wl = PG.mv(PG.viewMatrix(E_, P.adapt), PG.whiteXYZ(E_)); Uo.LRGB = wl.map(v => Math.max(0, v));
+}
 function lightSpectrum (key, t) {
   if (key === 'CUSTOM') return S.custom || PG.LIGHTS.DAY.make();
   if (key === 'SKY') return PG.LIGHTS.SKY.make({ sunAlt: P.sunAlt, skyR: P.skyR, shade: P.skyShade, face: P.skyFace });   // W4 SKY の空（ph_w4_law.js）
@@ -779,15 +798,12 @@ function cycleSpec (sec) {
 function applyLight () {
   let E_ = null, label = S.light;
   if (S.cycle) { const c = cycleSpec(S.cycleT); E_ = c.E; label = c.label.startsWith('SUN:') ? 'SUNSET' : c.label; S.cycleLabel = label; S.cycleSun = c.sun; }
-  else E_ = lightSpectrum(S.light);
-  if (!S.cycle && S.light === 'SKY') { const q = PH_W4.illum(P.sunAlt, P.skyR, false, false, P.skyFace).Y; S.skySunT = q.sun + q.sky + q.gnd; }
+  else if (!S.skyDay) E_ = lightSpectrum(S.light);
+  if (S.skyDay) { P.sunAlt = skyDayAlt(S.skyT); E_ = PG.LIGHTS.SKY.make({ sunAlt: P.sunAlt, skyR: P.skyR, shade: false, face: P.skyFace }); label = 'SKY';
+    S.Eshade = PG.LIGHTS.SKY.make({ sunAlt: P.sunAlt, skyR: P.skyR, shade: true, face: P.skyFace }); fillU(U2, S.Eshade); }
+  if (S.light === 'SKY' && !S.cycle) { const q = PH_W4.illum(P.sunAlt, P.skyR, false, false, P.skyFace).Y; S.skySunT = q.sun + q.sky + q.gnd; }
   S.E = E_;
-  const Eb = S.rgb ? PG.E_DAY : E_;                 // RGB × は「昼光で塗った色 × 光の白」
-  const B = PG.bands(Eb), M = PG.viewMatrix(Eb, S.rgb ? 0 : P.adapt);
-  for (let j = 0; j < NP; j++) for (let b = 0; b < NB; b++) U.KS[(j * 8 + (b >> 2)) * 4 + (b & 3)] = B.KS[j][b];
-  for (let b = 0; b < NB; b++) { U.RP[b] = B.RP[b]; U.WX[b] = B.W[b][0]; U.WY[b] = B.W[b][1]; U.WZ[b] = B.W[b][2]; }
-  for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) U.M[c * 3 + r] = M[r][c];   // 列優先
-  const wl = PG.mv(PG.viewMatrix(E_, P.adapt), PG.whiteXYZ(E_)); U.LRGB = wl.map(v => Math.max(0, v));
+  fillU(U, E_);
   S.dirtyLight = false;
   updateLightUI(label);
 }
@@ -803,26 +819,31 @@ function layout () {
   view.dpr = dpr; view.s = Math.max(0.01, s); view.w = E.W * view.s; view.h = E.H * view.s;
   view.left = (r.width - view.w) / 2; view.top = (r.height - view.h) / 2;
   const bf = $('#boardFrame'); Object.assign(bf.style, { left: view.left + 'px', top: view.top + 'px', width: view.w + 'px', height: view.h + 'px' });
+  Object.assign($('#splitLine').style, { left: (view.left + view.w / 2) + 'px', top: view.top + 'px', height: view.h + 'px' });
 }
-function drawDisplay (offX, offY, scale, canvasH, flip) {
+function drawDisplay (offX, offY, scale, canvasH, flip, Uo) {
+  Uo = Uo || U;
   gl.useProgram(PR.disp.p); const u = PR.disp.u;
   bindLayer(PR.disp, E.cur, 0); gl.uniform1i(u.uPaper, bindTex(4, paperTex));
   gl.uniform2f(u.uDoc, E.W, E.H); gl.uniform2f(u.uOff, offX, offY); gl.uniform1f(u.uScale, scale); gl.uniform1f(u.uCanvasH, canvasH); gl.uniform1f(u.uFlip, flip);
   gl.uniform2f(u.uPaperUV, 1 / paperSize[0], 1 / paperSize[1]); gl.uniform2f(u.uPaperTexel, 1 / paperSize[0], 1 / paperSize[1]);
   gl.uniform1f(u.uGrain, GRAIN); gl.uniform1f(u.uRelief, reliefK()); gl.uniform1f(u.uRgb, S.rgb ? 1 : 0);
-  gl.uniform4fv(u.uKS, U.KS); gl.uniform4fv(u.uRP, U.RP); gl.uniform4fv(u.uWX, U.WX); gl.uniform4fv(u.uWY, U.WY); gl.uniform4fv(u.uWZ, U.WZ);
-  gl.uniformMatrix3fv(u.uM, false, U.M); gl.uniform3f(u.uLightRGB, U.LRGB[0], U.LRGB[1], U.LRGB[2]);
+  gl.uniform4fv(u.uKS, Uo.KS); gl.uniform4fv(u.uRP, Uo.RP); gl.uniform4fv(u.uWX, Uo.WX); gl.uniform4fv(u.uWY, Uo.WY); gl.uniform4fv(u.uWZ, Uo.WZ);
+  gl.uniformMatrix3fv(u.uM, false, Uo.M); gl.uniform3f(u.uLightRGB, Uo.LRGB[0], Uo.LRGB[1], Uo.LRGB[2]);
   drawFull();
 }
 function renderView () {
   gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, cv.width, cv.height); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
   drawDisplay(view.left * view.dpr, view.top * view.dpr, 1 / (view.s * view.dpr), cv.height, 1);
+  if (S.skyDay) { const x0 = Math.round((view.left + view.w / 2) * view.dpr); gl.enable(gl.SCISSOR_TEST); gl.scissor(x0, 0, cv.width - x0, cv.height);
+    drawDisplay(view.left * view.dpr, view.top * view.dpr, 1 / (view.s * view.dpr), cv.height, 1, U2); gl.disable(gl.SCISSOR_TEST); }
 }
 let outFbo = null;
 function renderDoc () {
   finishStroke();
   if (!outFbo) { const t = makeTex(E.W, E.H, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, gl.NEAREST, gl.CLAMP_TO_EDGE); outFbo = { t, f: makeFbo([t]) }; }
   gl.bindFramebuffer(gl.FRAMEBUFFER, outFbo.f); gl.viewport(0, 0, E.W, E.H); drawDisplay(0, 0, 1, E.H, 0);
+  if (S.skyDay) { const x0 = Math.round(E.W / 2); gl.enable(gl.SCISSOR_TEST); gl.scissor(x0, 0, E.W - x0, E.H); drawDisplay(0, 0, 1, E.H, 0, U2); gl.disable(gl.SCISSOR_TEST); }   // PNG も左右で
 }
 /* 文書の画素（左上原点）の見た目の色を読む */
 function readDisplay (x, y, w = 1, h = 1) {
@@ -835,7 +856,7 @@ function savePng () {
   img.data.set(px);
   cx.putImageData(img, 0, 0);
   c.toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); const d = new Date(), p2 = n => String(n).padStart(2, '0');
-    a.download = 'relight_' + (S.cycle ? 'CYCLE' : S.light) + '_' + d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + '_' + p2(d.getHours()) + p2(d.getMinutes()) + p2(d.getSeconds()) + '.png';
+    a.download = 'relight_' + (S.skyDay ? 'SKYDAY' : S.cycle ? 'CYCLE' : S.light) + '_' + d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + '_' + p2(d.getHours()) + p2(d.getMinutes()) + p2(d.getSeconds()) + '.png';
     a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }, 'image/png');
 }
 /* 絵具の配合を読む（スポイト） */
@@ -1180,7 +1201,7 @@ function paintPattern (wa, wb) {
   gl.bindFramebuffer(gl.FRAMEBUFFER, E.cur.one[3]); gl.clearBufferfv(gl.COLOR, 0, [0, 0, 0, 0]); clearLayer(E.tmp);
   E.wetUntil = 0; E.dryZeroed = true;
 }
-const solveTargetSoon = () => { if (MT.on) { clearTimeout(MT.timer); MT.timer = setTimeout(solveMetamer, S.cycle ? 700 : 120); } if (!TG.on) return; clearTimeout(TG.timer); TG.timer = setTimeout(solveTarget, S.cycle ? 400 : 60); };
+const solveTargetSoon = () => { if (MT.on) { clearTimeout(MT.timer); MT.timer = setTimeout(solveMetamer, (S.cycle || S.skyDay) ? 700 : 120); } if (!TG.on) return; clearTimeout(TG.timer); TG.timer = setTimeout(solveTarget, (S.cycle || S.skyDay) ? 400 : 60); };
 /* 配合を言葉に（多い順に 4 つまで） */
 const mixText = w => { const a = w.reduce((p, q) => p + q, 0) || 1; return w.map((v, j) => [j, v / a]).filter(q => q[1] >= 0.01).sort((p, q) => q[1] - p[1]).slice(0, 4).map(([j, v]) => PG.PIGMENTS[j].jp + ' ' + Math.round(v * 100) + '%').join(' ＋ '); };
 
@@ -1232,7 +1253,7 @@ lightKeys.forEach(k => {
 });
 function setLight (k) {
   if (k === 'CUSTOM' && !S.custom) S.custom = Float32Array.from(S.E || PG.LIGHTS.DAY.make());
-  S.light = k; S.cycle = false; P.light = k === 'CUSTOM' ? P.light : k; persist(); S.dirtyLight = true; syncUI();
+  S.light = k; S.cycle = false; S.skyDay = false; P.light = k === 'CUSTOM' ? P.light : k; persist(); S.dirtyLight = true; syncUI();
 }
 const SL = [
   { id: 'sunAlt', min: 0, max: 60, step: 0.5, fmt: v => v.toFixed(1) + '°', on: () => { S.dirtyLight = true; } },
@@ -1256,7 +1277,9 @@ function refreshSliders () { SL.forEach(c => { const v = Number(slGet(c)); $('#s
 TOOLS.forEach((t, i) => { const b = document.createElement('button'); b.className = 'bt'; b.dataset.tool = t; b.innerHTML = TOOL_LABEL[t][1] + '<span class="k">' + (i + 1) + ' ' + TOOL_LABEL[t][0] + '</span>'; b.addEventListener('click', () => setTool(t)); $('#tools').appendChild(b); });
 function setTool (t) { if (!TOOLS.includes(t)) return; P.tool = t; persist(); syncUI(); }
 $('#tg-rgb').addEventListener('click', () => { S.rgb = !S.rgb; S.dirtyLight = true; syncUI(); });
-$('#tg-cycle').addEventListener('click', () => { S.cycle = !S.cycle; S.dirtyLight = true; syncUI(); });
+$('#tg-cycle').addEventListener('click', () => { S.cycle = !S.cycle; if (S.cycle) S.skyDay = false; S.dirtyLight = true; syncUI(); });
+function setSkyDay (v, t) { S.skyDay = !!v; if (t != null) S.skyT = t; if (S.skyDay) { S.cycle = false; S.light = 'SKY'; P.light = 'SKY'; persist(); } S.dirtyLight = true; syncUI(); }
+$('#tg-skyday').addEventListener('click', () => setSkyDay(!S.skyDay));
 $('#tg-sun').addEventListener('click', () => { P.skyShade = false; persist(); S.dirtyLight = true; syncUI(); });
 $('#tg-shade').addEventListener('click', () => { P.skyShade = true; persist(); S.dirtyLight = true; syncUI(); });
 $('#tg-wall').addEventListener('click', () => { P.skyFace = 'wall'; persist(); S.dirtyLight = true; syncUI(); });
@@ -1291,13 +1314,16 @@ function skyText () {
 function syncUI () {
   $$('#lights .bt').forEach(b => b.classList.toggle('on', !S.cycle && b.dataset.light === S.light));
   $$('#tools .bt').forEach(b => b.classList.toggle('on', b.dataset.tool === P.tool));
-  $('#tg-rgb').classList.toggle('on', S.rgb); $('#tg-cycle').classList.toggle('on', S.cycle);
+  $('#tg-rgb').classList.toggle('on', S.rgb); $('#tg-cycle').classList.toggle('on', S.cycle); $('#tg-skyday').classList.toggle('on', S.skyDay);
+  $('#splitLine').style.display = S.skyDay ? 'block' : 'none'; $('#splitR').textContent = '日陰（' + (P.skyFace === 'up' ? '寝かせた紙' : '立てた紙') + '）→';
   const meas = PG.SOURCE === 'measured'; $('#tg-src').classList.toggle('on', meas);
   $('#tg-src').firstChild.textContent = meas ? '実測の顔料' : '目安の形';
   $('#src-k').textContent = meas ? 'CHSOS の測定から組んだ絵具（押すと目安の形と比べる）' : '顔料らしい形を色に合わせただけ（押すと実測に戻す）';
-  const skyOn = !S.cycle && S.light === 'SKY', sunOk = !S.cycle && (S.light === 'SUNSET' || skyOn);
+  const skyOn = !S.cycle && S.light === 'SKY', sunOk = !S.cycle && !S.skyDay && (S.light === 'SUNSET' || skyOn);
   $('.ctl[data-c="sunAlt"]').classList.toggle('na', !sunOk); $('#s-sunAlt').disabled = !sunOk;
-  $('#c-sunAlt').textContent = sunOk ? '0°＝地平線（赤い）〜 60°（ほぼ昼）' + (skyOn ? '・空の色も変わる（W4）' : '') : (S.cycle ? '1 日を回している間は自動' : '「夕日」「空の下」のときだけ');
+  $('#c-sunAlt').textContent = sunOk ? '0°＝地平線（赤い）〜 60°（ほぼ昼）' + (skyOn ? '・空の色も変わる（W4）' : '') : (S.cycle || S.skyDay ? '1 日を回している間は自動' : '「夕日」「空の下」のときだけ');
+  $('#tg-sun').disabled = $('#tg-shade').disabled = S.skyDay; $('#tg-sun').style.opacity = $('#tg-shade').style.opacity = S.skyDay ? 0.38 : '';
+  $('#tg-sun').title = $('#tg-shade').title = S.skyDay ? '空の 1 日の間は、左に日なた・右に日陰を両方出している' : '';
   $('#skyBox').style.display = skyOn ? '' : 'none';
   $('#tg-sun').classList.toggle('on', !P.skyShade); $('#tg-shade').classList.toggle('on', P.skyShade);
   $('#tg-wall').classList.toggle('on', P.skyFace !== 'up'); $('#tg-up').classList.toggle('on', P.skyFace === 'up');
@@ -1384,12 +1410,12 @@ function updateLightUI (label) {
   let note = L.note;
   if (label === 'SKY') skyText();
   if (label === 'SKY' && S.E && S.E.parts) { const q = S.E.parts, t = q.sun + q.sky + q.gnd || 1;
-    note = '太陽 ' + P.sunAlt.toFixed(1) + '°・粒 ' + fmtR(P.skyR) + '・' + (P.skyShade ? '日陰（目は日なたに慣れたまま）' : '日なた') + '・' + (P.skyFace === 'up' ? '寝かせた紙' : '立てた紙') + '（W4 SKY の空）';
+    note = '太陽 ' + P.sunAlt.toFixed(1) + '°・粒 ' + fmtR(P.skyR) + '・' + (S.skyDay ? '左＝日なた｜右＝日陰（' + (S.skyT % SKYDAY_LEN < SKYDAY_LEN / 2 ? '午前' : '午後') + '）' : P.skyShade ? '日陰（目は日なたに慣れたまま）' : '日なた') + '・' + (P.skyFace === 'up' ? '寝かせた紙' : '立てた紙') + '（W4 SKY の空）';
     $('#skyParts').textContent = '紙に当たる光の内訳（明るさ）：太陽 ' + Math.round(q.sun / t * 100) + '%・空 ' + Math.round(q.sky / t * 100) + '%' + (P.skyFace === 'up' ? '（上を向いた紙に地面の照り返しは当たらない）' : '・地面の照り返し ' + Math.round(q.gnd / t * 100) + '%') + (P.skyShade ? '。日陰の明るさは日なたの ' + Math.round(t / (S.skySunT || t) * 100) + '%（画面は露出を自動で合わせている）' : ''); }
   if (label === 'SUNSET') note = '太陽の高さ ' + (S.cycle && S.cycleSun != null ? S.cycleSun : P.sunAlt).toFixed(1) + '°（' + note + '）';
-  $('#lightTag').innerHTML = '<span class="en">' + (S.cycle ? 'CYCLE · ' : '') + L.en + '</span>' + L.jp + '　' + note + (S.rgb ? '　<b style="color:#F2C27A">［RGB × 表示中＝CG の掛け算］</b>' : '');
+  $('#lightTag').innerHTML = '<span class="en">' + (S.cycle ? 'CYCLE · ' : S.skyDay ? 'SKY DAY · ' : '') + L.en + '</span>' + L.jp + '　' + note + (S.rgb ? '　<b style="color:#F2C27A">［RGB × 表示中＝CG の掛け算］</b>' : '');
   drawSpec(); updateCheck(); solveTargetSoon();
-  const now = performance.now(); if (!S.cycle || now - swTimer > 250) { swTimer = now; drawSwatches(); }
+  const now = performance.now(); if (!(S.cycle || S.skyDay) || now - swTimer > 250) { swTimer = now; drawSwatches(); }
 }
 window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;
@@ -1404,7 +1430,7 @@ window.addEventListener('keydown', e => {
   else if (k === 'x') { [colA, colB] = [colB, colA]; [nameA, nameB] = [nameB, nameA]; markSwatches(); updateCheck(); drawSpec(); }
   else if (k === 'l') { const i = lightKeys.indexOf(S.cycle ? 'DAY' : S.light); setLight(lightCycleKeys[(Math.max(0, i) + 1) % lightCycleKeys.length]); }
   else if (k === 'r') { S.rgb = !S.rgb; S.dirtyLight = true; syncUI(); }
-  else if (e.key === 'Escape') { if (Robot.active) Robot.stop(); else if (S.cycle) { S.cycle = false; S.dirtyLight = true; syncUI(); } }
+  else if (e.key === 'Escape') { if (Robot.active) Robot.stop(); else if (S.skyDay) setSkyDay(false); else if (S.cycle) { S.cycle = false; S.dirtyLight = true; syncUI(); } }
 });
 window.addEventListener('keyup', e => { if (e.key === 'Alt') { pointer.alt = false; updateCursor(); } });
 window.addEventListener('resize', layout);
@@ -1413,6 +1439,7 @@ window.addEventListener('resize', layout);
 let lastT = performance.now();
 function step (dt) {
   if (S.cycle) { S.cycleT += dt; S.dirtyLight = true; }
+  if (S.skyDay) { const a0 = skyDayAlt(S.skyT); S.skyT += dt; if (skyDayAlt(S.skyT) !== a0) { S.dirtyLight = true; refreshSliders(); } }
   if (S.dirtyLight) applyLight();
   Robot.update(dt); flushStroke(); wetStep(dt);
 }
@@ -1427,6 +1454,7 @@ window.__RELIGHT = {
   setAdapt: a => { P.adapt = a; S.dirtyLight = true; syncUI(); }, setRgb: v => { S.rgb = !!v; S.dirtyLight = true; syncUI(); },
   setCycle: (v, t) => { S.cycle = !!v; if (t != null) S.cycleT = t; S.dirtyLight = true; syncUI(); },
   setSun: h => { P.sunAlt = h; S.dirtyLight = true; syncUI(); },
+  setSkyDay, U2,
   setSky: (r, shade, face) => { if (r != null) P.skyR = r; if (shade != null) P.skyShade = !!shade; if (face) P.skyFace = face; S.dirtyLight = true; syncUI(); },
   stroke: (pts, cfg) => { beginStroke(pts[0][0], pts[0][1], 1, Object.assign(userCfg(), { stab: 0 }, cfg)); for (const p of pts.slice(1)) moveStroke(p[0], p[1], 1); finishStroke(); },
   clear: () => { Robot.stop(); clearCanvas(); }, view, IMG, loadImageUrl, loadImage, setSource, mixText, streakK, reliefK, TG, solveTarget, MT, solveMetamer, paintPattern, setUseNow: v => { IMG.useNow = !!v; syncImgUI(); }
