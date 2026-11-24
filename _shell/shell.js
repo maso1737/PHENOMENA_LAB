@@ -68,11 +68,14 @@
   /* ---- 選択中の印（STATE・REALISM 共通）：子のうち i 番目に .now ---- */
   PHShell.mark = (parent, i) => { [...parent.children].forEach((c, k) => c.classList.toggle('now', k === i)); };
 
-  /* ---- STAGE の番号：箱（中身の幅 140 px）に入らないときは字を縮める ---- */
+  /* ---- STAGE の番号（アプリ .ph-stagetab・LP .tab）：箱（中身の幅 140 px）に入らないときは字を縮める ----
+     字の幅は Range で測る（flex の中央寄せではみ出た分は scrollWidth に出ないため）。外枠の縮みは比で消す */
   function fitStage() {
-    const n = document.querySelector('.ph-stagetab .n'); if (!n) return;
-    n.style.fontSize = ''; const box = n.parentElement, room = box.clientWidth - 36;
-    for (let px = 62; px > 30 && n.scrollWidth > room; px -= 2) n.style.fontSize = px + 'px';
+    document.querySelectorAll(".ph-stagetab .n, .tab .n").forEach(n => {
+      n.style.fontSize = ""; const box = n.parentElement, bw = box.getBoundingClientRect().width; if (!bw) return;
+      const k = bw / box.offsetWidth, room = (box.clientWidth - 36) * k, r = document.createRange(); r.selectNodeContents(n);
+      for (let px = 62; px > 30 && r.getBoundingClientRect().width > room; px -= 2) n.style.fontSize = px + "px";
+    });
   }
 
   frame(); fit(); fitStage();

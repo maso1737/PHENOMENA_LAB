@@ -23,7 +23,9 @@
   .ids dt { font-family: var(--f-thin); letter-spacing: .18em; color: var(--ink-2); }
   .ids dd { margin: 0; font-family: var(--f-num); color: var(--ink); }
   .tab { left: 1704px; top: 24px; width: 176px; height: 152px; background: var(--accent); color: var(--accent-ink); padding: 18px 18px 0; }
-  .tab .k { display: flex; justify-content: space-between; font: 600 13px/1 var(--f-thin); letter-spacing: .24em; }
+  .tab .k { display: flex; justify-content: center; position: relative; font: 600 13px/1 var(--f-thin); letter-spacing: .24em; }
+  .tab .k span + span { position: absolute; right: 0; }   /* 11-24 アプリの STAGE の箱と同じく中央合わせ */
+  .tab .n, .tab .s { display: flex; justify-content: center; white-space: nowrap; }   /* 11-25 flex の中央＝はみ出しても左右に等しく。入らない番号は shell.js の fitStage が字を縮める */
   .tab .n { font: 400 62px/1 var(--f-wide); margin-top: 12px; }
   .tab .s { font: 400 12px/1 var(--f-num); margin-top: 10px; }
   .noise { left: 1130px; top: 44px; font: 400 8.5px/13px var(--f-num); color: var(--ink); opacity: .2; white-space: pre; }

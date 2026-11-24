@@ -25,6 +25,7 @@
 - 新しいラボに当てる手順：A1 の HTML の外枠部分を写す → 3 変数・文字・SPECIMEN・BIG・NOISE を差し替え → canvas の `layout()` と `pos()` を A1 と同じ「外枠の座標で描く」形にする → `PHShell.onScale(() => { layout(); draw(); })`。
 - 🆕 11-22 ホバーの動き（TRANSFER の帯が左から伸び、見出しの行は黒い下地・ボタン・つまみ・CONTROL の札が明るい青に反応）。決まりは SPEC_02 §4.6。
 - 🆕 11-24 STAGE の箱は中央合わせ（ユーザーの赤：W4・W6 の字の広い番号が右へ寄って見えた）。番号が箱（中身 140 px）に入らないとき（W6+ など）は `shell.js` の `fitStage` が字を 2 px ずつ縮める。全ラボに効く（A1・E1・W1・W4・W6・W6+ を撮って確認 `_out/check/w6/stage_tabs.png`）。
+- 🆕 11-25 LP の SCROLL の箱（`.tab .n`）も同じ扱いに：全 6 本の LP とひな形で `display:flex; justify-content:center`（はみ出しても左右に等しく）＋ `fitStage` が `.tab .n` も縮める。字幅は Range で測る（flex 中央ではみ出た分は scrollWidth に出ない）。12 ページで左右の余白が等しいのを実測（`_out/check/w6lp/tabs_center.png`）。**新しい LP はひな形から写せば自動で効く。**
 - 地雷：外枠は CSS の transform で縮むので、canvas の `getBoundingClientRect()` は縮んだ大きさを返す。`clientWidth` で描き、ポインタは倍率で割る（A1 の `layout()`・`pos()`）。内蔵ブラウザは file:// を静止画で開くので、file:// の確認は Edge のヘッドレス撮影で行った。
 
 ## 🆕 E1 PUSH & CARVE v0.1（2026-11-22・実装済み）
