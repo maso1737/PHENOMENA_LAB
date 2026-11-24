@@ -165,5 +165,6 @@ status: 仕様 v0.1（2026-11-11）・ZOOM CORE 実装済み（同日）
 | 4 | Z1 の絵 | コードで描く図（線画）で始める。写真は使わない |
 
 ## 改訂
+- 2026-11-25 Z2 SELF：ZOOM CORE を外枠 ARCHIVE SHELL へ（題材は `zoom/_law/ph_zoom_law.js`・相似の次元 D の STATE・PROOF＝1 周で差 0 画素・BREAK＝画像の拡大）＋解説 LP `zoom/scroll/SCROLL_SELF_LP.html`（§5 の「奥に入る」型ではなく、既存の駅の型）。芯に `setSize`・`spinAt`・`advance` を足した（世界の書き方は同じ）。
 - 2026-11-11 v0.1 実装：ZOOM CORE（`zoom/zoom_core.js`＋`zoom/zoom_core.html`）。題材は NEST／TRIANGLE／CHAIN。「止まる場所がない」ための引き寄せ（MAGNET）を足した：寄るとき、近くの子の場面を寄る中心へ引く（0 で切れる）。実測は CLAUDE.md。
 - 2026-11-11 v0.1：起草。

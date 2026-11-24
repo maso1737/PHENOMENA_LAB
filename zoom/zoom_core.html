@@ -2,226 +2,452 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>ZOOM CORE — PHENOMENA LAB</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Z2 SELF 同じ形の中へ（ZOOM CORE）— PHENOMENA LAB</title>
+<link rel="stylesheet" href="../_shell/shell.css">
 <style>
-  :root{--ink:#f2efe6;--dim:#8a877f;--line:#3a3935;--acc:#ffd400;--bg:#0b0b0a}
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:12px/1.5 ui-monospace,"Cascadia Mono",Consolas,monospace;overflow:hidden}
-  #wrap{display:grid;grid-template-columns:1fr 280px;height:100%}
-  #stage{position:relative;min-width:0}
-  canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair;display:block}
-  #panel{border-left:1px solid var(--line);padding:14px 14px 20px;overflow:auto}
-  h1{font-size:13px;letter-spacing:.18em;margin:0 0 2px}
-  .sub{color:var(--dim);margin:0 0 14px}
-  .row{margin:0 0 12px}
-  .row label{display:flex;justify-content:space-between;gap:8px}
-  .row label b{font-weight:400;color:var(--acc)}
-  .row small{color:var(--dim);display:block}
-  input[type=range]{width:100%;accent-color:var(--acc);margin:2px 0 0}
-  select,button{width:100%;background:transparent;color:var(--ink);border:1px solid var(--line);padding:6px 8px;font:inherit;cursor:pointer}
-  select option{background:#111}
-  button.on{border-color:var(--acc);color:var(--acc)}
-  .two{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-  .off{opacity:.35}
-  .off input,.off button{pointer-events:none}
-  hr{border:0;border-top:1px solid var(--line);margin:14px 0}
-  .help{color:var(--dim)}
-  @media (max-width:760px){#wrap{grid-template-columns:1fr;grid-template-rows:1fr 240px}#panel{border-left:0;border-top:1px solid var(--line)}}
+  /* Z（ズーム）のアクセント＝深い青緑。外枠で変えてよいのはこの 3 つだけ */
+  :root { --accent: #1F8A80; --accent-ink: #FFFFFF; --accent-line: #7FD6CB; }
+  /* STATE と BOUNDARY は押せる（その状態になるように原因＝子の数と縮みを動かす。▼ は結果なので後からついてくる）＝E1・A1・W1・W4・W6 と同じ */
+  #states > div { cursor: pointer; }
+  #states > div:hover:not(.now) { border-color: var(--accent-line); color: var(--ink); }
+  #states > div.seek { outline: 1px dashed var(--accent-line); outline-offset: 2px; }
+  #bound { cursor: pointer; }
+  /* 窓の右の ENGINE（芯の手応え）：値は見出しの行に、つまみはその下 */
+  .eng { position: absolute; left: 1404px; top: 34px; width: 178px; display: flex; flex-direction: column; gap: 3px; }
+  .eng .row { border-top: 1px solid var(--line-sub); padding-top: 6px; }
+  .eng .row .k { display: flex; justify-content: space-between; align-items: baseline; font: 600 10px/1.2 var(--f-thin); letter-spacing: .12em; color: var(--ink-2); }
+  .eng .row .k i { font: 400 10px/1.2 var(--f-jp); font-style: normal; letter-spacing: 0; color: var(--ink-3); margin-left: 4px; }
+  .eng .row .k b { font: 400 11px/1.2 var(--f-num); letter-spacing: 0; color: var(--ink); margin-left: auto; }
+  .eng .row:hover .k { color: var(--accent-line); }
+  .eng .ph-chips { margin-top: 5px; }
+  .eng .ph-chip { flex: 1; padding: 0 4px; font-size: 11px; }
+  .eng .cap { font: 400 10px/1.4 var(--f-jp); color: var(--ink-3); margin-top: 2px; }
 </style>
 </head>
 <body>
-<div id="wrap">
-  <div id="stage"><canvas id="cv"></canvas></div>
-  <div id="panel">
-    <h1>ZOOM CORE</h1>
-    <p class="sub">止まる場所のないズーム v0.1</p>
+<div class="ph-viewport"><div class="ph-shell">
+  <div class="ph-grid"></div>
 
-    <div class="row"><label>WORLD 題材</label>
-      <select id="world">
-        <option value="nest">NEST 四角の入れ子（輪）</option>
-        <option value="tri">TRIANGLE 三角の中の三角（輪・子が 3 つ）</option>
-        <option value="chain">CHAIN 点 → 線 → 面 → 世界（連なり）</option>
-        <option value="golden">GOLDEN 黄金のらせん（輪・回りながら寄る）</option>
-        <option value="koch">KOCH 海岸線の曲線（輪・子が 4 つ）</option>
-        <option value="fern">FERN シダ（輪・大きさの違う子）</option>
-      </select></div>
+  <!-- 18 BIG GRAPHIC -->
+  <svg class="ph-big" viewBox="0 0 1920 1080" aria-hidden="true">
+    <rect x="0" y="682" width="1920" height="12"></rect>
+    <text x="-6" y="646" font-family="'IBM Plex Sans JP', sans-serif" font-size="300" font-weight="500">奥</text>
+    <text id="bigD" x="28" y="1104" font-family="Michroma, sans-serif" font-size="168">D 0.000</text>
+    <text x="1690" y="112" font-family="Michroma, sans-serif" font-size="96" text-anchor="end">1 / s</text>
+  </svg>
 
-    <div class="row" id="r_twist"><label>TWIST 子の回転 <b id="v_twist"></b></label>
-      <input type="range" id="twist" min="0" max="90" step="1" value="45"><small>NEST のときだけ</small></div>
-    <div class="row" id="r_shrink"><label>SHRINK 子の縮み <b id="v_shrink"></b></label>
-      <input type="range" id="shrink" min="0.5" max="0.95" step="0.001" value="0.707"><small>NEST のときだけ</small></div>
+  <!-- 16 NOISE LAYER（読ませない） -->
+  <svg class="ph-noise" viewBox="0 0 1920 1080" aria-hidden="true">
+    <text font-family="Jura, sans-serif" font-size="9" letter-spacing="2" transform="translate(13 1040) rotate(-90)">SECTOR 00-Z · DEPTH UNBOUNDED · OBS Z-002-1904 · VON KOCH 1904 · MORAN 1946 · MANDELBROT 1967 · 0x1F8A80 · ARCHIVE/EARTH/ZOOM/Z2 · CHK 0x10E9</text>
+    <text font-family="Jura, sans-serif" font-size="9" letter-spacing="2" transform="translate(1909 40) rotate(90)">SCENE + POSE (M, T) COMPLEX · NORMALIZE TO CHILD / PARENT · REDRAW EVERY FRAME · NO BITMAP SCALING · NODE Z2</text>
+    <g font-family="'JetBrains Mono', monospace" font-size="8.5">
+      <text x="1132" y="50">1904 &gt; NORMALIZE OK · PIXEL DIFF 0</text>
+      <text id="nz1" x="1132" y="61">DEPTH 0.00  LEVEL 0</text>
+      <text id="nz2" x="1132" y="72">D 0.000  N 1  S 0.707</text>
+      <text x="1132" y="83">SUM S_I^D = 1  ACK</text>
+      <text x="1290" y="332">REF 0x0Z02 · Z2/CAUSE/CH3</text>
+      <text x="300" y="1066">ARCHIVE/EARTH/ZOOM/Z2/1904 — CLASSIFICATION: NONE</text>
+      <text x="1560" y="1066">END OF RECORD</text>
+    </g>
+  </svg>
 
-    <hr>
-    <div class="row"><label>SENS ホイール 1 刻みの倍率 <b id="v_sens"></b></label>
-      <input type="range" id="sens" min="1.05" max="1.5" step="0.01" value="1.15"></div>
-    <div class="row"><label>INERTIA 余韻（秒） <b id="v_inertia"></b></label>
-      <input type="range" id="inertia" min="0" max="0.6" step="0.01" value="0.18"></div>
-    <div class="row"><label>MAGNET 奥へ引き寄せる <b id="v_magnet"></b></label>
-      <input type="range" id="magnet" min="0" max="1" step="0.05" value="1"><small>0 だと、何もない所へも寄れる</small></div>
-    <div class="row"><label>DETAIL 細部が現れる大きさ（px） <b id="v_minPx"></b></label>
-      <input type="range" id="minPx" min="2" max="40" step="1" value="6"></div>
+  <!-- 01 GRID / FRAME（shell.js が描く） -->
+  <svg class="ph-frame" viewBox="0 0 1920 1080" aria-hidden="true"></svg>
 
-    <hr>
-    <div class="row"><button id="auto">AUTO 自動で進む</button></div>
-    <div class="row" id="r_dir"><div class="two"><button id="dirIn" class="on">IN 寄る</button><button id="dirOut">OUT 引く</button></div><small>AUTO のときだけ</small></div>
-    <div class="row" id="r_sec"><label>SPEED 10 倍にかかる秒 <b id="v_autoSec"></b></label>
-      <input type="range" id="autoSec" min="1" max="30" step="0.5" value="6"><small>AUTO のときだけ</small></div>
+  <!-- 02 HEADER IDS -->
+  <div class="ph-brand"><b>PHENOMENA LAB</b><span>EARTH SURVEY ARCHIVE · SHELL v0.1</span></div>
+  <dl class="ph-ids" style="left:392px"><dt>OBS.No</dt><dd>Z-002-1904</dd><dt>COORD</dt><dd>10^d · UNBOUNDED</dd><dt>TIMESTAMP</dt><dd>2125-11-25T09:00:00Z</dd></dl>
+  <dl class="ph-ids" style="left:760px"><dt>FIELD</dt><dd>ZOOM</dd><dt>CARD</dt><dd>Z2 / 05</dd><dt>REF</dt><dd>SPEC_04 §4 Z2</dd></dl>
 
-    <hr>
-    <div class="row"><button id="home">HOME 入口へ戻る</button></div>
-    <p class="help">ホイール／ピンチ＝寄る・引く<br>ドラッグ＝動かす<br>↑ ↓＝寄る・引く　Home＝入口</p>
+  <!-- 03 STAGE TAB -->
+  <div class="ph-stagetab"><span class="k">STAGE</span><span class="n">Z2</span><span class="s">Z · 02/05</span>
+    <svg width="14" height="22" viewBox="0 0 14 22" aria-hidden="true"><line x1="1" y1="21" x2="13" y2="1" stroke-width="1.5"/></svg></div>
+
+  <!-- 04 TITLE BAND・05 QUESTION -->
+  <div class="ph-title"><span class="field" id="titleField">Z2 — ZOOM · SELF</span><h1>SELF</h1><span class="ja">同じ形の中へ · ZOOM CORE</span></div>
+  <div class="ph-question"><span class="k">QUESTION</span><p>どこまで寄っても<br>終わらない形は、<br>どう出来ている？</p></div>
+
+  <!-- 06 SPECIMEN（コッホ曲線・法則と同じ置きかえで描く） -->
+  <div class="ph-specimen" id="specimen"><span class="tag">SPECIMEN · KOCH 1904</span></div>
+
+  <!-- 07 FORMAT -->
+  <div class="ph-format"><span class="k">FORMAT</span><span class="ja">Powers of Ten の枠
+＋ 置きかえの決まり</span><span class="en">FRAME + REPLACEMENT RULE</span><a href="scroll/SCROLL_SELF_LP.html" style="margin-top:4px;font:600 11px/1 var(--f-thin);letter-spacing:.16em;color:var(--accent-line);text-decoration:none">SCROLL LP <span style="font:500 12px var(--f-jp);letter-spacing:0">解説を読む →</span></a></div>
+
+  <!-- 08 READOUT -->
+  <div class="ph-readout">
+    <div class="ph-h"><i class="sq"></i><b>READOUT</b><span class="id">RD-Z2-01</span></div>
+    <span class="ph-lab" style="margin-top:12px">STATE <i style="font-style:normal;letter-spacing:0;text-transform:none">1 段の分かれ方</i></span>
+    <div class="ph-states" id="states">
+      <div data-s="PATH" title="子が 1 つ（NEST へ）＝何倍寄っても道は 1 本"><b>PATH</b><span>1 本道</span></div>
+      <div data-s="DUST" title="三角の子を 0.27 に縮める＝D が 1 より小さい"><b>DUST</b><span>粉</span></div>
+      <div data-s="LACE" title="コッホ 60°／三角 0.5＝線より濃く、面より薄い"><b>LACE</b><span>線より濃い</span></div>
+      <div data-s="FILL" title="コッホ 90°／三角 0.6＝子が面を埋める"><b>FILL</b><span>面を埋める</span></div>
+    </div>
+    <div class="ph-vals" style="margin-top:12px">
+      <div class="ph-val"><span class="k">DEPTH <i>深さ（10 の何乗）</i></span><div class="v"><b id="o_d">—</b><u>桁</u><em id="o_lv"></em></div></div>
+      <div class="ph-val" id="r_shrink"><span class="k">SHRINK <i id="o_si">子の縮み</i></span><div class="v"><b id="o_s">—</b><u>s</u><em id="o_lp"></em></div>
+        <input class="ph-range lead" type="range" id="shrink" min="0.5" max="0.95" step="0.001" value="0.707" aria-label="子の縮み（主役）"></div>
+      <div class="ph-val"><span class="k">DIM. <i>相似の次元 D</i></span><div class="v"><b id="o_D">—</b><u></u><em id="o_N"></em></div></div>
+    </div>
+    <div class="ph-boundary"><span class="ph-lab">BOUNDARY <i style="font-style:normal;letter-spacing:0;text-transform:none">押すとその側へ</i></span><svg id="bound" role="img" aria-label="境界の目盛り：PATH・DUST・LACE・FILL"></svg></div>
   </div>
-</div>
 
+  <!-- 09 LOOK ⇄ CAUSE の窓 -->
+  <div class="ph-winhead"><i class="sq"></i><span class="t">LOOK ⇄ CAUSE</span><span class="s">LEFT = DIVE · RIGHT = RULE + COUNT + DEPTH</span>
+    <div class="r"><b>WORLD</b><div class="ph-chips" id="worlds">
+      <button class="ph-chip" data-w="nest">NEST 四角</button><button class="ph-chip" data-w="tri">三角</button><button class="ph-chip" data-w="koch">KOCH 海岸線</button><button class="ph-chip" data-w="fern">シダ</button><button class="ph-chip" data-w="golden">らせん</button><button class="ph-chip" data-w="chain">点→世界</button>
+    </div></div></div>
+  <div class="ph-window" id="win">
+    <canvas id="cv"></canvas>
+    <div class="ph-tag" style="left:16px;top:8px"><i></i><b>LOOK</b><span>— 実物の姿</span><small>DIVE · POWERS OF TEN FRAME</small></div>
+    <div class="ph-tag" style="left:896px;top:8px"><i></i><b>CAUSE</b><span>— 原因の図</span></div>
+    <div class="ph-control" id="ctl" style="left:16px;top:44px"><span class="k">◆ CONTROL ▶</span><span class="d">ホイール／ピンチ＝寄る・引く　ドラッグ＝動かす</span></div>
+    <div class="eng" id="eng">
+      <span class="ph-lab">ENGINE <i style="font-style:normal;letter-spacing:0">芯の手応え</i></span>
+      <div class="row" id="r_twist"><span class="k">TWIST<i id="o_twi">子の回り</i><b id="v_twist"></b></span><input class="ph-range" type="range" id="twist" min="0" max="90" step="1" value="45" aria-label="子の回り（NEST のとき）"></div>
+      <div class="row"><span class="k">SENS<i>1 刻み</i><b id="v_sens"></b></span><input class="ph-range" type="range" id="sens" min="1.05" max="1.5" step="0.01" value="1.15" aria-label="ホイール 1 刻みの倍率"></div>
+      <div class="row"><span class="k">INERTIA<i>余韻</i><b id="v_inertia"></b></span><input class="ph-range" type="range" id="inertia" min="0" max="0.6" step="0.01" value="0.18" aria-label="余韻（秒）"></div>
+      <div class="row"><span class="k">MAGNET<i>奥へ寄せる</i><b id="v_magnet"></b></span><input class="ph-range" type="range" id="magnet" min="0" max="1" step="0.05" value="1" aria-label="引き寄せる強さ"></div>
+      <div class="row"><span class="k">DETAIL<i>細部の大きさ</i><b id="v_minPx"></b></span><input class="ph-range" type="range" id="minPx" min="2" max="40" step="1" value="6" aria-label="細部が現れる大きさ（px）"></div>
+      <div class="row" id="r_sec"><span class="k">SPEED<i id="o_seci">10 倍の秒</i><b id="v_autoSec"></b></span><input class="ph-range" type="range" id="autoSec" min="1" max="30" step="0.5" value="6" aria-label="AUTO で 10 倍にかかる秒"></div>
+      <div class="ph-chips" id="dirs"><button class="ph-chip" data-d="1">IN 寄る</button><button class="ph-chip" data-d="-1">OUT 引く</button></div>
+      <div class="ph-chips" id="paths"><button class="ph-chip" data-p="spin" title="1 周の止まる点へ、回りを合わせて寄る">回り合わせ</button><button class="ph-chip" data-p="straight" title="画面の中心へ、まっすぐ寄る">まっすぐ</button></div>
+      <span class="cap" id="o_cap">AUTO の進み方</span>
+    </div>
+  </div>
+
+  <!-- 12 SCALE：相似の次元 -->
+  <div class="ph-scale-k"><i></i><b>SCALE · 相似の次元 D</b></div>
+  <svg class="ph-scale" id="scale" width="960" height="56" viewBox="-1 0 962 56" aria-hidden="true"></svg>
+
+  <!-- 13 REALISM -->
+  <div class="ph-realism"><b>REALISM <span class="note" id="o_real">図 ◎ ／ シダの形はまね △</span></b>
+    <div class="marks" id="marks"><div class="now"><span>◎</span>法則</div><div><span>○</span>近似</div><div><span>△</span>まね</div></div></div>
+
+  <!-- 14 PROOF / AUTO / BREAK -->
+  <div class="ph-pab">
+    <button id="bProof" title="入口の絵を写し、1 周ぶん寄って重ねる（画素の差を数える・8 秒）"><span>[ </span>PROOF<span> ]</span></button><button id="bAuto" title="一定の割合で寄り続ける（10 倍にかかる秒は SPEED）"><span>[ </span>AUTO<span> ]</span></button><button id="bBreak" title="描き直さず、画像を拡大して寄る（×6 で描き直す）"><span>[ </span>BREAK<span> ]</span></button>
+  </div>
+
+  <!-- 15 TRANSFER -->
+  <div class="ph-transfer-k"><i></i><b>TRANSFER</b><span>— NOTES FOR CG / ANIMATION · 表現に持ち出す</span></div>
+  <div class="ph-transfer">
+    <div tabindex="0"><h3><u>01 </u>LOOK RULES<i>絵の決まり</i></h3><p>寄る速さは割合で一定に（6 秒で 10 倍など）。1/s 倍寄ると元の絵に戻る。回る題材は回る速さも合わせると、渦の中心へ吸い込まれて見える。</p></div>
+    <div tabindex="0"><h3><u>02 </u>CG</h3><p>画像は拡大しない。毎コマいまの大きさで描き直し、線の太さは画面の px で決める。カメラは「いる場面＋その中の位置」で持ち、子へ乗り換えて数を小さく戻す（桁が尽きない）。</p></div>
+    <div tabindex="0"><h3><u>03 </u>GEN CHECK<i>嘘の見つけ方</i></h3><p>寄るとぼける・粒が見える（画像の拡大）／ある深さで絵が跳ぶ（乗り換えのずれ）／深いほど速さが変わる／中心がカーソルからずれる、なら作りが違う。<em>infinite zoom / self-similar</em></p></div>
+    <div tabindex="0"><h3><u>04 </u>BREAK<i>わざと外す</i></h3><p>画像を拡大して寄ると、6 倍あたりで荒れが見える。入れ子の絵（Zoomquilt 型）は、どの絵も等倍以下で使い、拡大し切る前に次の絵へ渡す。</p></div>
+    <div tabindex="0"><h3><u>05 </u>FIELD NOTE<i>宿題</i></h3><p>ロマネスコ・シダの葉・合わせ鏡をスマホで寄って撮る。何倍で同じ形に戻るか（1/s）と、1 段で何個に分かれるか（N）を数え、D = log N ÷ log(1/s) を出す。</p></div>
+  </div>
+</div></div>
+
+<script src="../_shell/shell.js"></script>
 <script src="zoom_core.js"></script>
+<script src="_law/ph_zoom_law.js"></script>
 <script>
 'use strict';
-const INK = '#f2efe6', ACC = '#ffd400', TAU = Math.PI * 2;
-const P = { twist: 45, shrink: 0.707 };
+const L = PH_ZOOM, $ = id => document.getElementById(id), D2R = Math.PI / 180, LN10 = Math.LN10;
+/* 窓の色：Powers of Ten の黒・生成りの線・青緑の枠と印（SPEC_04 §1） */
+const K = { bg: '#060606', ink: '#F2EFE6', dim: '#9C9A93', faint: '#6F6D67', rule: 'rgba(242,239,230,.22)', rule2: 'rgba(242,239,230,.07)', acc: '#7FD6CB', accA: a => 'rgba(127,214,203,' + a + ')' };
+const P = { twist: 45, nestS: 0.707, triS: 0.5, kochS: 1 / 3, ink: K.ink, acc: K.acc };
+const WORLDS = L.makeWorlds(P); for (const k in WORLDS) WORLDS[k].bg = K.bg;
+const PARAM = { nest: 'nestS', tri: 'triS', koch: 'kochS' };   // つまみで縮みを動かせる題材
+const S = { world: 'nest', auto: false, spin: true, brk: false, proof: false, pt: 0, lm0: null, snap: null, diff: null, go: null, drag: null, b0: null, maxD: 0, flash: 0 };
+const cv = $('cv'), ctx = cv.getContext('2d');
+const zc = document.createElement('canvas'), bmp = document.createElement('canvas');   // 芯は画面に無い板に描き、窓へ写す（外枠が CSS で縮むため）
+const core = new ZoomCore(zc, WORLDS.nest); core.onHud = null;
+let W = 1, H = 1, dpr = 1, G = {};
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const mono = (px, w) => (w || 400) + ' ' + px + 'px "JetBrains Mono",ui-monospace,monospace', note = px => px + 'px "M PLUS 1 Code","IBM Plex Sans JP",monospace', jura = (px, w) => (w || 600) + ' ' + px + 'px Jura,sans-serif';
+function txt(s, x, y, o) { o = o || {}; ctx.font = o.f || note(11); ctx.fillStyle = o.c || K.ink; ctx.textAlign = o.a || 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillText(s, x, y); }
+const W_ = () => WORLDS[S.world];
+const fmtF = v => v >= 1e5 ? v.toExponential(2).replace('e+', '·10^') : v >= 100 ? v.toFixed(0) : v.toFixed(2);
 
-/* ---------- 題材 ---------- */
-const NEST = { name: 'NEST', root: 'sq', scenes: { sq: {
-  name: 'SQUARE', parent: { id: 'sq', slot: 0 },
-  children: () => [{ x: 0, y: 0, s: P.shrink, rot: P.twist, to: 'sq' }],
-  draw(c, i) {
-    c.lineWidth = 1.4 * i.px; c.strokeStyle = INK; c.strokeRect(-0.5, -0.5, 1, 1);
-    c.lineWidth = 1 * i.px; c.beginPath();
-    for (const [x, y, dx, dy] of [[0, -0.5, 0, 1], [0.5, 0, -1, 0], [0, 0.5, 0, -1], [-0.5, 0, 1, 0]]) { c.moveTo(x, y); c.lineTo(x + dx * 0.035, y + dy * 0.035); }
-    c.stroke();
-    c.fillStyle = ACC; c.beginPath(); c.arc(-0.5, -0.5, Math.min(0.02, 3.5 * i.px), 0, TAU); c.fill();   // 向きがわかる印
-  } } } };
+function layout() {
+  const r = cv.getBoundingClientRect(), kk = r.width / Math.max(1, cv.clientWidth); dpr = Math.min((window.devicePixelRatio || 1) * kk, 2);
+  W = Math.max(1, cv.clientWidth); H = Math.max(1, cv.clientHeight); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  G = { lx: 16, ly: 40, lw: 860, lh: H - 56, cx: 896, ex: 1392, tx0: 906, tx1: 1372, tY: 372 };
+  core.setSize(G.lw, G.lh, dpr); bmp.width = zc.width; bmp.height = zc.height; S.b0 = null; S.snap = null;
+}
 
-const V = [0, 1, 2].map(j => { const a = -Math.PI / 2 + j * TAU / 3; return [0.5 * Math.cos(a), 0.5 * Math.sin(a)]; });
-const TRI = { name: 'TRIANGLE', root: 'tri', scenes: { tri: {
-  name: 'TRIANGLE', parent: { id: 'tri', slot: 0 },
-  children: () => V.map(v => ({ x: v[0] / 2, y: v[1] / 2, s: 0.5, rot: 0, to: 'tri' })),
-  draw(c, i) {
-    c.lineWidth = 1.2 * i.px; c.strokeStyle = INK; c.beginPath();
-    c.moveTo(V[0][0], V[0][1]); c.lineTo(V[1][0], V[1][1]); c.lineTo(V[2][0], V[2][1]); c.closePath(); c.stroke();
-    c.fillStyle = ACC; c.beginPath(); c.arc(V[0][0], V[0][1], Math.min(0.016, 3 * i.px), 0, TAU); c.fill();
-  } } } };
-
-const GA = 137.50776 * Math.PI / 180, DOTS = 90, PICK = 37;
-const dot = k => { const r = 0.47 * Math.sqrt((k + 0.5) / DOTS), a = k * GA; return [r * Math.cos(a), r * Math.sin(a)]; };
-const CHAIN = { name: 'CHAIN', root: 'point', scenes: {
-  point: { name: 'POINT 点', parent: { id: 'world', slot: 0 },
-    children: () => { const d = dot(PICK); return [{ x: d[0], y: d[1], s: 0.03, rot: 0, to: 'line' }]; },
-    draw(c, i) { c.fillStyle = INK; const r = Math.min(0.011, 8 * i.px);
-      for (let k = 0; k < DOTS; k++) { if (k === PICK) continue; const d = dot(k); c.beginPath(); c.arc(d[0], d[1], r, 0, TAU); c.fill(); } } },
-  line: { name: 'LINE 線', parent: { id: 'point', slot: 0 },
-    children: () => [{ x: 0.12, y: 0.045, s: 0.03, rot: 30, to: 'plane' }],
-    draw(c, i) { c.strokeStyle = INK; c.lineWidth = 1.2 * i.px; c.beginPath();
-      for (let k = -7; k <= 7; k++) { const y = k * 0.06, x = Math.sqrt(Math.max(0, 0.25 - y * y)); c.moveTo(-x, y); c.lineTo(x, y); }
-      c.stroke(); } },
-  plane: { name: 'PLANE 面', parent: { id: 'line', slot: 0 },
-    children: () => [{ x: 1 / 12, y: -1 / 12, s: 0.13, rot: 0, to: 'world' }],
-    draw(c, i) { const n = 6, s = 1 / n; c.fillStyle = INK;
-      for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) { if ((x + y) % 2) continue; if (x === 3 && y === 2) continue; c.fillRect(-0.5 + x * s, -0.5 + y * s, s, s); }
-      c.strokeStyle = INK; c.lineWidth = 1.2 * i.px; c.strokeRect(-0.5, -0.5, 1, 1); } },
-  world: { name: 'WORLD 世界', parent: { id: 'plane', slot: 0 },
-    children: () => [{ x: 0.17, y: -0.12, s: 0.035, rot: -20, to: 'point' }],
-    draw(c, i) { c.strokeStyle = INK; c.lineWidth = 1.2 * i.px;
-      c.beginPath(); c.arc(0, 0, 0.5, 0, TAU); c.stroke();
-      c.lineWidth = 0.8 * i.px; c.beginPath();
-      for (const k of [0.17, 0.34, 0.5]) { c.moveTo(k, 0); c.ellipse(0, 0, k, 0.5, 0, 0, TAU); }
-      for (const y of [-0.3, 0, 0.3]) { const x = Math.sqrt(0.25 - y * y); c.moveTo(-x, y); c.lineTo(x, y); }
-      c.stroke(); } }
-} };
-
-/* らせん：黄金長方形。正方形を 1 つ切り取ると、残りが 90° 回った同じ形 */
-const PHI = (1 + Math.sqrt(5)) / 2, G1 = 1 / PHI, GH = G1 / 2, GX = -0.5 + G1;   // GX = 正方形の右端
-const GOLDEN = { name: 'GOLDEN', root: 'g', bg: '#0b0b0a', scenes: { g: {
-  name: 'GOLDEN らせん', parent: { id: 'g', slot: 0 },
-  children: () => [{ x: (GX + 0.5) / 2, y: 0, s: G1, rot: 90, to: 'g' }],
-  draw(c, i) {
-    c.strokeStyle = INK; c.lineWidth = 1 * i.px; c.globalAlpha = i.alpha * 0.45;
-    c.strokeRect(-0.5, -GH, 1, G1); c.beginPath(); c.moveTo(GX, -GH); c.lineTo(GX, GH); c.stroke();
-    c.globalAlpha = i.alpha; c.strokeStyle = ACC; c.lineWidth = 2 * i.px;
-    c.beginPath(); c.arc(GX, GH, G1, Math.PI, Math.PI * 1.5); c.stroke();
-  } } } };
-
-/* コッホ曲線：1 本の線を「山のある 4 本」に置きかえる、をくり返す */
-const K3 = Math.sqrt(3) / 12;
-const KOCH = { name: 'KOCH', root: 'k', scenes: { k: {
-  name: 'KOCH 海岸線', parent: { id: 'k', slot: 1 },
-  children: () => [{ x: -1 / 3, y: 0, s: 1 / 3, rot: 0, to: 'k' }, { x: -1 / 12, y: -K3, s: 1 / 3, rot: -60, to: 'k' },
-                   { x: 1 / 12, y: -K3, s: 1 / 3, rot: 60, to: 'k' }, { x: 1 / 3, y: 0, s: 1 / 3, rot: 0, to: 'k' }],
-  draw(c, i) {                                   // 子が出るまでの間だけ、自分の 4 本を描く
-    const a = i.alpha * (1 - i.childAlpha); if (a <= 0) return;
-    c.globalAlpha = a; c.strokeStyle = INK; c.lineWidth = 1.3 * i.px; c.lineJoin = 'round';
-    c.beginPath(); c.moveTo(-0.5, 0); c.lineTo(-1 / 6, 0); c.lineTo(0, -2 * K3); c.lineTo(1 / 6, 0); c.lineTo(0.5, 0); c.stroke();
-  } } } };
-
-/* シダ：茎が 1 節のびるたびに、小さな自分を左右に出す */
-const FA = 55 * Math.PI / 180, FS = 0.32, FM = 0.85, FR = 4 * Math.PI / 180;
-const FERN = { name: 'FERN', root: 'f', scenes: { f: {
-  name: 'FERN シダ', parent: { id: 'f', slot: 0 }, detail: 5,   // 子が多いので、細部が現れる大きさを 5 倍に（軽くする）
-  children: () => [
-    { x: FM * 0.5 * Math.sin(FR), y: 0.34 - FM * 0.5 * Math.cos(FR), s: FM, rot: 4, to: 'f' },              // 先へ続く本体
-    { x: FS * 0.5 * Math.sin(FA), y: 0.36 - FS * 0.5 * Math.cos(FA), s: FS, rot: 55, to: 'f' },             // 右の小葉
-    { x: -FS * 0.5 * Math.sin(FA), y: 0.43 - FS * 0.5 * Math.cos(FA), s: FS, rot: -55, to: 'f' }],          // 左の小葉
-  draw(c, i) {
-    c.strokeStyle = INK; c.lineWidth = 1.2 * i.px; c.beginPath(); c.moveTo(0, 0.5); c.lineTo(0, 0.34); c.stroke();
-    const a = i.alpha * (1 - i.childAlpha); if (a <= 0) return;   // 細部が出るまでは、葉 1 枚の形で代わりをする
-    c.globalAlpha = a * 0.8; c.fillStyle = INK; c.beginPath(); c.ellipse(0, 0, 0.13, 0.5, 0, 0, TAU); c.fill();
-  } } } };
-const WORLDS = { nest: NEST, tri: TRI, chain: CHAIN, golden: GOLDEN, koch: KOCH, fern: FERN };
-
-/* ---------- 芯を起こす ---------- */
-const cv = document.getElementById('cv');
-const core = new ZoomCore(cv, NEST);
-
-/* 枠と「いまの大きさ」（Powers of Ten の画面の決まり） */
-core.onHud = (c, w, h, z) => {
-  const S = z.S, x0 = w / 2 - S / 2, y0 = h / 2 - S / 2;
-  c.strokeStyle = 'rgba(255,212,0,.55)'; c.lineWidth = 1; c.strokeRect(Math.round(x0) + .5, Math.round(y0) + .5, S, S);
-  c.fillStyle = 'rgba(0,0,0,.72)'; c.fillRect(x0 - 4, y0 - 36, 190, 30); c.fillRect(x0 - 4, y0 + S + 4, 200, 20);   // 文字の下敷き（明るい絵の上でも読める）
-  c.fillStyle = ACC; c.font = '11px ui-monospace,Consolas,monospace'; c.textBaseline = 'top';
-  c.fillText(z.world.scenes[z.cur].name + '   LEVEL ' + z.level, x0, y0 + S + 8);
-  const d = z.depth, e = Math.floor(d), mant = Math.pow(10, d - e);
-  c.font = '600 22px ui-monospace,Consolas,monospace'; c.textBaseline = 'bottom';
-  c.fillText('× ' + mant.toFixed(2) + ' · 10', x0, y0 - 8);
-  const tw = c.measureText('× ' + mant.toFixed(2) + ' · 10').width;
-  c.font = '600 13px ui-monospace,Consolas,monospace'; c.fillText(String(e), x0 + tw + 2, y0 - 20);
-  // 深さの物差し（10 倍ごとに 1 目盛り流れる）
-  const rx = x0 + S + 14, pitch = S / 6; c.textBaseline = 'middle'; c.font = '10px ui-monospace,Consolas,monospace';
-  c.strokeStyle = 'rgba(242,239,230,.5)'; c.fillStyle = 'rgba(242,239,230,.6)';
-  for (let k = Math.ceil(d - 3); k <= Math.floor(d + 3); k++) {
-    const y = h / 2 + (k - d) * pitch; c.beginPath(); c.moveTo(rx, y + .5); c.lineTo(rx + 10, y + .5); c.stroke();
-    if (rx + 60 < w) c.fillText('10^' + k, rx + 14, y);
+/* ---- 芯の絵（LOOK）：ふつうは毎コマ描き直す。BREAK のときは写しを拡大して見せ、×6 を超えたら描き直す ---- */
+const KB = 6;
+function paintLook() {
+  if (!S.brk) { core.render(); S.b0 = null; return; }
+  const zx = core.ctx, w = core.w, h = core.h;
+  const k = S.b0 && S.b0.cur === core.cur ? L.cdiv(core.m, S.b0.m) : null, ka = k ? L.cabs(k) : 0;
+  if (!k || ka > KB || ka < 1 / KB) {
+    if (!S.proof) core.normalize();
+    core.render(); const b = bmp.getContext('2d'); b.setTransform(1, 0, 0, 1, 0, 0); b.clearRect(0, 0, bmp.width, bmp.height); b.drawImage(zc, 0, 0);
+    S.b0 = { m: core.m.slice(), t: core.t.slice(), cur: core.cur }; return;
   }
-  c.strokeStyle = ACC; c.beginPath(); c.moveTo(rx - 4, h / 2 + .5); c.lineTo(rx + 16, h / 2 + .5); c.stroke();
-};
+  const kt = L.cmul(k, S.b0.t), o = [core.t[0] - kt[0], core.t[1] - kt[1]];
+  zx.setTransform(1, 0, 0, 1, 0, 0); zx.fillStyle = K.bg; zx.fillRect(0, 0, zc.width, zc.height);
+  zx.imageSmoothingEnabled = false;
+  zx.setTransform(dpr * k[0], dpr * k[1], -dpr * k[1], dpr * k[0], dpr * (w / 2 + o[0]), dpr * (h / 2 + o[1]));
+  zx.drawImage(bmp, -w / 2, -h / 2, w, h); zx.setTransform(1, 0, 0, 1, 0, 0); zx.imageSmoothingEnabled = true;
+}
 
-/* ---------- つまみ ---------- */
-const $ = id => document.getElementById(id);
-const fmt = { sens: v => '× ' + (+v).toFixed(2), inertia: v => (+v).toFixed(2), magnet: v => (+v).toFixed(2), minPx: v => v + ' px', autoSec: v => (+v).toFixed(1) + ' 秒', twist: v => v + '°', shrink: v => (+v).toFixed(3) };
-for (const k of ['sens', 'inertia', 'magnet', 'minPx', 'autoSec']) {
-  const el = $(k), up = () => { core.p[k] = +el.value; $('v_' + k).textContent = fmt[k](el.value); };
-  el.addEventListener('input', up); up();
+/* ---- 数（法則から） ---- */
+function derive() {
+  const w = W_(), id = S.world === 'chain' ? core.cur : w.root, D = L.dimension(w, id), N = L.childCount(w, id);
+  const lm = L.loopMap(w, w.root), ks = w.scenes[id].children();
+  return { D, N, lm, ks, id, state: L.stateOf(D, N), s: PARAM[S.world] ? P[PARAM[S.world]] : ks[0].s };
 }
-for (const k of ['twist', 'shrink']) {
-  const el = $(k), up = () => { P[k] = +el.value; $('v_' + k).textContent = fmt[k](el.value); core.normalize(); };
-  el.addEventListener('input', up); up();
-}
-function gate() {
-  const nest = $('world').value === 'nest';
-  for (const id of ['r_twist', 'r_shrink']) { $(id).classList.toggle('off', !nest); $(id).querySelector('input').disabled = !nest; }
-  for (const id of ['r_dir', 'r_sec']) $(id).classList.toggle('off', !core.p.auto);
-  $('autoSec').disabled = !core.p.auto; $('dirIn').disabled = $('dirOut').disabled = !core.p.auto;
-  $('auto').classList.toggle('on', core.p.auto);
-  $('dirIn').classList.toggle('on', core.p.autoDir > 0); $('dirOut').classList.toggle('on', core.p.autoDir < 0);
-}
-$('world').addEventListener('change', e => { core.setWorld(WORLDS[e.target.value]); core.m = [core.S, 0]; gate(); });
-$('auto').addEventListener('click', () => { core.p.auto = !core.p.auto; gate(); });
-$('dirIn').addEventListener('click', () => { core.p.autoDir = 1; gate(); });
-$('dirOut').addEventListener('click', () => { core.p.autoDir = -1; gate(); });
-$('home').addEventListener('click', () => { core.home(); core.m = [core.S, 0]; });
-gate();
+let Dv = derive();
 
-window.__ZOOM = { core, P, WORLDS };   // 検証用
-core.start();
+function draw() {
+  const d = Dv; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = K.bg; ctx.fillRect(0, 0, W, H);
+  const { lx, ly, lw, lh } = G;
+  ctx.drawImage(zc, lx, ly, lw, lh);
+  drawHud(d);
+  ctx.strokeStyle = K.rule; ctx.lineWidth = 1; ctx.strokeRect(lx + .5, ly + .5, lw - 1, lh - 1);
+  ctx.strokeStyle = K.rule2; ctx.beginPath(); ctx.moveTo(G.ex + .5, 30); ctx.lineTo(G.ex + .5, H - 14); ctx.stroke();
+  drawRule(d); drawCount(d); drawTape(d);
+}
+
+/* ===== LOOK の上の枠と数（Powers of Ten の画面の決まり） ===== */
+function sup(n) { return String(n).replace(/[-0-9]/g, c => '⁻⁰¹²³⁴⁵⁶⁷⁸⁹'['-0123456789'.indexOf(c)]); }
+function drawHud(d) {
+  const { lx, ly, lw, lh } = G, S0 = core.S, cxL = lx + lw / 2, cyL = ly + lh / 2, x0 = cxL - S0 / 2, y0 = cyL - S0 / 2;
+  ctx.strokeStyle = K.accA(.6); ctx.lineWidth = 1; ctx.strokeRect(Math.round(x0) + .5, Math.round(y0) + .5, S0, S0);
+  const dep = core.depth, e = Math.floor(dep), mant = Math.pow(10, dep - e);
+  // いまの大きさ：LOOK の左下（× 仮数 · 10^桁 と、いる場面・LEVEL）
+  const t1 = '× ' + mant.toFixed(2) + ' · 10', bx = lx + 12, by = ly + lh - 14; ctx.font = mono(22, 600); const tw = ctx.measureText(t1).width; ctx.font = mono(13, 600); const ew = ctx.measureText(String(e)).width;
+  const t2 = core.world.scenes[core.cur].name + '  LEVEL ' + core.level; ctx.font = mono(11, 600); const sw = ctx.measureText(t2).width;
+  ctx.fillStyle = 'rgba(6,6,6,.8)'; ctx.fillRect(bx - 6, by - 26, tw + ew + sw + 34, 34);
+  txt(t1, bx, by, { f: mono(22, 600), c: K.acc }); txt(String(e), bx + tw + 2, by - 11, { f: mono(13, 600), c: K.acc });
+  txt(t2, bx + tw + ew + 18, by, { f: mono(11, 600), c: K.acc });
+  // 深さの物差し（10 倍ごとに 1 目盛り流れる・青緑の長い印＝1 周）
+  const rx = x0 + S0 + 16, pitch = S0 / 6;
+  ctx.textBaseline = 'middle'; ctx.font = mono(10); ctx.strokeStyle = 'rgba(242,239,230,.5)'; ctx.fillStyle = 'rgba(242,239,230,.62)';
+  for (let k = Math.ceil(dep - 3); k <= Math.floor(dep + 3); k++) { const y = cyL + (k - dep) * pitch; ctx.beginPath(); ctx.moveTo(rx, y + .5); ctx.lineTo(rx + 10, y + .5); ctx.stroke(); ctx.fillText('10' + sup(k), rx + 14, y); }
+  const per = d.lm.dec; if (per * pitch > 5) { ctx.strokeStyle = K.accA(.7); for (let q = Math.ceil((dep - 3) / per); q <= Math.floor((dep + 3) / per); q++) { const y = cyL + (q * per - dep) * pitch; ctx.beginPath(); ctx.moveTo(rx - 6, y + .5); ctx.lineTo(rx, y + .5); ctx.stroke(); } }
+  ctx.strokeStyle = K.acc; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(rx - 4, cyL + .5); ctx.lineTo(rx + 16, cyL + .5); ctx.stroke(); ctx.lineWidth = 1; ctx.textBaseline = 'alphabetic';
+  if (S.brk) { const k = S.b0 ? L.cabs(L.cdiv(core.m, S.b0.m)) : 1; ctx.fillStyle = 'rgba(6,6,6,.82)'; ctx.fillRect(lx, ly + 48, 330, 40);   // CONTROL の札の下
+    txt('BREAK · 描き直さず、写した画像を拡大', lx + 8, ly + 64, { f: note(11), c: K.acc });
+    txt('いま写しの ×' + k.toFixed(2) + '（×' + KB + ' を超えたら描き直す）', lx + 8, ly + 80, { f: mono(10), c: K.dim }); }
+  if (S.proof) drawProof(d);
+}
+function drawProof(d) {
+  const { lx, ly, lw, lh } = G, lm = S.lm0, st = ['① 入口の絵を写しておく', '② 1 周ぶん寄る（×' + fmtF(lm.factor) + (Math.abs(lm.turn) > 0.05 ? '・' + (-lm.turn).toFixed(1) + '° 回る' : '') + '）', S.diff ? '③ 写しと重ねる → 差 ' + S.diff.n.toLocaleString() + ' 画素（' + S.diff.tot.toLocaleString() + ' 画素中・最大の差 ' + S.diff.max + '）' : '③ 写しと重ねる'];
+  const k3 = S.pt < 0.8 ? 0 : S.pt < 4.8 ? 1 : 2, x = lx + lw - 12, w0 = 420;
+  ctx.fillStyle = 'rgba(6,6,6,.82)'; ctx.fillRect(x - w0 - 8, ly + 10, w0 + 12, 20 + k3 * 17);
+  for (let q = 0; q <= k3; q++) txt(st[q], x - w0, ly + 25 + q * 17, { f: note(11), c: q === k3 ? K.acc : K.dim });
+  if (S.snap) { const tw = 168, th = tw * lh / lw, tx = lx + lw - tw - 12, ty = ly + lh - th - 12;
+    ctx.drawImage(S.snapCanvas, tx, ty, tw, th); ctx.strokeStyle = K.acc; ctx.strokeRect(tx + .5, ty + .5, tw - 1, th - 1);
+    txt('写し（入口）', tx, ty - 6, { f: note(10), c: K.acc }); }
+  if (S.diff) { const ok = S.diff.n === 0; txt(ok ? '同じ絵' : '違う絵', lx + lw / 2, ly + 92, { a: 'center', f: '400 34px Michroma,sans-serif', c: ok ? K.acc : '#E8A23A' }); }
+}
+
+/* ===== CAUSE ① 1 枚の決まり（親の中に、縮めた自分が N 個） ===== */
+function drawRule(d) {
+  const x0 = G.cx, rx = x0 + 110, ry = 158, R = 156, w = W_(), sc = w.scenes[d.id];
+  txt('RULE · 1 枚の決まり', x0, 52, { f: jura(10, 600), c: K.dim });
+  ctx.save(); ctx.beginPath(); ctx.rect(x0, 60, 226, 196); ctx.clip();
+  ctx.setTransform(dpr * R, 0, 0, dpr * R, dpr * rx, dpr * ry); ctx.globalAlpha = 1;
+  sc.draw(ctx, { px: 1 / R, alpha: 1, childAlpha: 1, level: 0, size: R, time: 0 });
+  d.ks.forEach((ch, i) => {
+    const f = L.xf(ch), m = [R * f.cs[0], R * f.cs[1]], t = [rx + R * f.cc[0], ry + R * f.cc[1]];
+    ctx.setTransform(dpr * m[0], dpr * m[1], -dpr * m[1], dpr * m[0], dpr * t[0], dpr * t[1]); ctx.globalAlpha = 0.6;
+    w.scenes[ch.to].draw(ctx, { px: 1 / (R * ch.s), alpha: 0.6, childAlpha: 0, level: 1, size: R * ch.s, time: 0 }); ctx.globalAlpha = 1;
+    ctx.setLineDash([3 / (R * ch.s), 3 / (R * ch.s)]); ctx.strokeStyle = K.acc; ctx.lineWidth = 1 / (R * ch.s); ctx.strokeRect(-0.5, -0.5, 1, 1); ctx.setLineDash([]);
+  });
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = 1;
+  d.ks.forEach((ch, i) => { const px = rx + R * (ch.x || 0), py = ry + R * (ch.y || 0), sz = R * ch.s;
+    if (sz < 16) { ctx.strokeStyle = K.acc; ctx.beginPath(); ctx.arc(px, py, 9, 0, 7); ctx.stroke(); txt('次の場面', px + 12, py - 8, { f: note(10), c: K.acc }); }
+    else if (d.ks.length > 1) txt(String(i + 1), px, py + 4, { a: 'center', f: mono(10, 600), c: K.acc }); });
+  ctx.restore();
+  const th = d.ks.length ? Math.abs(d.ks[S.world === 'koch' ? 1 : 0].rot || 0) : 0;
+  const l1 = S.world === 'fern' ? '子 3 個 · 縮み 0.85 / 0.32 / 0.32' : '子 ' + d.N + ' 個 · 縮み ' + d.ks[0].s.toFixed(3) + (th > 0.05 ? ' · 回り ' + th.toFixed(1) + '°' : '');
+  txt(l1, x0, 272, { f: mono(11, 600) }); txt(S.world === 'koch' ? '山の角 θ ' + L.kochAngle(P.kochS).toFixed(1) + '°（4 本の長さ s = 1/(2+2cos θ)）' : '点線の枠＝子の場面（親の座標で）', x0, 288, { f: note(10), c: K.dim });
+}
+
+/* ===== CAUSE ② 1 段ごとの数：N = (1/s)^D を両対数で（傾き＝D） ===== */
+function drawCount(d) {
+  const gx0 = 1170, gy1 = 236, u = 38, X = v => gx0 + v * u, Y = v => gy1 - v * u, xm = 5.3, ym = 4.3;
+  txt('COUNT · 1 段ごとの数（横＝寄った倍率・縦＝自分の数）', 1146, 52, { f: jura(10, 600), c: K.dim });
+  ctx.save(); ctx.beginPath(); ctx.rect(gx0 - 2, Y(ym) - 2, xm * u + 6, ym * u + 4); ctx.clip();
+  ctx.strokeStyle = K.rule2; ctx.lineWidth = 1; for (let v = 1; v <= 5; v++) { ctx.beginPath(); ctx.moveTo(X(v) + .5, Y(ym)); ctx.lineTo(X(v) + .5, gy1); ctx.stroke(); } for (let v = 1; v <= 4; v++) { ctx.beginPath(); ctx.moveTo(gx0, Y(v) + .5); ctx.lineTo(X(xm), Y(v) + .5); ctx.stroke(); }
+  ctx.setLineDash([3, 4]); ctx.strokeStyle = K.faint; for (const D of [1, 2]) { ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(X(xm), Y(D * xm)); ctx.stroke(); } ctx.setLineDash([]);
+  ctx.strokeStyle = K.acc; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(X(xm), Y(d.D * xm)); ctx.stroke(); ctx.lineWidth = 1;
+  if (S.world !== 'fern' && d.N > 1) { const dec = -Math.log10(d.ks[0].s); ctx.fillStyle = K.acc; for (let k = 0; k * dec <= xm; k++) { ctx.beginPath(); ctx.arc(X(k * dec), Y(k * Math.log10(d.N)), 3, 0, 7); ctx.fill(); } }
+  const dep = core.depth; if (dep >= 0 && dep <= xm) { ctx.strokeStyle = K.ink; ctx.setLineDash([2, 2]); ctx.beginPath(); ctx.moveTo(X(dep) + .5, gy1); ctx.lineTo(X(dep) + .5, Y(Math.min(ym, d.D * dep))); ctx.stroke(); ctx.setLineDash([]); }
+  ctx.restore();
+  ctx.strokeStyle = K.ink; ctx.beginPath(); ctx.moveTo(gx0 + .5, Y(ym)); ctx.lineTo(gx0 + .5, gy1 + .5); ctx.lineTo(X(xm), gy1 + .5); ctx.stroke();
+  ctx.font = mono(9); ctx.fillStyle = K.dim; ctx.textAlign = 'center'; for (let v = 0; v <= 5; v++) ctx.fillText('10' + sup(v), X(v), gy1 + 12);
+  ctx.textAlign = 'right'; for (let v = 0; v <= 4; v++) ctx.fillText('10' + sup(v), gx0 - 4, Y(v) + 3);
+  txt('線 D1', X(3.9), Y(3.9) + 14, { f: note(9), c: K.faint }); txt('面 D2', X(1.85), Y(3.7) + 4, { a: 'right', f: note(9), c: K.faint });
+  const t10 = Math.pow(10, d.D);
+  txt(d.N <= 1 ? '子が 1 つ＝何倍寄っても 1 つ（D 0）' : 'D = log N / log(1/s) = ' + d.D.toFixed(3), 1146, 272, { f: mono(11, 600) });
+  txt(d.N <= 1 ? '寄る先はいつも 1 本道' : '10 倍寄ると、自分の数は ×' + (t10 >= 100 ? t10.toFixed(0) : t10.toFixed(1)), 1146, 288, { f: note(10), c: K.dim });
+}
+
+/* ===== CAUSE ③ 深さのテープ（±4 桁・青緑の長い印＝1 周・押すとその深さへ飛ぶ） ===== */
+function drawTape(d) {
+  const { tx0, tx1, tY } = G, xc = (tx0 + tx1) / 2, pd = (tx1 - tx0) / 8, dep = core.depth, lm = d.lm;
+  txt('DEPTH · 深さのテープ（押すとその深さへ）', G.cx, 318, { f: jura(10, 600), c: K.dim });
+  ctx.strokeStyle = K.ink; ctx.beginPath(); ctx.moveTo(tx0, tY + .5); ctx.lineTo(tx1, tY + .5); ctx.stroke();
+  ctx.save(); ctx.beginPath(); ctx.rect(tx0, tY - 40, tx1 - tx0, 80); ctx.clip();
+  // 1 段ごとの小さな印と、1 周ごとの長い印
+  const cum = [0]; lm.steps.forEach(s => cum.push(cum[cum.length - 1] + s.dec));
+  if (lm.dec * pd > 6) for (let q = Math.floor((dep - 4) / lm.dec) - 1; q <= Math.ceil((dep + 4) / lm.dec) + 1; q++) {
+    cum.forEach((c, j) => { if (j === cum.length - 1) return; const v = q * lm.dec + c, x = xc + (v - dep) * pd; ctx.strokeStyle = j === 0 ? K.acc : K.accA(.55); ctx.lineWidth = j === 0 ? 2 : 1; ctx.beginPath(); ctx.moveTo(x, tY - (j === 0 ? 22 : 12)); ctx.lineTo(x, tY); ctx.stroke(); }); }
+  else { ctx.fillStyle = K.accA(.18); ctx.fillRect(tx0, tY - 14, tx1 - tx0, 14); }
+  ctx.lineWidth = 1; ctx.strokeStyle = K.ink;
+  for (let k = Math.ceil(dep - 4); k <= Math.floor(dep + 4); k++) { const x = xc + (k - dep) * pd; ctx.beginPath(); ctx.moveTo(x + .5, tY); ctx.lineTo(x + .5, tY + 8); ctx.stroke(); txt('10' + sup(k), x, tY + 22, { a: 'center', f: mono(10), c: K.dim }); }
+  ctx.restore();
+  ctx.fillStyle = K.acc; ctx.beginPath(); ctx.moveTo(xc, tY - 2); ctx.lineTo(xc - 6, tY - 30); ctx.lineTo(xc + 6, tY - 30); ctx.fill(); txt('いま', xc, tY - 34, { a: 'center', f: note(10), c: K.acc });
+  const turn = Math.abs(lm.turn) > 0.05 ? ' · ' + (-lm.turn).toFixed(1) + '° 回る' : '';
+  txt('1 周 ×' + fmtF(lm.factor) + ' ＝ ' + lm.dec.toFixed(3) + ' 桁' + turn + (lm.steps.length > 1 ? '（' + lm.steps.length + ' 場面で 1 周）' : ''), G.cx, 418, { f: mono(11, 600) });
+  txt('AUTO ' + core.p.autoSec.toFixed(1) + ' 秒で 10 倍 → 1 周 ' + (lm.dec * core.p.autoSec).toFixed(2) + ' 秒　·　ここまで来た 10^' + S.maxD.toFixed(1), G.cx, 436, { f: note(10), c: K.dim });
+}
+
+/* ---- 外枠への書き出し ---- */
+const STATE_I = { PATH: 0, DUST: 1, LACE: 2, FILL: 3 };
+const BX = (D, N) => N <= 1 ? 10 : D < 1 ? 24 + clamp((D - 0.6) / 0.4, 0, 1) * 60 : D < 2 ? 84 + (D - 1) * 76 : 160 + clamp((D - 2) / 0.3, 0, 1) * 46;
+const setBound = PHShell.boundary($('bound'), { width: 212, zones: ['PATH', 'DUST', 'LACE', 'FILL'], cuts: [{ x: 24, label: 'N 1' }, { x: 84, label: 'D 1' }, { x: 160, label: 'D 2' }] });
+const scaleSvg = $('scale'), NS = 'http://www.w3.org/2000/svg', sEl = (t, a, tx) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (tx != null) e.textContent = tx; scaleSvg.appendChild(e); return e; };
+const sXD = D => clamp(D / 2.4, 0, 1) * 960, MF = "'M PLUS 1 Code', monospace";
+sEl('rect', { x: sXD(2), y: 20, width: 960 - sXD(2), height: 12, fill: 'rgba(127,214,203,.22)' });
+sEl('line', { x1: 0, y1: 26, x2: 960, y2: 26, stroke: 'rgba(232,230,223,0.55)' });
+for (const [D, s, top] of [[0, '0 · 1 本道', 0], [1, '1 · 直線', 0], [L.D_COAST, '海岸線 ≈1.25（ブリテン島）', 1], [Math.log(3) / Math.log(2), 'シェルピンスキー 1.585', 0], [2, '2 · 面', 0], [2.4, '重なり', 1]]) {
+  const x = sXD(D); sEl('line', { x1: x, y1: 20, x2: x, y2: 32, stroke: '#E8E6DF' }); sEl('text', { x, y: top ? 14 : 46, 'font-family': MF, 'font-size': 10, fill: '#9C9A93', 'text-anchor': D === 0 ? 'start' : D >= 2.4 ? 'end' : 'middle' }, s); }
+const scaleMk = sEl('polygon', { points: '0,29 -6,40 6,40', fill: '#7FD6CB' });
+/* SPECIMEN：コッホ曲線（4 段） */
+{ const sp = $('specimen'), s = document.createElementNS(NS, 'svg'); s.setAttribute('width', 310); s.setAttribute('height', 174); s.setAttribute('viewBox', '0 0 310 174'); s.style.cssText = 'position:absolute;left:0;top:0';
+  const pts = []; const rec = (a, b, n) => { if (!n) { pts.push(a); return; } const dx = (b[0] - a[0]) / 3, dy = (b[1] - a[1]) / 3, p1 = [a[0] + dx, a[1] + dy], p2 = [a[0] + 2 * dx, a[1] + 2 * dy], c = Math.cos(-Math.PI / 3), sn = Math.sin(-Math.PI / 3), pk = [p1[0] + dx * c - dy * sn, p1[1] + dx * sn + dy * c]; rec(a, p1, n - 1); rec(p1, pk, n - 1); rec(pk, p2, n - 1); rec(p2, b, n - 1); };
+  rec([22, 122], [288, 122], 4); pts.push([288, 122]);
+  s.innerHTML = '<rect width="310" height="174" fill="#060606"/><polyline fill="none" stroke="#F2EFE6" stroke-width="1" points="' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ') + '"/>' +
+    '<rect x="111" y="78" width="88" height="46" fill="none" stroke="#7FD6CB" stroke-dasharray="3 3"/><text x="16" y="150" font-family="Jura,sans-serif" font-style="italic" font-size="11" fill="#F2EFE6">von Koch · 1904</text><text x="16" y="166" font-family="M PLUS 1 Code,monospace" font-size="9" fill="#9C9A93">点線の中を 3 倍にすると、全体と同じ形</text>';
+  sp.insertBefore(s, sp.firstChild); }
+
+function readout() {
+  const d = Dv, si = STATE_I[d.state], w = W_(), pk = PARAM[S.world];
+  PHShell.mark($('states'), si);
+  [...$('states').children].forEach(c => c.classList.toggle('seek', !!S.go && c.dataset.s === S.go.k || (S.flash > 0 && c.dataset.s === d.state)));
+  $('o_d').textContent = core.depth.toFixed(2); $('o_lv').textContent = 'LEVEL ' + core.level;
+  $('o_s').textContent = d.s.toFixed(3); $('o_lp').textContent = '1 周 ×' + fmtF(d.lm.factor);
+  $('o_si').textContent = { nest: '子の縮み', tri: '角の子の縮み', koch: '4 本の長さ（山の角 ' + L.kochAngle(P.kochS).toFixed(0) + '°）' }[S.world] || 'この題材は形で決まる';
+  $('r_shrink').classList.toggle('ph-off', !pk); $('shrink').disabled = !pk;
+  if (pk && document.activeElement !== $('shrink')) { const r = L.RANGE[S.world]; $('shrink').min = r[0]; $('shrink').max = r[1]; $('shrink').value = P[pk]; }
+  $('o_D').textContent = d.D.toFixed(3); $('o_N').textContent = 'N ' + d.N + ' 個';
+  const nest = S.world === 'nest'; $('r_twist').classList.toggle('ph-off', !nest); $('twist').disabled = !nest; $('o_twi').textContent = nest ? '子の回り' : 'NEST のとき';
+  const sp = S.auto; $('r_sec').classList.toggle('ph-off', !sp); $('autoSec').disabled = !sp; $('o_seci').textContent = sp ? '10 倍の秒' : 'AUTO のとき';
+  for (const id of ['dirs', 'paths']) $(id).classList.toggle('ph-off', !sp);
+  document.querySelectorAll('#dirs .ph-chip').forEach(b => b.classList.toggle('on', +b.dataset.d === core.p.autoDir));
+  document.querySelectorAll('#paths .ph-chip').forEach(b => b.classList.toggle('on', (b.dataset.p === 'spin') === S.spin));
+  $('o_cap').textContent = sp ? (S.spin ? '1 周の止まる点へ回りを合わせて寄る' : '画面の中心へまっすぐ（MAGNET が効く）') : 'AUTO の進み方（AUTO のとき）';
+  $('bProof').classList.toggle('on', S.proof); $('bAuto').classList.toggle('on', S.auto); $('bBreak').classList.toggle('on', S.brk); $('win').classList.toggle('broken', S.brk);
+  document.querySelectorAll('#worlds .ph-chip').forEach(b => b.classList.toggle('on', b.dataset.w === S.world));
+  setBound(BX(d.D, d.N), si); scaleMk.setAttribute('transform', 'translate(' + sXD(d.D).toFixed(1) + ' 0)');
+  PHShell.mark($('marks'), w.realism);
+  $('titleField').textContent = 'Z2 — ZOOM · SELF · ' + w.name + ' · STATE ' + d.state + (S.brk ? ' · BREAK 画像を拡大' : '');
+  $('bigD').textContent = 'D ' + d.D.toFixed(3);
+  $('nz1').textContent = 'DEPTH ' + core.depth.toFixed(2) + '  LEVEL ' + core.level; $('nz2').textContent = 'D ' + d.D.toFixed(3) + '  N ' + d.N + '  S ' + d.s.toFixed(3);
+  for (const k of ['sens', 'inertia', 'magnet', 'minPx', 'autoSec']) $('v_' + k).textContent = FM[k](core.p[k]);
+  $('v_twist').textContent = P.twist + '°';
+}
+const FM = { sens: v => '× ' + (+v).toFixed(2), inertia: v => (+v).toFixed(2) + ' 秒', magnet: v => (+v).toFixed(2), minPx: v => v + ' px', autoSec: v => (+v).toFixed(1) + ' 秒' };
+
+/* ---- 原因を動かす ---- */
+function setWorld(k) { if (!WORLDS[k]) return; S.world = k; core.setWorld(WORLDS[k]); core.m = [core.S, 0]; S.b0 = null; S.maxD = 0; if (S.proof) startProof(); Dv = derive(); }
+function setParam(k, v) { if (!PARAM[k]) return; const r = L.RANGE[k]; P[PARAM[k]] = clamp(v, r[0], r[1]); if (!S.proof) core.normalize(); else startProof(); S.b0 = null; }
+/* STATE を押す：その状態になるように子の数（題材）と縮み（原因）を 0.9 秒で動かす */
+const GO = { DUST: ['tri', 0.27], LACE: { koch: ['koch', 1 / 3], tri: ['tri', 0.5], other: ['tri', 0.5] }, FILL: { koch: ['koch', 0.5], other: ['tri', 0.6] } };
+function goState(k) {
+  S.go = null; let tgt; if (S.proof) { S.proof = false; core.home(); }
+  if (k === 'PATH') { if (Dv.N > 1) setWorld('nest'); else S.flash = 0.6; return; }
+  if (k === 'DUST') tgt = GO.DUST; else { const g = GO[k]; tgt = g[S.world] || (k === 'LACE' && S.world === 'fern' ? null : g.other); }
+  if (!tgt) { S.flash = 0.6; return; }
+  if (S.world !== tgt[0]) setWorld(tgt[0]);
+  S.go = { k, w: tgt[0], a: 0, v0: P[PARAM[tgt[0]]], v1: tgt[1] };
+}
+
+/* ---- PROOF：入口の絵を写し → 1 周の道を寄る → 重ねて画素の差を数える（8 秒でくり返す） ---- */
+function startProof() { S.proof = true; S.pt = 0; S.snap = null; S.diff = null; S.lm0 = L.loopMap(W_(), W_().root); S.b0 = null; poseProof(0); }
+function poseProof(u) { const w = W_(); core.cur = w.root; core.stack = []; core.level = 0; core.pending = 0; const p = L.divePose(S.lm0, core.S, u); core.m = p.m; core.t = p.t; core.depth = u * S.lm0.dec; if (!S.brk) core.normalize(); }
+function grab() { return core.ctx.getImageData(0, 0, zc.width, zc.height).data; }
+function proofStep(dt) {
+  const was = S.pt; S.pt += dt; if (S.pt >= 8) { startProof(); return; }
+  const u = S.pt < 0.8 ? 0 : S.pt < 4.8 ? (q => q * q * (3 - 2 * q))((S.pt - 0.8) / 4) : 1; poseProof(u);
+  return was < 4.8 && S.pt >= 4.8;   // 重ねる瞬間
+}
+
+/* ---- 1 コマ ---- */
+function step(dt) {
+  S.flash = Math.max(0, S.flash - dt);
+  if (S.go) { const q = S.go; q.a = Math.min(1, q.a + dt / 0.9); const e = q.a * q.a * (3 - 2 * q.a); setParam(q.w, q.v0 + (q.v1 - q.v0) * e); if (q.a >= 1) S.go = null; }
+  let compare = false;
+  core.autoNormalize = !S.brk;
+  core.p.auto = S.auto && !S.spin && !S.proof;
+  if (S.proof) compare = proofStep(dt);
+  else {
+    core.advance(dt);
+    if (S.auto && S.spin) { const lm = L.loopMap(core.world, core.cur), dir = core.p.autoDir, u = dir * dt / core.p.autoSec / lm.dec;
+      const r = Math.pow(10, dir * dt / core.p.autoSec), a = lm.turn * D2R * -u, z = L.cmul(core.m, lm.fixed);
+      core.spinAt([r * Math.cos(a), r * Math.sin(a)], z[0] + core.t[0], z[1] + core.t[1]); }
+  }
+  paintLook();
+  if (S.proof && !S.snap && S.pt < 0.8) { S.snap = grab(); if (!S.snapCanvas) S.snapCanvas = document.createElement('canvas'); S.snapCanvas.width = zc.width; S.snapCanvas.height = zc.height; S.snapCanvas.getContext('2d').drawImage(zc, 0, 0); }
+  if (compare && S.snap) { const b = grab(); let n = 0, mx = 0; for (let i = 0; i < b.length; i += 4) { const e = Math.max(Math.abs(b[i] - S.snap[i]), Math.abs(b[i + 1] - S.snap[i + 1]), Math.abs(b[i + 2] - S.snap[i + 2])); if (e > 2) n++; if (e > mx) mx = e; } S.diff = { n, tot: b.length / 4, max: mx }; }
+  if (!S.proof) S.maxD = Math.max(S.maxD, core.depth);
+  Dv = derive(); readout(); draw();
+}
+
+/* ---- 操作 ---- */
+const stopHands = () => { S.go = null; if (S.proof) { S.proof = false; core.home(); } };
+document.querySelectorAll('#worlds .ph-chip').forEach(b => b.addEventListener('click', () => { S.go = null; setWorld(b.dataset.w); }));
+document.querySelectorAll('#states > div').forEach(b => b.addEventListener('click', () => goState(b.dataset.s)));
+$('bound').addEventListener('click', e => { const r = $('bound').getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 212; goState(x < 24 ? 'PATH' : x < 84 ? 'DUST' : x < 160 ? 'LACE' : 'FILL'); });
+$('shrink').addEventListener('input', e => { S.go = null; setParam(S.world, +e.target.value); });
+$('twist').addEventListener('input', e => { P.twist = +e.target.value; if (!S.proof) core.normalize(); else startProof(); S.b0 = null; });
+for (const k of ['sens', 'inertia', 'magnet', 'minPx', 'autoSec']) $(k).addEventListener('input', e => { core.p[k] = +e.target.value; });
+document.querySelectorAll('#dirs .ph-chip').forEach(b => b.addEventListener('click', () => { core.p.autoDir = +b.dataset.d; }));
+document.querySelectorAll('#paths .ph-chip').forEach(b => b.addEventListener('click', () => { S.spin = b.dataset.p === 'spin'; }));
+$('bProof').addEventListener('click', () => { S.go = null; if (S.proof) { S.proof = false; core.home(); } else { S.auto = false; startProof(); } });
+$('bAuto').addEventListener('click', () => { S.go = null; if (S.proof) { S.proof = false; core.home(); } S.auto = !S.auto; });
+$('bBreak').addEventListener('click', () => { S.brk = !S.brk; S.b0 = null; if (S.proof) startProof(); });
+addEventListener('keydown', e => { if (e.key === 'Escape') { S.auto = false; if (S.proof) { S.proof = false; core.home(); } } });
+
+const pos = e => { const r = cv.getBoundingClientRect(), k = r.width / Math.max(1, cv.clientWidth); return [(e.clientX - r.left) / k, (e.clientY - r.top) / k]; };
+const inLook = (x, y) => x >= G.lx && x <= G.lx + G.lw && y >= G.ly && y <= G.ly + G.lh;
+const inTape = (x, y) => x >= G.tx0 && x <= G.tx1 && y >= G.tY - 44 && y <= G.tY + 30;
+const rel = (x, y) => [x - (G.lx + G.lw / 2), y - (G.ly + G.lh / 2)];   // 芯の座標（LOOK の中心から）
+cv.addEventListener('wheel', e => { const [x, y] = pos(e); if (!inLook(x, y)) return; e.preventDefault(); stopHands();
+  let dy = e.deltaY; if (e.deltaMode === 1) dy *= 33; else if (e.deltaMode === 2) dy *= 400;
+  const amt = e.ctrlKey ? -dy * 0.01 : -(dy / 100) * Math.log(core.p.sens), [ax, ay] = rel(x, y); core.push(amt, ax, ay); }, { passive: false });
+const pts = new Map(); let pd = 0, pc = null;
+const two = () => { const a = [...pts.values()]; return { d: Math.hypot(a[0][0] - a[1][0], a[0][1] - a[1][1]), c: [(a[0][0] + a[1][0]) / 2, (a[0][1] + a[1][1]) / 2] }; };
+cv.addEventListener('pointerdown', e => { const [x, y] = pos(e);
+  if (inTape(x, y)) { stopHands(); const dd = (x - (G.tx0 + G.tx1) / 2) / ((G.tx1 - G.tx0) / 8); core.push(dd * LN10, 0, 0); return; }
+  if (!inLook(x, y)) return; stopHands(); try { cv.setPointerCapture(e.pointerId); } catch (_) {}
+  pts.set(e.pointerId, rel(x, y)); if (pts.size === 2) { const q = two(); pd = q.d; pc = q.c; } });
+cv.addEventListener('pointermove', e => { const [x, y] = pos(e), il = inLook(x, y);
+  $('ctl').classList.toggle('hot', il || pts.size > 0); cv.style.cursor = il ? (pts.size ? 'grabbing' : 'crosshair') : inTape(x, y) ? 'pointer' : 'default';
+  if (!pts.has(e.pointerId)) return;
+  const old = pts.get(e.pointerId), now = rel(x, y); pts.set(e.pointerId, now);
+  if (pts.size === 1) core.pan(now[0] - old[0], now[1] - old[1]);
+  else if (pts.size === 2) { const q = two(); core.pan(q.c[0] - pc[0], q.c[1] - pc[1]); if (pd > 0 && q.d > 0) core.zoomAt(q.d / pd, q.c[0], q.c[1]); pd = q.d; pc = q.c; } });
+const up = e => { pts.delete(e.pointerId); }; cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+cv.addEventListener('pointerleave', () => { if (!pts.size) $('ctl').classList.remove('hot'); });
+new ResizeObserver(() => { layout(); draw(); }).observe(cv);
+PHShell.onScale(() => { layout(); draw(); });
+if (document.fonts) ["11px 'JetBrains Mono'", "11px 'M PLUS 1 Code'", "13px 'IBM Plex Sans JP'", "12px Jura", "34px Michroma"].forEach(f => document.fonts.load(f));
+
+/* 直リンク：#w=nest|tri|koch|fern|golden|chain&s=縮み&tw=回り&d=桁（寄って開く）&proof=1&auto=1&spin=0&dir=-1&brk=1&sec=秒 */
+layout();
+{ const h = new URLSearchParams(location.hash.slice(1));
+  if (h.has('w')) setWorld(h.get('w')); if (h.has('tw')) P.twist = clamp(+h.get('tw'), 0, 90); if (h.has('s')) setParam(S.world, +h.get('s'));
+  if (h.has('sec')) core.p.autoSec = clamp(+h.get('sec'), 1, 30); if (h.get('spin') === '0') S.spin = false; if (h.get('dir') === '-1') core.p.autoDir = -1;
+  if (h.has('d')) { for (let r = +h.get('d'); r > 1e-9; r -= 1) core.zoomAt(Math.pow(10, Math.min(1, r)), 0, 0); }
+  if (h.get('brk') === '1') S.brk = true; if (h.get('auto') === '1') S.auto = true; if (h.get('proof') === '1') startProof();
+  ['sens', 'inertia', 'magnet', 'minPx', 'autoSec', 'twist'].forEach(k => { $(k).value = k === 'twist' ? P.twist : core.p[k]; }); }
+window.__ZOOM = { core, P, WORLDS, S, L, get D() { return Dv; }, get G() { return G; }, step, draw, layout, readout, setWorld, setParam, goState, startProof };   // 検証用
+let last = performance.now();
+(function loop(now) { step(Math.max(0, Math.min(0.05, (now - last) / 1000))); last = now; requestAnimationFrame(loop); })(last);
 </script>
 </body>
 </html>

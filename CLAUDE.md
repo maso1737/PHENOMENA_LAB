@@ -237,7 +237,24 @@
   - 見本：`_out/check/a1lp/`（s0〜s9 の 0.45／0.95・`sheet_end.jpg`）。
 - 残り：TRANSFER の CG 欄を Blender で 1 回試して書き直す／STAGE LINK 登録。
 
-## 🆕 ZOOM CORE v0.1（2026-11-11・実装済み）
+## 🆕 Z2 SELF ＝ ZOOM CORE を ARCHIVE SHELL へ（2026-11-25・アプリ＋解説 LP）
+
+- ユーザー依頼「zoom だけフォーマットが違うので同じデザインに・アプリと LP」。`zoom/zoom_core.html` は**ファイル名そのまま**で外枠 ARCHIVE SHELL に作り直し（カード Z2 SELF・アクセント青緑 #1F8A80／白／#7FD6CB・窓は Powers of Ten の黒）。旧版は `_Archive/zoom/` にユーザーの控えがある。
+- 題材 6 つは `zoom/_law/ph_zoom_law.js` に移した（`makeWorlds(P)`・アプリと LP で共有）。**世界の書き方（scenes・children()・parent・draw）は変えていない**。足したもの：三角の子の縮み（0.25〜0.6・子は角に寄せる）・コッホの山の角（4 本の長さ s = 1/(2+2cos θ)・0°〜90°）・相似の次元 `dimension`（Σ s_i^D = 1）・状態 `stateOf`・1 周の写し `loopMap`（loopSlot の子をたどって戻るまで合成・止まる点 z* = c/(1−s·e^{iθ})）・1 周の道 `divePose`。
+- 芯 `zoom_core.js` に足した口（後方互換）：`setSize(w,h,dpr)`（外枠が CSS で縮むので画面に無い板に描いて窓へ写す）・`spinAt(F,ax,ay)`（複素数の倍率＝回りながら寄る）・`advance(dt)`（step ＝ advance ＋ render）。
+- 画面：LOOK＝芯の絵＋枠と左下の「× 仮数 · 10^桁・場面・LEVEL」＋右の深さの物差し（青緑＝1 周）。CAUSE＝① RULE（親の中の子の枠）② COUNT（両対数・傾き＝D・D1／D2 の点線）③ DEPTH テープ（±4 桁・押すとその深さへ飛ぶ）。窓の右に ENGINE（TWIST・SENS・INERTIA・MAGNET・DETAIL・SPEED・IN/OUT・回り合わせ／まっすぐ）。題材は窓の見出しの右の札。
+- READOUT：STATE＝PATH（子 1 つ）／DUST（D<1）／LACE（1〜2）／FILL（≥2）。押すと原因（題材と縮み）が 0.9 秒で動く（DUST＝三角 0.27・LACE＝コッホ 60° か三角 0.5・FILL＝コッホ 90° か三角 0.6・PATH＝NEST）。主役のつまみ SHRINK（NEST・三角・コッホのときだけ）。SCALE＝D の物差し（海岸線 1.25・シェルピンスキー 1.585）。
+- PROOF＝入口の絵を写す → 1 周の道（止まる点を止めて ×1/s・θ 戻す）を 4 秒で寄る → 写しと重ねて画素の差を数える（8 秒でくり返す）。**6 題材とも差 0 画素**。AUTO＝回り合わせ（1 周の道を伝ってどこまでも）／まっすぐ（中心へ・MAGNET が効く）。BREAK＝描き直さず写した画像を拡大（×6 で描き直す）→ PROOF の差が 14,172 画素になる。
+- 直リンク `#w=nest|tri|koch|fern|golden|chain&s=&tw=&d=桁&proof=1&auto=1&spin=0&dir=-1&brk=1&sec=`。出口 `window.__ZOOM`（`core`・`P`・`S`・`D`・`step`・`setWorld`・`setParam`・`goState`・`startProof`）。
+- 照合 `node zoom/_tools/check_zoom.cjs`（43 項目・画面なし）：次元（シェルピンスキー 1.585・コッホ 60° 1.2619／90° 2／0° 1・シダ 1.8087）・1 周の倍率と回り・止まる点・1 周後に m = S・t ≈ 0 に戻る（6 題材）・1 刻みが入口と 300 桁の奥で同じ・寄る中心・回りながら寄って止まる点が動かない。
+- 動作チェック（内蔵ブラウザで step を回して数値）：SENS（1.15→0.0607 桁・1.5→0.176 桁・深さ 0 と 300 で同じ）・INERTIA（0＝1 コマで全部・0.6＝5%）・MAGNET（0＝穴へ寄って場面 8・1＝形の上 1,328）・DETAIL（2→5,505・6→637・40→89 場面）・STATE 4・SHRINK・TWIST・AUTO（6 秒で 1.006 桁・OUT・SPEED 2 秒）・BREAK（×1.15 ずつで 5.35 → 1 に戻る）・テープを押す・直リンク 8 本。重さ 1〜4 ms／コマ（三角 0.6 は細部を粗くした）。見本 `_out/check/z2/`。
+- **✅ 解説 LP `zoom/scroll/SCROLL_SELF_LP.html`**（スキル `phenomena-scroll-lp` のひな形から）：10 駅＝00 問い（3 題材が寄り続ける）／01 割合で寄る（足し算と掛け算・16.5 刻みで 10 倍）／02 桁の壁（1 + 10⁻ᵈ・16 桁で点が丸められて消える）／03 乗り換え（|m| ののこぎり・前後の差 0 画素）／04 1 周＝PROOF（入口・寄る・差の画像 → 差 0）／05 回りながら（黄金のらせん・止まる点と対数らせん・1 回転 ×6.85）／06 次元＝STATE（三角 s 0.25→0.6・両対数・アプリと同じ区切り）／07 海岸線（物差し 3⁻ᵏ・STEPPED・(4/3)¹⁰ ＝ ×17.8・ブリテン島 1.25）／08 BREAK（描き直す ／ 拡大・線の画素の 91% が違う）／09 持ち出す（NEXT CARD Z4）。式 5 本：① d = log₁₀ k ② p = m·z + t ③ 1 周 = ×1/s ④ z* = c/(1 − s·e^{iθ}) ⑤ D = log N / log(1/s)。
+  - 図のズームはどれもアプリと同じ芯でその場で描く。KEY NUMBER の画素の差は開いたときに芯で描いて数える（`M`）。駅の描画は 5 ms 以下。
+  - **スクロールの手応えは未確認**（内蔵ブラウザのタブが裏扱いで 1 秒 2 コマ。間合いの式はひな形のまま）。見本 `_out/check/z2lp/`（sheet_a・sheet_b・sheet_fix）。
+  - ついでに直した：ひな形 `LP_TEMPLATE.html` の線路の行で `return; }` が注釈の中に入り、**ひな形そのものが文法エラーで動かなかった**（11-24 の「別ページの lab」のとき）。W6 の LP は自前の正しい行なので影響なし。
+- 残り：EXPORT（連番・1 周ぶん）／Z4 DOT TO WORLD／STAGE LINK 登録。**ユーザーが見る番**：ホイール・トラックパッド・タッチの手応え、LP のスクロールの間。
+
+## ZOOM CORE v0.1（2026-11-11・実装済み）
 
 - `zoom/zoom_core.js`（芯・1 ファイル）＋ `zoom/zoom_core.html`（試す画面）。file:// でそのまま開ける。
 - 題材 3 つ：NEST（四角の入れ子・輪）／TRIANGLE（子が 3 つ）／CHAIN（点 → 線 → 面 → 世界の連なり・輪）。
@@ -260,7 +277,7 @@
 - ✅ 決定：見た目は統一しない（内容に合った形式）・カード追加（虹・オーロラ・溶岩・布・髪）。
 - ✅ 11-11 決定：名前 PHENOMENA LAB・置き場所ルート直下。
 - 🆕 11-11 ユーザー：POSTER BG（`Gen-EX…/VJ_Fluid-Paint`）の雲をこの法則で描かせたい＝「突破口になりそう」→ 設計は HANDOFF_OPUS.md §7。✅ 同日 最初の 1 歩を実装（POSTER BG の AUTO に SKY STATE：LAW・HUMID・TEMP・CLOUDS。記録は `VJ_Fluid-Paint/CLAUDE.md` の「次の候補」先頭）＝ユーザーが見る番。
-- 次の候補（11-24 更新）：W6 の解説 LP／W3 膜の色（`ph_color.js` と波の重なり）／W7 オーロラ／A2 雲の背（A1 の法則）／G3 光を探す木／ズームの連番書き出し。
+- 次の候補（11-25 更新）：W3 膜の色（`ph_color.js` と波の重なり）／W7 オーロラ／A2 雲の背（A1 の法則）／G3 光を探す木／ズームの連番書き出し。
 
 ## 次の会話はここから
 

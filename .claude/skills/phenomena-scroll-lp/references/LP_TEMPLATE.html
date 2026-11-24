@@ -372,7 +372,7 @@ function setStation(i) {
   $('brkchip').style.display = s.brk ? 'flex' : 'none';
   $('foot').textContent = DOC + ' — ' + (i === LAST ? 'END OF RECORD' : 'STATION ' + two + (s.fig ? ' · ' + s.fig.replace('. ', '.') : ''));
   [...rail.children].forEach((d, j) => {
-    if (j === NR) { d.className = 'rb lab' + (i === LAST ? ' now' : ''); d.querySelector('.rt i').textContent = i === LAST ? 'NOW' : ''; d.querySelector('.rd').textContent = i === LAST ? NR + ' つの式を、アプリで確かめる' : 'いつでもアプリへ飛べる'; d.href = (s.lab || '').includes('.html') ? s.lab : LAB + (s.lab || '');   // lab に別ページ（.html）を書いたらそのまま return; }
+    if (j === NR) { d.className = 'rb lab' + (i === LAST ? ' now' : ''); d.querySelector('.rt i').textContent = i === LAST ? 'NOW' : ''; d.querySelector('.rd').textContent = i === LAST ? NR + ' つの式を、アプリで確かめる' : 'いつでもアプリへ飛べる'; d.href = (s.lab || '').includes('.html') ? s.lab : LAB + (s.lab || ''); return; }   // lab に別ページ（.html）を書いたらそのまま
     const r = RAIL[j], ref = (REF[i] || []).includes(j + 1), st = i < r.at ? 'fut' : i === r.at ? 'now' : ref ? 'ref' : 'done';
     d.className = 'rb ' + st; d.querySelector('.rt i').textContent = st === 'fut' ? '— 未着' : st === 'now' ? 'NOW' : st === 'ref' ? 'REF · 再登場' : '✓';
     d.querySelector('.rd').textContent = st === 'fut' ? pad(r.at) + ' の駅で入線' : r.d; d.dataset.st = st;

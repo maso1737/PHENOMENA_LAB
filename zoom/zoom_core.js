@@ -54,10 +54,14 @@
     }
     get S() { return Math.min(this.w || 1, this.h || 1) * this.p.frame; }
     resize() {
-      const dpr = Math.min(g.devicePixelRatio || 1, 2), r = this.canvas.getBoundingClientRect();
+      const r = this.canvas.getBoundingClientRect();
+      this.setSize(r.width, r.height, Math.min(g.devicePixelRatio || 1, 2));
+    }
+    /* 11-25 外から大きさを決める口（外枠 ARCHIVE SHELL は CSS で縮むので、画面に無い板に描いて写す使い方のため） */
+    setSize(w, h, dpr) {
       const oldS = this.S;
-      this.w = Math.max(1, r.width); this.h = Math.max(1, r.height); this.dpr = dpr;
-      this.canvas.width = Math.round(this.w * dpr); this.canvas.height = Math.round(this.h * dpr);
+      this.w = Math.max(1, w); this.h = Math.max(1, h); this.dpr = dpr || 1;
+      this.canvas.width = Math.round(this.w * this.dpr); this.canvas.height = Math.round(this.h * this.dpr);
       const k = this.S / (oldS || 1);
       if (this._sized) { this.m = [this.m[0] * k, this.m[1] * k]; this.t = [this.t[0] * k, this.t[1] * k]; }
       else { this.m = [this.S, 0]; this._sized = true; }
@@ -112,9 +116,16 @@
       }
       if (this.autoNormalize) this.normalize();
     }
+    /* 11-25 回りながら寄る：複素数の倍率 F（大きさ＝何倍・向き＝何度回るか）で、画面の点 (ax, ay) を止めたまま写す。引き寄せは掛けない */
+    spinAt(F, ax, ay) {
+      this.m = mul(this.m, F);
+      const d = mul([this.t[0] - ax, this.t[1] - ay], F); this.t = [ax + d[0], ay + d[1]];
+      this.depth += Math.log10(abs(F));
+      if (this.autoNormalize) this.normalize();
+    }
     pan(dx, dy) { this.t[0] += dx; this.t[1] += dy; if (this.autoNormalize) this.normalize(); }
     push(logAmount, ax, ay) { this.pending += logAmount; this.anchor = [ax, ay]; }
-    step(dt) {
+    advance(dt) {                                               // 11-25 動かすだけ（描かない）。step ＝ advance ＋ render
       if (this.pending !== 0) {
         const tau = this.p.inertia;
         let a = tau > 0 ? this.pending * (1 - Math.exp(-dt / tau)) : this.pending;
@@ -122,8 +133,9 @@
         this.zoomAt(Math.exp(a), this.anchor[0], this.anchor[1]); this.pending -= a;
       }
       if (this.p.auto) this.zoomAt(Math.exp(this.p.autoDir * Math.LN10 / this.p.autoSec * dt), 0, 0);
-      this.time += dt; this.render();
+      this.time += dt;
     }
+    step(dt) { this.advance(dt); this.render(); }
 
     /* ---- 描く ---- */
     render() {
