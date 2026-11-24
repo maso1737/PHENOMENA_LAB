@@ -68,7 +68,15 @@
   /* ---- 選択中の印（STATE・REALISM 共通）：子のうち i 番目に .now ---- */
   PHShell.mark = (parent, i) => { [...parent.children].forEach((c, k) => c.classList.toggle('now', k === i)); };
 
-  frame(); fit();
+  /* ---- STAGE の番号：箱（中身の幅 140 px）に入らないときは字を縮める ---- */
+  function fitStage() {
+    const n = document.querySelector('.ph-stagetab .n'); if (!n) return;
+    n.style.fontSize = ''; const box = n.parentElement, room = box.clientWidth - 36;
+    for (let px = 62; px > 30 && n.scrollWidth > room; px -= 2) n.style.fontSize = px + 'px';
+  }
+
+  frame(); fit(); fitStage();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitStage);
   window.addEventListener('resize', fit);
   window.PHShell = PHShell;
 })();

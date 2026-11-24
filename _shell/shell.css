@@ -74,9 +74,9 @@ button { cursor: pointer; }
 
 /* ---- 03 STAGE TAB（上の枠線を破る） ---- */
 .ph-stagetab { position: absolute; left: 1704px; top: 24px; width: 176px; height: 152px; background: var(--accent); color: var(--accent-ink);
-  padding: 16px 18px; display: flex; flex-direction: column; }
+  padding: 16px 18px; display: flex; flex-direction: column; align-items: center; text-align: center; }   /* 11-24 中央合わせ（W4・W6 のように字の広い番号が右へ寄って見えたため） */
 .ph-stagetab .k { font: 400 13px/1 var(--f-wide); letter-spacing: .2em; }
-.ph-stagetab .n { font: 400 62px/1 var(--f-wide); margin-top: 12px; letter-spacing: -.02em; }
+.ph-stagetab .n { font: 400 62px/1 var(--f-wide); margin-top: 12px; letter-spacing: -.02em; white-space: nowrap; }   /* 箱に入らない番号（W6+ など）は shell.js が字を縮める */
 .ph-stagetab .s { font: 700 12px/1 var(--f-thin); letter-spacing: .12em; margin-top: 10px; }
 .ph-stagetab svg { position: absolute; right: 14px; top: 12px; }
 .ph-stagetab svg line { stroke: var(--accent-ink); }

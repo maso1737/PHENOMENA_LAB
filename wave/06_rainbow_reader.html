@@ -8,12 +8,15 @@
 <style>
   /* W6 と同じアクセント。外枠の部品は W6 から写し、窓を縦に広げた（写真を大きく見せるため）。TRANSFER は下の 3 欄に縮めた */
   :root { --accent: #5E3A8C; --accent-ink: #FFFFFF; --accent-line: #C3ABE8; }
-  .ph-question { height: auto; }
   #win { height: 560px; }
+  .ph-readout { height: 596px; }   /* 窓の下の線（932）に左の欄の下をそろえる */
+  .rd-btns { margin-top: auto !important; }
+  .ph-transfer-k { top: 948px; }
+  .ph-transfer { top: 978px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   #states > div { cursor: pointer; }
   #states > div:hover:not(.now) { border-color: var(--accent-line); color: var(--ink); }
   .rd-btns { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
-  .rd-btns button { font: 600 11px/1 var(--f-thin); letter-spacing: .14em; text-align: left; padding: 9px 10px; background: transparent; color: var(--ink); border: 1px solid var(--line-main); }
+  .rd-btns button { font: 600 11px/1 var(--f-thin); letter-spacing: .14em; text-align: left; padding: 9px 10px; background: var(--ground); color: var(--ink); border: 1px solid var(--line-main); }
   .rd-btns button span { font: 500 12px var(--f-jp); letter-spacing: 0; margin-left: 6px; color: var(--ink-2); }
   .rd-btns button:hover { border-color: var(--accent-line); color: var(--accent-line); }
   .rd-btns button.go { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
@@ -21,10 +24,6 @@
   .rd-btns button:disabled { opacity: .35; cursor: default; }
   .rd-focal { margin-top: 14px; font: 500 11px var(--f-jp); color: var(--ink-2); }
   .rd-focal input[type=number] { width: 48px; background: transparent; color: var(--ink); border: 1px solid var(--line-main); font: 400 13px var(--f-num); padding: 3px 6px; margin: 0 4px; }
-  .rd-note { position: absolute; left: 280px; top: 948px; width: 1600px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-  .rd-note div { border-top: 1px solid var(--line-main); padding-top: 8px; }
-  .rd-note h3 { margin: 0 0 4px; font: 600 11px/1.2 var(--f-thin); letter-spacing: .16em; color: var(--accent-line); }
-  .rd-note p { margin: 0; font: 400 12px/1.6 var(--f-jp); color: var(--ink-2); }
   #file { display: none; }
 </style>
 </head>
@@ -85,10 +84,11 @@
   </div>
   <input type="file" id="file" accept="image/*">
 
-  <div class="rd-note">
-    <div><h3>01 HOW IT READS · 読み方</h3><p>虹の帯の太さと内側の縞（過剰虹）の間隔は、雨粒の半径 a の −2/3 乗で決まる。線の上の明るさを、法則で作った 30 通りの粒の断面と重ね、いちばん重なる a を選ぶ。</p></div>
-    <div><h3>02 CG · GEN CHECK</h3><p>CG の虹に縞があるなら、その間隔で粒の大きさが決まっている。縞が 1° 間隔なら半径 0.25 mm 前後。縞があるのに帯が白い／縞の間隔が外ほど広い、なら嘘。</p></div>
-    <div><h3>03 FIELD NOTE · 宿題</h3><p>虹の写真を撮ったら、焦点距離（35 mm 換算）を控えて OPEN で読む。夕立の終わり（大粒）と霧雨の日で、読んだ a を比べる。</p></div>
+  <div class="ph-transfer-k"><i></i><b>TRANSFER</b><span>— HOW IT READS / CG / FIELD NOTE · 表現に持ち出す</span></div>
+  <div class="ph-transfer">
+    <div tabindex="0"><h3><u>01 </u>HOW IT READS<i>読み方</i></h3><p>虹の帯の太さと内側の縞（過剰虹）の間隔は、雨粒の半径 a の −2/3 乗で決まる。線の上の明るさを、法則で作った 31 通りの粒の断面と重ね、いちばん重なる a を選ぶ。</p></div>
+    <div tabindex="0"><h3><u>02 </u>CG · GEN CHECK<i>嘘の見つけ方</i></h3><p>CG の虹に縞があるなら、その間隔で粒の大きさが決まっている。縞が 1° 間隔なら半径 0.25 mm 前後。縞があるのに帯が白い／縞の間隔が外ほど広い、なら嘘。<em>supernumerary spacing</em></p></div>
+    <div tabindex="0"><h3><u>03 </u>FIELD NOTE<i>宿題</i></h3><p>虹の写真を撮ったら、焦点距離（35 mm 換算）を控えて OPEN で読む。夕立の終わり（大粒）と霧雨の日で、読んだ a を比べる。</p></div>
   </div>
 </div></div>
 
