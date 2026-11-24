@@ -63,7 +63,7 @@
 
   <!-- 07 FORMAT -->
   <div class="ph-format"><span class="k">FORMAT</span><span class="ja">雨粒 1 つの光線の作図
-＋ 分度器</span><span class="en">RAY DIAGRAM + PROTRACTOR</span><a href="06_rainbow_reader.html" style="margin-top:8px;font:600 11px/1 var(--f-thin);letter-spacing:.16em;color:var(--accent-line);text-decoration:none">READER <span style="font:500 12px var(--f-jp);letter-spacing:0">写真から粒を読む →</span></a><a id="toSky" href="04_sky.html" style="margin-top:4px;font:600 11px/1 var(--f-thin);letter-spacing:.16em;color:var(--accent-line);text-decoration:none">W4 SKY <span style="font:500 12px var(--f-jp);letter-spacing:0">太陽の側の空 →</span></a></div>
+＋ 分度器</span><span class="en">RAY DIAGRAM + PROTRACTOR</span><a href="scroll/SCROLL_RAINBOW_LP.html" style="margin-top:4px;font:600 11px/1 var(--f-thin);letter-spacing:.16em;color:var(--accent-line);text-decoration:none">SCROLL LP <span style="font:500 12px var(--f-jp);letter-spacing:0">解説を読む →</span></a><a href="06_rainbow_reader.html" style="margin-top:0;font:600 11px/1 var(--f-thin);letter-spacing:.16em;color:var(--accent-line);text-decoration:none">READER <span style="font:500 12px var(--f-jp);letter-spacing:0">写真から粒を読む →</span></a></div>
 
   <!-- 08 READOUT -->
   <div class="ph-readout">
@@ -397,7 +397,6 @@ function readout() {
   setBound(BX(S.a), si); scaleMk.setAttribute('transform', 'translate(' + sXa(S.a).toFixed(1) + ' 0)');
   $('titleField').textContent = 'W6 — WAVE · RAINBOW · STATE ' + d.state + (S.brk ? ' · BREAK 分散が逆' : '');
   $('bigAm').textContent = d.th1.toFixed(1) + '°';
-  $('toSky').href = '04_sky.html#alt=' + S.alt.toFixed(1);
   $('nz1').textContent = 'ALT ' + S.alt.toFixed(1) + '  TOP ' + d.top.toFixed(1); $('nz2').textContent = 'A ' + S.a.toFixed(3) + ' MM  RHO ' + d.rho.toFixed(2);
 }
 
