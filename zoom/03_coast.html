@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Z3 COAST 荒れ方の物差し — PHENOMENA LAB</title>
+<link rel="stylesheet" href="../_shell/shell.css">
+<style>
+  /* Z（ズーム）のアクセント＝Z2 と同じ青緑。外枠で変えてよいのはこの 3 つだけ */
+  :root { --accent: #1F8A80; --accent-ink: #FFFFFF; --accent-line: #7FD6CB; }
+  #states > div { cursor: pointer; }
+  #states > div:hover:not(.now) { border-color: var(--accent-line); color: var(--ink); }
+  #states > div.seek { outline: 1px dashed var(--accent-line); outline-offset: 2px; }
+  #bound { cursor: pointer; }
+  /* 窓の右の EXTRACT（輪郭の取り出し） */
+  .eng { position: absolute; left: 1404px; top: 34px; width: 178px; display: flex; flex-direction: column; gap: 4px; }
+  .eng .row { border-top: 1px solid var(--line-sub); padding-top: 6px; }
+  .eng .row .k { display: flex; justify-content: space-between; align-items: baseline; font: 600 10px/1.2 var(--f-thin); letter-spacing: .12em; color: var(--ink-2); }
+  .eng .row .k i { font: 400 10px/1.2 var(--f-jp); font-style: normal; letter-spacing: 0; color: var(--ink-3); margin-left: 4px; }
+  .eng .row .k b { font: 400 11px/1.2 var(--f-num); letter-spacing: 0; color: var(--ink); margin-left: auto; }
+  .eng .row:hover .k { color: var(--accent-line); }
+  .eng .ph-chips { margin-top: 5px; }
+  .eng .ph-chip { flex: 1; padding: 0 4px; font-size: 11px; }
+  .eng .cap { font: 400 10px/1.45 var(--f-jp); color: var(--ink-3); margin-top: 2px; }
+  .eng input[type=number] { width: 64px; background: transparent; color: var(--ink); border: 1px solid var(--line-main); font: 400 11px/1 var(--f-num); padding: 3px 4px; }
+  #win.drop { outline: 2px dashed var(--accent-line); outline-offset: -6px; }
+</style>
+</head>
+<body>
+<div class="ph-viewport"><div class="ph-shell">
+  <div class="ph-grid"></div>
+
+  <!-- 18 BIG GRAPHIC -->
+  <svg class="ph-big" viewBox="0 0 1920 1080" aria-hidden="true">
+    <rect x="0" y="682" width="1920" height="12"></rect>
+    <text x="-6" y="646" font-family="'IBM Plex Sans JP', sans-serif" font-size="300" font-weight="500">岸</text>
+    <text id="bigD" x="28" y="1104" font-family="Michroma, sans-serif" font-size="168">D 1.000</text>
+    <text x="1690" y="112" font-family="Michroma, sans-serif" font-size="96" text-anchor="end">L ∝ ε¹⁻ᴰ</text>
+  </svg>
+
+  <!-- 16 NOISE LAYER（読ませない） -->
+  <svg class="ph-noise" viewBox="0 0 1920 1080" aria-hidden="true">
+    <text font-family="Jura, sans-serif" font-size="9" letter-spacing="2" transform="translate(13 1040) rotate(-90)">SECTOR 00-Z · COASTLINE · OBS Z-003-1967 · RICHARDSON 1961 · MANDELBROT 1967 · 0x1F8A80 · ARCHIVE/EARTH/ZOOM/Z3 · CHK 0x1250</text>
+    <text font-family="Jura, sans-serif" font-size="9" letter-spacing="2" transform="translate(1909 40) rotate(90)">THRESHOLD OTSU · MOORE TRACE · DIVIDER WALK · BOX COUNT · FIT 6 PX TO DIAM/5 · NODE Z3</text>
+    <g font-family="'JetBrains Mono', monospace" font-size="8.5">
+      <text x="1132" y="50">1967 &gt; DIVIDER 16 RULERS OK</text>
+      <text id="nz1" x="1132" y="61">EPS 0  N 0</text>
+      <text id="nz2" x="1132" y="72">D 0.000  BOX 0.000</text>
+      <text x="1132" y="83">L = N EPS + R  ACK</text>
+      <text x="1290" y="332">REF 0x0Z03 · Z3/CAUSE/CH2</text>
+      <text x="300" y="1066">ARCHIVE/EARTH/ZOOM/Z3/1967 — CLASSIFICATION: NONE</text>
+      <text x="1560" y="1066">END OF RECORD</text>
+    </g>
+  </svg>
+
+  <svg class="ph-frame" viewBox="0 0 1920 1080" aria-hidden="true"></svg>
+
+  <div class="ph-brand"><b>PHENOMENA LAB</b><span>EARTH SURVEY ARCHIVE · SHELL v0.1</span></div>
+  <dl class="ph-ids" style="left:392px"><dt>OBS.No</dt><dd>Z-003-1967</dd><dt>COORD</dt><dd>54.00°N 4.00°W</dd><dt>TIMESTAMP</dt><dd>2125-11-25T11:00:00Z</dd></dl>
+  <dl class="ph-ids" style="left:760px"><dt>FIELD</dt><dd>ZOOM</dd><dt>CARD</dt><dd>Z3 / 05</dd><dt>REF</dt><dd>SPEC_04 §4 Z3</dd></dl>
+
+  <div class="ph-stagetab"><span class="k">STAGE</span><span class="n">Z3</span><span class="s">Z · 03/05</span>
+    <svg width="14" height="22" viewBox="0 0 14 22" aria-hidden="true"><line x1="1" y1="21" x2="13" y2="1" stroke-width="1.5"/></svg></div>
+
+  <div class="ph-title"><span class="field" id="titleField">Z3 — ZOOM · COAST</span><h1>COAST</h1><span class="ja">荒れ方の物差し · 写真から D を読む</span></div>
+  <div class="ph-question"><span class="k">QUESTION</span><p>海岸線の長さは、<br>なぜ<br>測れないのか。</p></div>
+
+  <!-- 06 SPECIMEN（Richardson の図：物差しと長さ・文献の 4 本） -->
+  <div class="ph-specimen" id="specimen"><span class="tag">SPECIMEN · RICHARDSON PLOT</span></div>
+
+  <div class="ph-format"><span class="k">FORMAT</span><span class="ja">地図の輪郭
+＋ 物差しと長さの両対数</span><span class="en">OUTLINE + RICHARDSON PLOT</span><a href="zoom_core.html#w=koch" style="margin-top:4px;font:600 11px/1 var(--f-thin);letter-spacing:.16em;color:var(--accent-line);text-decoration:none">Z2 SELF <span style="font:500 12px var(--f-jp);letter-spacing:0">コッホ曲線を寄る →</span></a></div>
+
+  <!-- 08 READOUT -->
+  <div class="ph-readout">
+    <div class="ph-h"><i class="sq"></i><b>READOUT</b><span class="id">RD-Z3-01</span></div>
+    <span class="ph-lab" style="margin-top:14px">STATE <i style="font-style:normal;letter-spacing:0;text-transform:none">輪郭の荒れ方</i></span>
+    <div class="ph-states" id="states">
+      <div data-s="SMOOTH" title="見本の島を D 1.04 で作る（南アフリカの海岸ほど）"><b>SMOOTH</b><span>なめらか</span></div>
+      <div data-s="RUGGED" title="見本の島を D 1.15 で作る（オーストラリア・ドイツの国境ほど）"><b>RUGGED</b><span>ぎざぎざ</span></div>
+      <div data-s="WILD" title="見本の島を D 1.25 で作る（ブリテン島の西岸ほど）"><b>WILD</b><span>入り組む</span></div>
+    </div>
+    <div class="ph-vals">
+      <div class="ph-val"><span class="k">RULER <i>物差し ε</i></span><div class="v"><b id="o_e">—</b><u>px</u><em id="o_n"></em></div>
+        <input class="ph-range lead" type="range" id="ruler" min="0" max="1000" step="1" value="500" aria-label="物差しの長さ（主役・対数）"></div>
+      <div class="ph-val"><span class="k">LENGTH <i>測った長さ</i></span><div class="v"><b id="o_L">—</b><u id="o_Lu">px</u><em id="o_Lr"></em></div></div>
+      <div class="ph-val"><span class="k">DIM. <i>荒れ方 D（物差し）</i></span><div class="v"><b id="o_D">—</b><u></u><em id="o_Db"></em></div></div>
+    </div>
+    <div class="ph-boundary"><span class="ph-lab">BOUNDARY <i style="font-style:normal;letter-spacing:0;text-transform:none">押すとその側の見本</i></span><svg id="bound" role="img" aria-label="境界の目盛り：SMOOTH・RUGGED・WILD"></svg></div>
+  </div>
+
+  <!-- 09 LOOK ⇄ CAUSE の窓 -->
+  <div class="ph-winhead"><i class="sq"></i><span class="t">LOOK ⇄ CAUSE</span><span class="s">LEFT = MAP + RULER WALK · RIGHT = RICHARDSON + BOX COUNT</span>
+    <div class="r"><b>SOURCE</b><div class="ph-chips" id="srcs">
+      <button class="ph-chip" id="bSample" title="答えの D が決まった島（乱数の種を替える）">見本の島</button><button class="ph-chip" id="bOpen" title="地図・空撮・雲の写真など（落としても開く）">写真を開く</button><button class="ph-chip" id="bAns" title="見本の答えを見る">ANSWER</button>
+    </div><input type="file" id="file" accept="image/*" hidden></div></div>
+  <div class="ph-window" id="win">
+    <canvas id="cv"></canvas>
+    <div class="ph-tag" style="left:16px;top:8px"><i></i><b>LOOK</b><span>— 実物の姿</span><small>MAP · RULER WALK</small></div>
+    <div class="ph-tag" style="left:856px;top:8px"><i></i><b>CAUSE</b><span>— 原因の図</span></div>
+    <div class="ph-control" id="ctl" style="left:16px;top:44px"><span class="k">◆ CONTROL ▶</span><span class="d">陸を押す＝測る塊を選ぶ　上下に引く＝物差し</span></div>
+    <div class="eng" id="eng">
+      <span class="ph-lab">EXTRACT <i style="font-style:normal;letter-spacing:0">輪郭の取り出し</i></span>
+      <div class="row"><span class="k">THRESHOLD<i>明るさ</i><b id="v_t"></b></span><input class="ph-range" type="range" id="thr" min="1" max="254" step="1" value="128" aria-label="陸と海を分ける明るさ">
+        <div class="ph-chips"><button class="ph-chip" id="bOtsu" title="大津の方法で自動">自動</button><button class="ph-chip" id="bInv" title="暗い方を陸にする">反転</button></div></div>
+      <div class="row"><span class="k">FIT LO<i>読む下限</i><b id="v_lo"></b></span><input class="ph-range" type="range" id="lo" min="2" max="24" step="1" value="6" aria-label="当てはめる物差しの下限（px）"></div>
+      <div class="row"><span class="k">FIT HI<i>読む上限</i><b id="v_hi"></b></span><input class="ph-range" type="range" id="hi" min="3" max="20" step="1" value="5" aria-label="当てはめる物差しの上限（差し渡しの 1/n）"></div>
+      <div class="row"><span class="k">WIDTH<i>写真の横幅</i></span><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><input type="number" id="km" min="0" step="any" placeholder="—"><span class="cap" style="margin:0">km（空なら px）</span></div></div>
+      <span class="cap" id="o_cap">陸を押すと、その塊の外側の縁を測る。湖・離れ小島は入らない。</span>
+    </div>
+  </div>
+
+  <div class="ph-scale-k"><i></i><b>SCALE · 荒れ方 D（文献値）</b></div>
+  <svg class="ph-scale" id="scale" width="960" height="56" viewBox="-1 0 962 56" aria-hidden="true"></svg>
+
+  <div class="ph-realism"><b>REALISM <span class="note" id="o_real">測り方 ◎ ／ 写真はしきい値しだい ○</span></b>
+    <div class="marks" id="marks"><div class="now"><span>◎</span>法則</div><div><span>○</span>近似</div><div><span>△</span>まね</div></div></div>
+
+  <div class="ph-pab">
+    <button id="bProof" title="大きな物差しから順に短くして測り、両対数の傾きを読む（9 秒）"><span>[ </span>PROOF<span> ]</span></button><button id="bAuto" title="物差しを 30 秒で長く ⇄ 短く"><span>[ </span>AUTO<span> ]</span></button><button id="bBreak" title="輪郭を半径 10 px でぼかす（地図の省略）"><span>[ </span>BREAK<span> ]</span></button>
+  </div>
+
+  <div class="ph-transfer-k"><i></i><b>TRANSFER</b><span>— NOTES FOR CG / ANIMATION · 表現に持ち出す</span></div>
+  <div class="ph-transfer">
+    <div tabindex="0"><h3><u>01 </u>LOOK RULES<i>絵の決まり</i></h3><p>海岸・雲の縁・山の稜線は、寄っても同じ割合で荒れている（D 1.0〜1.3）。引きの絵で省いた細部は、寄りのカットで同じ割合で足す。</p></div>
+    <div tabindex="0"><h3><u>02 </u>CG</h3><p>輪郭のノイズは、周波数 2 倍ごとに振れ幅を 2⁻ᴴ 倍で重ねると D ≈ 2 − H（H 0.75 で 1.25・目安）。重ねる回数は、画面で 2 px になるまで。</p></div>
+    <div tabindex="0"><h3><u>03 </u>GEN CHECK<i>嘘の見つけ方</i></h3><p>寄るとつるつる／どの大きさでも凸凹が同じ大きさ（ノイズ 1 段だけ）／両対数がまっすぐな範囲が無い、なら作り物に見える。<em>coastline paradox / Richardson plot</em></p></div>
+    <div tabindex="0"><h3><u>04 </u>BREAK<i>わざと外す</i></h3><p>地図や写真はぼけた分だけ細部が消え、物差しを短くしても長さが伸びない。読む範囲は、画素とぼけより大きい所に取る。</p></div>
+    <div tabindex="0"><h3><u>05 </u>FIELD NOTE<i>宿題</i></h3><p>地図アプリで同じ海岸を縮尺を変えて 3 枚撮り、ここで読む。縮尺ごとの D がそろうか、どこから下で 1 に近づくか（地図の省略）を見る。</p></div>
+  </div>
+</div></div>
+
+<script src="../_shell/shell.js"></script>
+<script src="_law/ph_z3_law.js"></script>
+<script>
+'use strict';
+const L = PH_Z3, $ = id => document.getElementById(id);
+const K = { bg: '#060606', ink: '#F2EFE6', dim: '#9C9A93', faint: '#6F6D67', rule: 'rgba(242,239,230,.22)', rule2: 'rgba(242,239,230,.07)', acc: '#7FD6CB', accA: a => 'rgba(127,214,203,' + a + ')', warm: '#E8A23A' };
+const S = { src: 'sample', D: 1.25, seed: 3, ans: false, t: 128, inv: false, brk: false, sx: 0, sy: 0, eps: 24, lo: 6, hiN: 5, km: 0,
+  img: document.createElement('canvas'), W: 1200, H: 800, lum: null, P: [], A: null, hop: null, msg: '', proof: false, pt: 0, auto: false, at: 0, go: null, drag: null, dirty: true, hopDirty: true };
+const cv = $('cv'), ctx = cv.getContext('2d');
+let W = 1, H = 1, dpr = 1, G = {};
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const mono = (px, w) => (w || 400) + ' ' + px + 'px "JetBrains Mono",ui-monospace,monospace', note = px => px + 'px "M PLUS 1 Code","IBM Plex Sans JP",monospace', jura = (px, w) => (w || 600) + ' ' + px + 'px Jura,sans-serif';
+function txt(s, x, y, o) { o = o || {}; ctx.font = o.f || note(11); ctx.fillStyle = o.c || K.ink; ctx.textAlign = o.a || 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillText(s, x, y); }
+const sup = n => String(n).replace(/[-0-9]/g, c => '⁻⁰¹²³⁴⁵⁶⁷⁸⁹'['-0123456789'.indexOf(c)]);
+
+/* ---- 物差しのつまみ（対数・2 px〜差し渡しの 1/3） ---- */
+const eMin = () => 2, eMax = () => Math.max(8, (S.A ? S.A.ex.diam : 400) / 3);
+const eOfU = u => eMin() * Math.pow(eMax() / eMin(), u), uOfE = e => Math.log(e / eMin()) / Math.log(eMax() / eMin());
+
+/* ---- 写真を作業の板へ（横 1200 か縦 800 に収める） ---- */
+function setImage(src) {
+  const k = Math.min(1200 / src.width, 800 / src.height, 4), w = Math.max(16, Math.round(src.width * k)), h = Math.max(16, Math.round(src.height * k));
+  S.W = w; S.H = h; S.img.width = w; S.img.height = h; const g = S.img.getContext('2d', { willReadFrequently: true }); g.imageSmoothingQuality = 'high'; g.drawImage(src, 0, 0, w, h);
+  const d = g.getImageData(0, 0, w, h).data; S.lum = new Uint8Array(w * h); for (let i = 0; i < S.lum.length; i++) S.lum[i] = Math.round(0.2126 * d[i * 4] + 0.7152 * d[i * 4 + 1] + 0.0722 * d[i * 4 + 2]);
+  S.t = L.otsu(S.lum); S.sx = w >> 1; S.sy = h >> 1; S.dirty = true;
+}
+/* 見本の島：答えの D が決まった形を、写真らしく塗る（海の青・陸の緑・浜・ざらつき・わずかなぼけ） */
+function makeSample(D, seed) {
+  const c = document.createElement('canvas'); c.width = 1200; c.height = 800; const g = c.getContext('2d'), smp = L.sampleIsland(D, seed, 600, 400, 470);
+  const sea = g.createLinearGradient(0, 0, 0, 800); sea.addColorStop(0, '#1B3A57'); sea.addColorStop(1, '#255673'); g.fillStyle = sea; g.fillRect(0, 0, 1200, 800);
+  g.beginPath(); smp.poly.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.closePath();
+  g.fillStyle = '#7E9A55'; g.fill('evenodd');   // 浜の明るい線は描かない（0.8 px でも細い入り江の口をまたいで塞ぎ、D が 0.04 低く読めた）
+  const id = g.getImageData(0, 0, 1200, 800), R = L.rng(seed * 7 + 1); for (let i = 0; i < id.data.length; i += 4) { const n = (R() - 0.5) * 18; id.data[i] += n; id.data[i + 1] += n; id.data[i + 2] += n; } g.putImageData(id, 0, 0);
+  const c2 = document.createElement('canvas'); c2.width = 1200; c2.height = 800; const g2 = c2.getContext('2d'); g2.filter = 'blur(0.4px)'; g2.drawImage(c, 0, 0);
+  return { canvas: c2, smp };
+}
+function loadSample(D, seed) { S.src = 'sample'; S.D = clamp(D, L.D_MIN, L.D_MAX); S.seed = seed; S.ans = false; S.inv = false; const s = makeSample(S.D, seed); setImage(s.canvas); }
+
+/* ---- 取り出し → 読む ---- */
+function extract() {
+  S.dirty = false; S.hopDirty = true;
+  const c = L.component(S.lum, S.W, S.H, S.t, S.sx, S.sy, S.inv);
+  if (c.n < 400) { S.P = []; S.A = null; S.msg = c.n ? '押した塊が小さすぎる（' + c.n + ' 画素）。陸の広い所を押す' : '押した所は陸ではない（明るさのしきい値か「反転」を見る）'; return; }
+  const m = S.brk ? L.smoothMask(c.mask, S.W, S.H, 10) : c.mask;
+  S.P = L.traceBoundary(m, S.W, S.H); S.A = L.analyze(S.P, { lo: S.lo, hi: L.extent(S.P).diam / S.hiN }); S.msg = '';
+  S.eps = clamp(S.eps, eMin(), eMax());
+}
+function hop() { S.hopDirty = false; S.hop = S.P.length ? L.divider(S.P, S.eps, true) : null; }
+
+function layout() {
+  const r = cv.getBoundingClientRect(), kk = r.width / Math.max(1, cv.clientWidth); dpr = Math.min((window.devicePixelRatio || 1) * kk, 2);
+  W = Math.max(1, cv.clientWidth); H = Math.max(1, cv.clientHeight); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  G = { lx: 16, ly: 40, lw: 820, lh: H - 56, cx: 856, ex: 1392 };
+}
+const fit = () => { const k = Math.min(G.lw / S.W, G.lh / S.H); return { k, ox: G.lx + (G.lw - S.W * k) / 2, oy: G.ly + (G.lh - S.H * k) / 2 }; };
+
+function draw() {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.fillStyle = K.bg; ctx.fillRect(0, 0, W, H);
+  drawLook(); ctx.strokeStyle = K.rule2; ctx.beginPath(); ctx.moveTo(G.ex + .5, 30); ctx.lineTo(G.ex + .5, H - 14); ctx.stroke();
+  drawRich(); drawBox(); drawNums();
+}
+/* ===== LOOK：写真＋輪郭＋物差しで歩いた跡 ===== */
+function drawLook() {
+  const { lx, ly, lw, lh } = G, f = fit();
+  ctx.save(); ctx.beginPath(); ctx.rect(lx, ly, lw, lh); ctx.clip();
+  ctx.globalAlpha = 0.72; ctx.drawImage(S.img, f.ox, f.oy, S.W * f.k, S.H * f.k); ctx.globalAlpha = 1;
+  const X = p => f.ox + p[0] * f.k, Y = p => f.oy + p[1] * f.k;
+  if (S.P.length) { ctx.strokeStyle = 'rgba(242,239,230,.75)'; ctx.lineWidth = 1; ctx.beginPath(); S.P.forEach((p, i) => i ? ctx.lineTo(X(p), Y(p)) : ctx.moveTo(X(p), Y(p))); ctx.closePath(); ctx.stroke(); }
+  if (S.hop && S.hop.hops.length > 1) { const hs = S.hop.hops; ctx.strokeStyle = K.acc; ctx.lineWidth = 2; ctx.beginPath(); hs.forEach((p, i) => i ? ctx.lineTo(X(p), Y(p)) : ctx.moveTo(X(p), Y(p))); ctx.lineTo(X(S.P[0]), Y(S.P[0])); ctx.stroke();
+    if (hs.length < 500) { ctx.fillStyle = K.acc; for (const p of hs) { ctx.beginPath(); ctx.arc(X(p), Y(p), hs.length < 120 ? 3 : 1.8, 0, 7); ctx.fill(); } }
+    ctx.fillStyle = K.warm; ctx.beginPath(); ctx.arc(X(hs[0]), Y(hs[0]), 5, 0, 7); ctx.fill(); }
+  // 押した点
+  { const x = f.ox + (S.sx + 0.5) * f.k, y = f.oy + (S.sy + 0.5) * f.k; ctx.strokeStyle = K.warm; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x - 8, y); ctx.lineTo(x + 8, y); ctx.moveTo(x, y - 8); ctx.lineTo(x, y + 8); ctx.stroke(); }
+  // 物差しの見本（画面の上の長さ）
+  { const bx = lx + 14, by = ly + lh - 16, e = S.eps * f.k; ctx.fillStyle = 'rgba(6,6,6,.82)'; ctx.fillRect(bx - 6, by - 28, Math.max(e, 150) + 200, 38);
+    ctx.strokeStyle = K.acc; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx + e, by); ctx.stroke(); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(bx, by - 6); ctx.lineTo(bx, by + 4); ctx.moveTo(bx + e, by - 6); ctx.lineTo(bx + e, by + 4); ctx.stroke();
+    txt('物差し ε ＝ ' + S.eps.toFixed(1) + ' px' + (S.km ? '（' + fmtKm(S.eps * S.km / S.W) + '）' : '') + (S.hop ? ' · ' + S.hop.n.toLocaleString() + ' 歩' : ''), bx, by - 12, { f: mono(11, 600), c: K.acc }); }
+  if (S.msg) { ctx.fillStyle = 'rgba(6,6,6,.85)'; ctx.fillRect(lx + 120, ly + lh / 2 - 22, lw - 240, 36); txt(S.msg, lx + lw / 2, ly + lh / 2, { a: 'center', f: note(13), c: K.warm }); }
+  if (S.brk) { ctx.fillStyle = 'rgba(6,6,6,.82)'; ctx.fillRect(lx, ly + 48, 360, 40); txt('BREAK · 輪郭を半径 10 px でぼかした地図', lx + 8, ly + 64, { f: note(11), c: K.acc }); txt('これより細かい入り江は消える', lx + 8, ly + 80, { f: note(10), c: K.dim }); }
+  if (S.proof) { const st = proofLines(), k3 = S.pt < 6 ? (S.pt < 1 ? 0 : 1) : 2, x = lx + lw - 12, w0 = 400; ctx.fillStyle = 'rgba(6,6,6,.84)'; ctx.fillRect(x - w0 - 8, ly + 10, w0 + 12, 20 + k3 * 17);
+    for (let q = 0; q <= k3; q++) txt(st[q], x - w0, ly + 25 + q * 17, { f: note(11), c: q === k3 ? K.acc : K.dim }); }
+  ctx.restore(); ctx.strokeStyle = K.rule; ctx.strokeRect(lx + .5, ly + .5, lw - 1, lh - 1);
+}
+const fmtKm = v => v >= 100 ? v.toFixed(0) + ' km' : v >= 1 ? v.toFixed(1) + ' km' : (v * 1000).toFixed(0) + ' m';
+function proofLines() { const A = S.A; if (!A) return ['', '', '']; const r = A.L[0] ? A.L[A.pick[0]] / A.L[A.pick[A.pick.length - 1]] : 1;
+  return ['① 大きな物差し（' + A.eps[A.eps.length - 1].toFixed(0) + ' px）から測る', '② 物差しを短くするほど、長さが伸びる（読む範囲で ×' + r.toFixed(2) + '）', '③ 両対数の傾き b ＝ ' + (1 - A.Ddiv).toFixed(3) + ' → D ＝ 1 − b ＝ ' + A.Ddiv.toFixed(3)]; }
+
+/* ===== CAUSE ① Richardson の図：log L と log ε（傾き ＝ 1 − D） ===== */
+function plotFrame(x0, y0, w, h, xl, yl) {
+  ctx.strokeStyle = K.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0 + .5, y0); ctx.lineTo(x0 + .5, y0 + h + .5); ctx.lineTo(x0 + w, y0 + h + .5); ctx.stroke();
+  txt(xl, x0 + w, y0 + h + 28, { a: 'right', f: note(9), c: K.faint }); txt(yl, x0 + 6, y0 + 8, { f: note(9), c: K.faint });
+}
+function drawRich() {
+  const x0 = G.cx + 34, y0 = 70, w = 236, h = 196, A = S.A;
+  txt('RICHARDSON · 物差しと長さ', G.cx, 52, { f: jura(10, 600), c: K.dim });
+  if (!A) return; const lx0 = Math.log10(A.eps[0]), lx1 = Math.log10(A.eps[A.eps.length - 1]);
+  const ly = A.L.map(v => Math.log10(v)), lyMin = Math.min(...ly) - 0.03, lyMax = Math.max(...ly) + 0.03;
+  const X = v => x0 + (v - lx0) / (lx1 - lx0) * w, Y = v => y0 + h - (v - lyMin) / (lyMax - lyMin) * h;
+  ctx.fillStyle = K.accA(.07); ctx.fillRect(X(Math.log10(A.lo)), y0, X(Math.log10(A.hi)) - X(Math.log10(A.lo)), h);   // 読む範囲
+  // 文献の傾きの目安（読む範囲の真ん中を通す）
+  const xm = (Math.log10(A.lo) + Math.log10(A.hi)) / 2, ymv = A.fd.a + A.fd.b * xm;
+  ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, w, h); ctx.clip();   // 文献の線は図の中だけ
+  ctx.setLineDash([3, 4]); for (const [n, d] of [['南ア 1.02', 1.02], ['ブリテン 1.25', 1.25]]) { ctx.strokeStyle = K.faint; ctx.beginPath(); ctx.moveTo(X(lx0), Y(ymv + (1 - d) * (lx0 - xm))); ctx.lineTo(X(lx1), Y(ymv + (1 - d) * (lx1 - xm))); ctx.stroke(); txt(n, X(lx1) - 4, Y(ymv + (1 - d) * (lx1 - xm)) + (d > 1.1 ? 14 : -6), { a: 'right', f: note(9), c: K.faint }); } ctx.setLineDash([]); ctx.restore();
+  const show = k => !S.proof || A.eps[k] >= S.pe;
+  if (!S.proof || S.pt >= 6) { ctx.strokeStyle = K.acc; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(lx0), Y(A.fd.a + A.fd.b * lx0)); ctx.lineTo(X(lx1), Y(A.fd.a + A.fd.b * lx1)); ctx.stroke(); ctx.lineWidth = 1; }
+  A.eps.forEach((e, k) => { if (!show(k)) return; const inR = A.pick.includes(k); ctx.beginPath(); ctx.arc(X(Math.log10(e)), Y(ly[k]), 3.5, 0, 7); if (inR) { ctx.fillStyle = K.acc; ctx.fill(); } else { ctx.strokeStyle = K.dim; ctx.stroke(); } });
+  if (S.hop) { const xe = X(Math.log10(S.eps)), ye = Y(Math.log10(S.hop.L)); ctx.strokeStyle = K.warm; ctx.setLineDash([2, 2]); ctx.beginPath(); ctx.moveTo(xe + .5, y0 + h); ctx.lineTo(xe + .5, ye); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = K.warm; ctx.beginPath(); ctx.arc(xe, ye, 5, 0, 7); ctx.fill(); }
+  plotFrame(x0, y0, w, h, '物差し ε（px・対数）→', '長さ L（対数）');
+  ctx.font = mono(9); ctx.fillStyle = K.dim; ctx.textAlign = 'center'; for (let p = Math.ceil(lx0); p <= lx1; p++) ctx.fillText('10' + sup(p), X(p), y0 + h + 13);
+  txt('傾き b ＝ ' + A.fd.b.toFixed(3) + ' → D ＝ 1 − b ＝ ' + A.Ddiv.toFixed(3), G.cx, 304, { f: mono(11, 600), c: K.acc });
+  const few = A.pick.length < 4;   // 当てはめる点が少ないと傾きが暴れる（LO 16・HI 1/15 で 2 点 → 1.48 と出た）
+  txt(few ? '読む範囲が狭すぎる（点 ' + A.pick.length + ' 個）。FIT LO を下げるか HI を上げる' : '塗った帯＝読む範囲（' + A.lo.toFixed(0) + '〜' + A.hi.toFixed(0) + ' px・点 ' + A.pick.length + ' 個）・r² ' + A.fd.r2.toFixed(3), G.cx, 320, { f: note(10), c: few ? K.warm : K.dim });
+}
+/* ===== CAUSE ② 箱で数える：log N と log ε（傾き ＝ −D） ===== */
+function drawBox() {
+  const x0 = 1150, y0 = 70, w = 220, h = 196, A = S.A;
+  txt('BOX COUNT · 別の道で同じ D', 1126, 52, { f: jura(10, 600), c: K.dim });
+  if (!A) return; const lx0 = Math.log10(A.eps[0]), lx1 = Math.log10(A.eps[A.eps.length - 1]), ly = A.N.map(v => Math.log10(v)), y1 = Math.max(...ly), yy0 = Math.min(...ly);
+  const X = v => x0 + (v - lx0) / (lx1 - lx0) * w, Y = v => y0 + h - (v - yy0) / (y1 - yy0) * h;
+  ctx.fillStyle = K.accA(.07); ctx.fillRect(X(Math.log10(A.lo)), y0, X(Math.log10(A.hi)) - X(Math.log10(A.lo)), h);
+  ctx.strokeStyle = K.acc; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(lx0), Y(A.fb.a + A.fb.b * lx0)); ctx.lineTo(X(lx1), Y(A.fb.a + A.fb.b * lx1)); ctx.stroke(); ctx.lineWidth = 1;
+  A.eps.forEach((e, k) => { const inR = A.pick.includes(k); ctx.beginPath(); ctx.arc(X(Math.log10(e)), Y(ly[k]), 3, 0, 7); if (inR) { ctx.fillStyle = K.acc; ctx.fill(); } else { ctx.strokeStyle = K.dim; ctx.stroke(); } });
+  plotFrame(x0, y0, w, h, '箱の大きさ ε →', '覆う箱の数 N');
+  ctx.font = mono(9); ctx.fillStyle = K.dim; ctx.textAlign = 'center'; for (let p = Math.ceil(lx0); p <= lx1; p++) ctx.fillText('10' + sup(p), X(p), y0 + h + 13);
+  txt('傾き ＝ ' + A.fb.b.toFixed(3) + ' → D ＝ ' + A.Dbox.toFixed(3), 1126, 304, { f: mono(11, 600), c: K.acc });
+  const df = Math.abs(A.Dbox - A.Ddiv); txt(df < 0.08 ? '物差しと ' + df.toFixed(3) + ' 差（箱は荒いほど低めに出る）' : '物差しと ' + df.toFixed(3) + ' 差＝読む範囲かしきい値を見直す', 1126, 320, { f: note(10), c: df < 0.08 ? K.dim : K.warm });   // 見本で箱は最大 0.06 低く出た
+}
+/* ===== CAUSE ③ 数の欄：答え・文献との比べ ===== */
+function drawNums() {
+  const A = S.A, y = 360; txt('READ · 読んだ D', G.cx, y - 14, { f: jura(10, 600), c: K.dim });
+  if (!A) return;
+  txt('D ' + A.Ddiv.toFixed(3), G.cx, y + 22, { f: '400 30px Michroma,sans-serif', c: K.acc });
+  txt(L.stateOf(A.Ddiv) + ' · 輪郭 ' + A.pts.toLocaleString() + ' 点 · 差し渡し ' + A.ex.diam.toFixed(0) + ' px' + (S.brk ? ' · ぼかし r10' : ''), G.cx, y + 44, { f: note(10), c: K.dim });
+  const near = L.LIT.map(([n, d]) => [n, d, Math.abs(d - A.Ddiv)]).sort((a, b) => a[2] - b[2])[0];
+  txt('いちばん近い文献値：' + near[0] + ' ' + near[1].toFixed(2), G.cx, y + 62, { f: note(11), c: K.ink });
+  if (S.src === 'sample') { if (S.ans) { const e = A.Ddiv - S.D; txt('ANSWER 見本の答え D ' + S.D.toFixed(3) + '（読みの差 ' + (e >= 0 ? '+' : '') + e.toFixed(3) + '）', G.cx, y + 82, { f: mono(11, 600), c: K.warm }); }
+    else txt('見本の答えは隠してある（ANSWER で出す）', G.cx, y + 82, { f: note(10), c: K.faint }); }
+  else txt('自分の写真：答えは無い。しきい値と読む範囲で変わる', G.cx, y + 82, { f: note(10), c: K.faint });
+  if (S.km && S.hop) txt('この物差しで測った長さ ' + fmtKm(S.hop.L * S.km / S.W), 1126, y + 22, { f: mono(12, 600), c: K.ink });
+}
+
+/* ---- 外枠への書き出し ---- */
+const STATE_I = { SMOOTH: 0, RUGGED: 1, WILD: 2 };
+const BX = D => D < 1.1 ? 6 + clamp((D - 1) / 0.1, 0, 1) * 64 : D < 1.2 ? 70 + (D - 1.1) / 0.1 * 72 : 142 + clamp((D - 1.2) / 0.15, 0, 1) * 64;
+const setBound = PHShell.boundary($('bound'), { width: 212, zones: ['SMOOTH', 'RUGGED', 'WILD'], cuts: [{ x: 70, label: 'D 1.1' }, { x: 142, label: 'D 1.2' }] });
+const scaleSvg = $('scale'), NS = 'http://www.w3.org/2000/svg', sEl = (t, a, tx) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (tx != null) e.textContent = tx; scaleSvg.appendChild(e); return e; };
+const sXD = D => clamp((D - 1) / 0.4, 0, 1) * 960, MF = "'M PLUS 1 Code', monospace";
+sEl('line', { x1: 0, y1: 26, x2: 960, y2: 26, stroke: 'rgba(232,230,223,0.55)' });
+for (const [D, s, top] of [[1, '1 · 直線', 0], [1.4, '1.4', 0]]) { const x = sXD(D); sEl('line', { x1: x, y1: 22, x2: x, y2: 30, stroke: '#6F6D67' }); sEl('text', { x, y: 46, 'font-family': MF, 'font-size': 10, fill: '#6F6D67', 'text-anchor': D === 1 ? 'start' : 'end' }, s); }
+L.LIT.forEach(([n, D], i) => { const x = sXD(D), top = i % 2 === 1; sEl('line', { x1: x, y1: 20, x2: x, y2: 32, stroke: '#E8E6DF' }); sEl('text', { x, y: top ? 14 : 46, 'font-family': MF, 'font-size': 10, fill: '#9C9A93', 'text-anchor': 'middle' }, n + ' ' + D.toFixed(2)); });
+const scaleMk = sEl('polygon', { points: '0,29 -6,40 6,40', fill: '#7FD6CB' });
+/* SPECIMEN：Richardson の図（文献の 4 本の傾き 1 − D を、物差し 10〜1000 km で） */
+{ const sp = $('specimen'), s = document.createElementNS(NS, 'svg'); s.setAttribute('width', 310); s.setAttribute('height', 174); s.style.cssText = 'position:absolute;left:0;top:0';
+  const X = v => 40 + (v - 1) / 2 * 250, Y = v => 128 - v * 190; let h = '<rect width="310" height="174" fill="#060606"/><line x1="40" y1="34" x2="40" y2="132" stroke="#9C9A93"/><line x1="40" y1="132" x2="294" y2="132" stroke="#9C9A93"/>';
+  L.LIT.forEach(([n, D], i) => { const b = 1 - D, y0 = [0.44, 0.46, 0.40, 0.48][i]; /* 線の終わりの札が重ならない始まりの高さ */ h += '<line x1="' + X(1) + '" y1="' + Y(y0).toFixed(1) + '" x2="' + X(3) + '" y2="' + Y(y0 + 2 * b).toFixed(1) + '" stroke="' + (i === 3 ? '#7FD6CB' : '#F2EFE6') + '" stroke-width="' + (i === 3 ? 1.6 : 0.9) + '"/><text x="' + (X(3) + 2) + '" y="' + (Y(y0 + 2 * b) + 3).toFixed(1) + '" font-family="M PLUS 1 Code,monospace" font-size="8" fill="#9C9A93" text-anchor="end" dy="-5">' + n.replace('の海岸', '').replace('の西岸', '') + '</text>'; });
+  h += '<text x="16" y="150" font-family="Jura,sans-serif" font-style="italic" font-size="11" fill="#F2EFE6">Richardson · Mandelbrot 1967</text><text x="16" y="166" font-family="M PLUS 1 Code,monospace" font-size="9" fill="#9C9A93">物差し 10→1000 km（右ほど長い物差し）</text>';
+  s.innerHTML = h; sp.insertBefore(s, sp.firstChild); }
+
+function readout() {
+  const A = S.A, D = A ? A.Ddiv : 1, st = L.stateOf(D);
+  PHShell.mark($('states'), A ? STATE_I[st] : -1);
+  [...$('states').children].forEach(c => c.classList.toggle('seek', !!S.go && c.dataset.s === S.go));
+  $('o_e').textContent = S.eps.toFixed(1); $('o_n').textContent = S.hop ? S.hop.n.toLocaleString() + ' 歩' : '';
+  if (S.hop) { if (S.km) { const v = S.hop.L * S.km / S.W; $('o_L').textContent = v >= 1 ? v.toFixed(1) : (v * 1000).toFixed(0); $('o_Lu').textContent = v >= 1 ? 'km' : 'm'; } else { $('o_L').textContent = Math.round(S.hop.L).toLocaleString(); $('o_Lu').textContent = 'px'; }
+    const Lbig = A ? A.L[A.L.length - 1] : 0; $('o_Lr').textContent = Lbig ? '×' + (S.hop.L / Lbig).toFixed(2) + '（最長比）' : ''; } else { $('o_L').textContent = '—'; $('o_Lr').textContent = ''; }
+  $('o_D').textContent = A ? A.Ddiv.toFixed(3) : '—'; $('o_Db').textContent = A ? '箱 ' + A.Dbox.toFixed(3) : '';
+  if (document.activeElement !== $('ruler')) $('ruler').value = Math.round(uOfE(S.eps) * 1000);
+  if (document.activeElement !== $('thr')) $('thr').value = S.t; $('v_t').textContent = S.t;
+  $('v_lo').textContent = S.lo + ' px'; $('v_hi').textContent = A ? A.hi.toFixed(0) + ' px（1/' + S.hiN + '）' : '1/' + S.hiN;
+  $('bInv').classList.toggle('on', S.inv); $('bOtsu').classList.toggle('on', S.lum && S.t === L.otsu(S.lum));
+  $('bSample').classList.toggle('on', S.src === 'sample'); $('bOpen').classList.toggle('on', S.src === 'photo');
+  $('bAns').classList.toggle('on', S.ans); $('bAns').disabled = S.src !== 'sample'; $('bAns').classList.toggle('ph-off', S.src !== 'sample'); $('bAns').title = S.src === 'sample' ? '見本の答えを見る' : '自分の写真には答えが無い（見本のとき）';
+  $('bProof').classList.toggle('on', S.proof); $('bAuto').classList.toggle('on', S.auto); $('bBreak').classList.toggle('on', S.brk); $('win').classList.toggle('broken', S.brk);
+  setBound(BX(D), A ? STATE_I[st] : -1); scaleMk.setAttribute('transform', 'translate(' + sXD(D).toFixed(1) + ' 0)');
+  PHShell.mark($('marks'), S.src === 'sample' ? 0 : 1); $('o_real').textContent = S.src === 'sample' ? '測り方 ◎ ／ 見本は答えの D が決まった島' : '測り方 ◎ ／ 写真はしきい値と読む範囲しだい ○';
+  $('titleField').textContent = 'Z3 — ZOOM · COAST · ' + (S.src === 'sample' ? 'SAMPLE #' + S.seed : 'PHOTO') + (A ? ' · STATE ' + st : '') + (S.brk ? ' · BREAK ぼかした地図' : '');
+  $('bigD').textContent = 'D ' + D.toFixed(3);
+  $('nz1').textContent = 'EPS ' + S.eps.toFixed(1) + '  N ' + (S.hop ? S.hop.n : 0); $('nz2').textContent = 'D ' + D.toFixed(3) + '  BOX ' + (A ? A.Dbox.toFixed(3) : '0');
+}
+
+/* ---- STATE を押す：その荒れ方の見本の島を作る（原因＝島の作り方の D） ---- */
+const GO_D = { SMOOTH: 1.04, RUGGED: 1.15, WILD: 1.25 };
+function goState(k) { S.proof = false; S.go = k; loadSample(GO_D[k], (S.seed % 9) + 1); setTimeout(() => { S.go = null; }, 600); }
+function setEps(e) { const v = clamp(e, eMin(), eMax()); if (v !== S.eps) { S.eps = v; S.hopDirty = true; } }
+
+function step(dt) {
+  if (S.dirty) extract();
+  if (S.auto && S.A) { S.at += dt; setEps(eOfU(0.5 - 0.5 * Math.cos(2 * Math.PI * S.at / 30))); }
+  if (S.proof && S.A) { S.pt += dt; if (S.pt > 9) S.pt = 0; const u = clamp(1 - S.pt / 6, 0, 1); S.pe = eOfU(u) * 0.999; setEps(eOfU(u)); }
+  if (S.hopDirty) hop();
+  readout(); draw();
+}
+
+/* ---- 操作 ---- */
+const stopHands = () => { S.auto = false; S.proof = false; };
+$('bSample').addEventListener('click', () => { stopHands(); loadSample(S.src === 'sample' ? S.D : 1.25, S.seed % 97 + 1); });
+$('bOpen').addEventListener('click', () => $('file').click());
+$('file').addEventListener('change', e => { const f = e.target.files[0]; if (f) openFile(f); e.target.value = ''; });
+function openFile(f) { const url = URL.createObjectURL(f), im = new Image(); im.onload = () => { stopHands(); S.src = 'photo'; S.ans = false; S.inv = false; setImage(im); URL.revokeObjectURL(url); }; im.src = url; }
+$('win').addEventListener('dragover', e => { e.preventDefault(); $('win').classList.add('drop'); });
+$('win').addEventListener('dragleave', () => $('win').classList.remove('drop'));
+$('win').addEventListener('drop', e => { e.preventDefault(); $('win').classList.remove('drop'); const f = [...e.dataTransfer.files].find(f => f.type.startsWith('image/')); if (f) openFile(f); });
+$('bAns').addEventListener('click', () => { if (S.src === 'sample') S.ans = !S.ans; });
+document.querySelectorAll('#states > div').forEach(b => b.addEventListener('click', () => goState(b.dataset.s)));
+$('bound').addEventListener('click', e => { const r = $('bound').getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 212; goState(x < 70 ? 'SMOOTH' : x < 142 ? 'RUGGED' : 'WILD'); });
+$('ruler').addEventListener('input', e => { stopHands(); setEps(eOfU(+e.target.value / 1000)); });
+$('thr').addEventListener('input', e => { S.t = +e.target.value; S.dirty = true; });
+$('bOtsu').addEventListener('click', () => { if (S.lum) { S.t = L.otsu(S.lum); S.dirty = true; } });
+$('bInv').addEventListener('click', () => { S.inv = !S.inv; S.dirty = true; });
+$('lo').addEventListener('input', e => { S.lo = +e.target.value; S.dirty = true; });
+$('hi').addEventListener('input', e => { S.hiN = +e.target.value; S.dirty = true; });
+$('km').addEventListener('input', e => { S.km = Math.max(0, +e.target.value || 0); });
+$('bProof').addEventListener('click', () => { S.proof = !S.proof; S.pt = 0; if (S.proof) S.auto = false; });
+$('bAuto').addEventListener('click', () => { S.auto = !S.auto; if (S.auto) { S.proof = false; S.at = Math.acos(clamp(1 - 2 * uOfE(S.eps), -1, 1)) / (2 * Math.PI) * 30; } });
+$('bBreak').addEventListener('click', () => { S.brk = !S.brk; S.dirty = true; });
+addEventListener('keydown', e => { if (e.key === 'Escape') stopHands(); });
+
+const pos = e => { const r = cv.getBoundingClientRect(), k = r.width / Math.max(1, cv.clientWidth); return [(e.clientX - r.left) / k, (e.clientY - r.top) / k]; };
+const inLook = (x, y) => x >= G.lx && x <= G.lx + G.lw && y >= G.ly && y <= G.ly + G.lh;
+cv.addEventListener('pointerdown', e => { const [x, y] = pos(e); if (!inLook(x, y)) return; stopHands(); S.drag = { x, y, u: uOfE(S.eps), moved: false }; try { cv.setPointerCapture(e.pointerId); } catch (_) {} });
+cv.addEventListener('pointermove', e => { const [x, y] = pos(e), il = inLook(x, y); $('ctl').classList.toggle('hot', il || !!S.drag); cv.style.cursor = il ? (S.drag && S.drag.moved ? 'ns-resize' : 'crosshair') : 'default';
+  if (!S.drag) return; const dy = y - S.drag.y; if (Math.abs(dy) > 4) S.drag.moved = true; if (S.drag.moved) setEps(eOfU(clamp(S.drag.u - dy / 300, 0, 1))); });
+cv.addEventListener('pointerup', e => { if (S.drag && !S.drag.moved) { const f = fit(), [x, y] = pos(e), px = Math.floor((x - f.ox) / f.k), py = Math.floor((y - f.oy) / f.k); if (px >= 0 && py >= 0 && px < S.W && py < S.H) { S.sx = px; S.sy = py; S.dirty = true; } } S.drag = null; });
+cv.addEventListener('pointercancel', () => { S.drag = null; });
+cv.addEventListener('pointerleave', () => { if (!S.drag) $('ctl').classList.remove('hot'); });
+new ResizeObserver(() => { layout(); draw(); }).observe(cv);
+PHShell.onScale(() => { layout(); draw(); });
+if (document.fonts) ["11px 'JetBrains Mono'", "11px 'M PLUS 1 Code'", "13px 'IBM Plex Sans JP'", "12px Jura", "30px Michroma"].forEach(f => document.fonts.load(f));
+
+/* 直リンク：#d=見本の D&seed=種&eps=px&ans=1&proof=1&auto=1&brk=1&km=写真の横幅 */
+layout();
+{ const h = new URLSearchParams(location.hash.slice(1)); loadSample(h.has('d') ? +h.get('d') : 1.25, h.has('seed') ? +h.get('seed') : 3);
+  if (h.get('brk') === '1') S.brk = true; extract(); if (h.has('eps')) setEps(+h.get('eps')); else setEps(24);
+  if (h.get('ans') === '1') S.ans = true; if (h.get('proof') === '1') S.proof = true; if (h.get('auto') === '1') S.auto = true; if (h.has('km')) { S.km = +h.get('km'); $('km').value = S.km; } }
+window.__Z3 = { S, L, get G() { return G; }, step, draw, layout, readout, extract, loadSample, goState, setEps, setImage, makeSample };   // 検証用
+let last = performance.now();
+(function loop(now) { step(Math.max(0, Math.min(0.05, (now - last) / 1000))); last = now; requestAnimationFrame(loop); })(last);
+</script>
+</body>
+</html>
