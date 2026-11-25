@@ -69,7 +69,7 @@
   <div class="ph-specimen" id="specimen"><span class="tag">SPECIMEN · RICHARDSON PLOT</span></div>
 
   <div class="ph-format"><span class="k">FORMAT</span><span class="ja">地図の輪郭
-＋ 物差しと長さの両対数</span><span class="en">OUTLINE + RICHARDSON PLOT</span><a href="zoom_core.html#w=koch" style="margin-top:4px;font:600 11px/1 var(--f-thin);letter-spacing:.16em;color:var(--accent-line);text-decoration:none">Z2 SELF <span style="font:500 12px var(--f-jp);letter-spacing:0">コッホ曲線を寄る →</span></a></div>
+＋ 物差しと長さの両対数</span><span class="en">OUTLINE + RICHARDSON PLOT</span><a href="scroll/SCROLL_COAST_LP.html" style="margin-top:4px;font:600 11px/1 var(--f-thin);letter-spacing:.16em;color:var(--accent-line);text-decoration:none">SCROLL LP <span style="font:500 12px var(--f-jp);letter-spacing:0">解説を読む →</span></a><a href="zoom_core.html#w=koch" style="margin-top:0;font:600 11px/1 var(--f-thin);letter-spacing:.16em;color:var(--accent-line);text-decoration:none">Z2 SELF <span style="font:500 12px var(--f-jp);letter-spacing:0">コッホ曲線を寄る →</span></a></div>
 
   <!-- 08 READOUT -->
   <div class="ph-readout">
@@ -106,7 +106,7 @@
       <div class="row"><span class="k">FIT LO<i>読む下限</i><b id="v_lo"></b></span><input class="ph-range" type="range" id="lo" min="2" max="24" step="1" value="6" aria-label="当てはめる物差しの下限（px）"></div>
       <div class="row"><span class="k">FIT HI<i>読む上限</i><b id="v_hi"></b></span><input class="ph-range" type="range" id="hi" min="3" max="20" step="1" value="5" aria-label="当てはめる物差しの上限（差し渡しの 1/n）"></div>
       <div class="row"><span class="k">WIDTH<i>写真の横幅</i></span><div style="display:flex;align-items:center;gap:6px;margin-top:4px"><input type="number" id="km" min="0" step="any" placeholder="—"><span class="cap" style="margin:0">km（空なら px）</span></div></div>
-      <span class="cap" id="o_cap">陸を押すと、その塊の外側の縁を測る。湖・離れ小島は入らない。</span>
+      <span class="cap" id="o_cap">陸（水でもよい）を押すと、その塊の縁を測る。写真の端に触れた所は除く。真上から撮った、岸の明暗がはっきりした写真で。</span>
     </div>
   </div>
 
@@ -174,10 +174,16 @@ function extract() {
   const c = L.component(S.lum, S.W, S.H, S.t, S.sx, S.sy, S.inv);
   if (c.n < 400) { S.P = []; S.A = null; S.msg = c.n ? '押した塊が小さすぎる（' + c.n + ' 画素）。陸の広い所を押す' : '押した所は陸ではない（明るさのしきい値か「反転」を見る）'; return; }
   const m = S.brk ? L.smoothMask(c.mask, S.W, S.H, 10) : c.mask;
-  S.P = L.traceBoundary(m, S.W, S.H); S.A = L.analyze(S.P, { lo: S.lo, hi: L.extent(S.P).diam / S.hiN }); S.msg = '';
+  const r = L.openRun(L.traceBoundary(m, S.W, S.H), S.W, S.H); S.P = r.P; S.open = r.open; S.cut = r.cut;   // 写真の端に触れた所は除く
+  if (S.P.length < 60) { S.A = null; S.msg = '写真の端を除くと岸が短すぎる（' + S.P.length + ' 点）'; return; }
+  S.A = L.analyze(S.P, { lo: S.lo, hi: L.extent(S.P).diam / S.hiN, open: S.open }); S.msg = '';
+  // 読みの安定度：しきい値を ±8 動かして読み直す（写真では岸の決まり方しだいで D が大きく動くことがある・map2 で 1.20〜1.46）
+  const alt = [-8, 8].map(dt => { const c2 = L.component(S.lum, S.W, S.H, clamp(S.t + dt, 1, 254), S.sx, S.sy, S.inv); if (c2.n < 400) return null;
+    const r2 = L.openRun(L.traceBoundary(S.brk ? L.smoothMask(c2.mask, S.W, S.H, 10) : c2.mask, S.W, S.H), S.W, S.H); return r2.P.length < 60 ? null : L.analyze(r2.P, { lo: S.lo, hi: L.extent(r2.P).diam / S.hiN, open: r2.open }).Ddiv; });
+  const vs = [S.A.Ddiv, ...alt.filter(v => v != null)]; S.spread = alt.includes(null) ? null : [Math.min(...vs), Math.max(...vs)];
   S.eps = clamp(S.eps, eMin(), eMax());
 }
-function hop() { S.hopDirty = false; S.hop = S.P.length ? L.divider(S.P, S.eps, true) : null; }
+function hop() { S.hopDirty = false; S.hop = S.P.length ? L.divider(S.P, S.eps, true, S.open) : null; }
 
 function layout() {
   const r = cv.getBoundingClientRect(), kk = r.width / Math.max(1, cv.clientWidth); dpr = Math.min((window.devicePixelRatio || 1) * kk, 2);
@@ -197,8 +203,8 @@ function drawLook() {
   ctx.save(); ctx.beginPath(); ctx.rect(lx, ly, lw, lh); ctx.clip();
   ctx.globalAlpha = 0.72; ctx.drawImage(S.img, f.ox, f.oy, S.W * f.k, S.H * f.k); ctx.globalAlpha = 1;
   const X = p => f.ox + p[0] * f.k, Y = p => f.oy + p[1] * f.k;
-  if (S.P.length) { ctx.strokeStyle = 'rgba(242,239,230,.75)'; ctx.lineWidth = 1; ctx.beginPath(); S.P.forEach((p, i) => i ? ctx.lineTo(X(p), Y(p)) : ctx.moveTo(X(p), Y(p))); ctx.closePath(); ctx.stroke(); }
-  if (S.hop && S.hop.hops.length > 1) { const hs = S.hop.hops; ctx.strokeStyle = K.acc; ctx.lineWidth = 2; ctx.beginPath(); hs.forEach((p, i) => i ? ctx.lineTo(X(p), Y(p)) : ctx.moveTo(X(p), Y(p))); ctx.lineTo(X(S.P[0]), Y(S.P[0])); ctx.stroke();
+  if (S.P.length) { ctx.strokeStyle = 'rgba(242,239,230,.75)'; ctx.lineWidth = 1; ctx.beginPath(); S.P.forEach((p, i) => i ? ctx.lineTo(X(p), Y(p)) : ctx.moveTo(X(p), Y(p))); if (!S.open) ctx.closePath(); ctx.stroke(); }
+  if (S.hop && S.hop.hops.length > 1) { const hs = S.hop.hops; ctx.strokeStyle = K.acc; ctx.lineWidth = 2; ctx.beginPath(); hs.forEach((p, i) => i ? ctx.lineTo(X(p), Y(p)) : ctx.moveTo(X(p), Y(p))); const e = S.open ? S.P[S.P.length - 1] : S.P[0]; ctx.lineTo(X(e), Y(e)); ctx.stroke();
     if (hs.length < 500) { ctx.fillStyle = K.acc; for (const p of hs) { ctx.beginPath(); ctx.arc(X(p), Y(p), hs.length < 120 ? 3 : 1.8, 0, 7); ctx.fill(); } }
     ctx.fillStyle = K.warm; ctx.beginPath(); ctx.arc(X(hs[0]), Y(hs[0]), 5, 0, 7); ctx.fill(); }
   // 押した点
@@ -262,7 +268,9 @@ function drawNums() {
   const A = S.A, y = 360; txt('READ · 読んだ D', G.cx, y - 14, { f: jura(10, 600), c: K.dim });
   if (!A) return;
   txt('D ' + A.Ddiv.toFixed(3), G.cx, y + 22, { f: '400 30px Michroma,sans-serif', c: K.acc });
-  txt(L.stateOf(A.Ddiv) + ' · 輪郭 ' + A.pts.toLocaleString() + ' 点 · 差し渡し ' + A.ex.diam.toFixed(0) + ' px' + (S.brk ? ' · ぼかし r10' : ''), G.cx, y + 44, { f: note(10), c: K.dim });
+  txt(L.stateOf(A.Ddiv) + ' · 輪郭 ' + A.pts.toLocaleString() + ' 点 · 差し渡し ' + A.ex.diam.toFixed(0) + ' px' + (S.brk ? ' · ぼかし r10' : '') + (S.open ? ' · 写真の端を除いた開いた岸' : ''), G.cx, y + 44, { f: note(10), c: K.dim });
+  if (S.spread) { const w = S.spread[1] - S.spread[0]; txt('しきい値 ±8 で D ' + S.spread[0].toFixed(3) + '〜' + S.spread[1].toFixed(3) + (w < 0.05 ? '＝読みは安定' : '＝岸が明るさで決まらず不安定'), 1126, y + 44, { f: note(10), c: w < 0.05 ? K.dim : K.warm }); }
+  else txt('しきい値 ±8 で塊が取れない＝読みは不安定', 1126, y + 44, { f: note(10), c: K.warm });
   const near = L.LIT.map(([n, d]) => [n, d, Math.abs(d - A.Ddiv)]).sort((a, b) => a[2] - b[2])[0];
   txt('いちばん近い文献値：' + near[0] + ' ' + near[1].toFixed(2), G.cx, y + 62, { f: note(11), c: K.ink });
   if (S.src === 'sample') { if (S.ans) { const e = A.Ddiv - S.D; txt('ANSWER 見本の答え D ' + S.D.toFixed(3) + '（読みの差 ' + (e >= 0 ? '+' : '') + e.toFixed(3) + '）', G.cx, y + 82, { f: mono(11, 600), c: K.warm }); }
@@ -363,6 +371,8 @@ if (document.fonts) ["11px 'JetBrains Mono'", "11px 'M PLUS 1 Code'", "13px 'IBM
 layout();
 { const h = new URLSearchParams(location.hash.slice(1)); loadSample(h.has('d') ? +h.get('d') : 1.25, h.has('seed') ? +h.get('seed') : 3);
   if (h.get('brk') === '1') S.brk = true; extract(); if (h.has('eps')) setEps(+h.get('eps')); else setEps(24);
+  if (h.has('img')) { const im = new Image(); im.onload = () => { S.src = 'photo'; setImage(im); S.inv = h.get('inv') === '1'; if (h.has('t')) S.t = +h.get('t');
+    if (h.has('sx')) { S.sx = Math.round(+h.get('sx') * S.W); S.sy = Math.round(+h.get('sy') * S.H); } S.brk = h.get('brk') === '1'; extract(); setEps(h.has('eps') ? +h.get('eps') : 12); }; im.src = h.get('img'); }   // 手元の写真を開く（検証用・&inv=1&sx=&sy=（0〜1）&t=）
   if (h.get('ans') === '1') S.ans = true; if (h.get('proof') === '1') S.proof = true; if (h.get('auto') === '1') S.auto = true; if (h.has('km')) { S.km = +h.get('km'); $('km').value = S.km; } }
 window.__Z3 = { S, L, get G() { return G; }, step, draw, layout, readout, extract, loadSample, goState, setEps, setImage, makeSample };   // 検証用
 let last = performance.now();

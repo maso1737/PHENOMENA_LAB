@@ -102,10 +102,10 @@
   }
 
   /* ---- 物差しで測る（閉じた多角形をコンパスで歩く）→ 歩数・長さ・跳んだ点 ---- */
-  function divider(P, eps, keep) {
+  function divider(P, eps, keep, open) {   // open＝開いた線（端から端まで。写真の端で切れた岸）
     const n = P.length; if (n < 3) return { n: 0, L: 0, hops: [] };
-    let px = P[0][0], py = P[0][1], i = 1, steps = 0; const hops = keep ? [[px, py]] : null, e2 = eps * eps;
-    while (i <= n) {
+    let px = P[0][0], py = P[0][1], i = 1, steps = 0; const hops = keep ? [[px, py]] : null, e2 = eps * eps, end = open ? n - 1 : n;
+    while (i <= end) {
       const q = P[i % n], dx = q[0] - px, dy = q[1] - py;
       if (dx * dx + dy * dy < e2) { i++; continue; }
       // P[i-1] → P[i] の線分と、中心 (px,py)・半径 eps の円の交点（先の方）
@@ -114,7 +114,7 @@
       const t = Math.min(1, Math.max(0, (-B + Math.sqrt(disc)) / (2 * A)));
       px = a[0] + ux * t; py = a[1] + uy * t; steps++; if (keep) hops.push([px, py]);
     }
-    const rem = Math.hypot(P[0][0] - px, P[0][1] - py);
+    const last = open ? P[n - 1] : P[0], rem = Math.hypot(last[0] - px, last[1] - py);
     return { n: steps, L: steps * eps + rem, hops };
   }
 
@@ -137,13 +137,23 @@
   function analyze(P, opt) {
     opt = opt || {}; const ex = extent(P), eps = epsList(ex.diam);
     const lo = opt.lo || 6, hi = opt.hi || ex.diam / 5;   // 6 px より下は画素の階段・差し渡しの 1/5 より上は形全体の大きさが効く
-    const L = eps.map(e => divider(P, e).L), N = eps.map(e => boxCount(P, e));
+    const L = eps.map(e => divider(P, e, false, opt.open).L), N = eps.map(e => boxCount(P, e));
     const pick = eps.map((e, k) => e >= lo * 0.999 && e <= hi * 1.001 ? k : -1).filter(k => k >= 0);
     const fd = fitLine(pick.map(k => Math.log10(eps[k])), pick.map(k => Math.log10(L[k])));
     const fb = fitLine(pick.map(k => Math.log10(eps[k])), pick.map(k => Math.log10(N[k])));
-    return { eps, L, N, lo, hi, pick, Ddiv: 1 - fd.b, Dbox: -fb.b, fd, fb, ex, pts: P.length };
+    return { eps, L, N, lo, hi, pick, Ddiv: 1 - fd.b, Dbox: -fb.b, fd, fb, ex, pts: P.length, open: !!opt.open };
+  }
+  /* 写真の端に触れた所（枠の直線）は岸ではないので除き、いちばん長くつながった岸だけを開いた線にする */
+  function openRun(P, W, H, m) {
+    m = m == null ? 1.5 : m; const n = P.length, edge = p => p[0] < m || p[1] < m || p[0] > W - m || p[1] > H - m;
+    let k0 = -1; for (let i = 0; i < n; i++) if (edge(P[i])) { k0 = i; break; }
+    if (k0 < 0) return { P, open: false, cut: 0 };
+    let best = [], cur = [], cut = 0;
+    for (let q = 1; q <= n; q++) { const p = P[(k0 + q) % n]; if (edge(p)) { cut++; if (cur.length > best.length) best = cur; cur = []; } else cur.push(p); }
+    if (cur.length > best.length) best = cur;
+    return { P: best, open: true, cut };
   }
 
-  g.PH_Z3 = { LIT, D_SMOOTH, D_WILD, D_MIN, D_MAX, stateOf, sOfD, thetaOfD, rng, sampleIsland, fillMask, otsu, component, smoothMask, traceBoundary, divider, boxCount, fitLine, extent, epsList, analyze, N_EPS };
+  g.PH_Z3 = { LIT, D_SMOOTH, D_WILD, D_MIN, D_MAX, stateOf, sOfD, thetaOfD, rng, sampleIsland, fillMask, otsu, component, smoothMask, traceBoundary, openRun, divider, boxCount, fitLine, extent, epsList, analyze, N_EPS };
   if (typeof module !== 'undefined') module.exports = g.PH_Z3;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -4,47 +4,87 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PHENOMENA LAB</title>
-<style>
-  /* GitHub Pages の入口。作品を足したら下の WORKS に 1 行足す */
-  body { margin: 0; background: #0B0B0A; color: #E8E6DF; font: 15px/1.7 "IBM Plex Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif; }
-  main { max-width: 980px; margin: 0 auto; padding: 56px 28px 80px; }
-  h1 { margin: 0; font: 400 40px/1.1 "Michroma", "Arial Black", sans-serif; letter-spacing: .14em; }
-  .sub { margin-top: 14px; color: #A9A69D; }
-  h2 { margin: 44px 0 12px; font: 600 12px/1 monospace; letter-spacing: .3em; color: #F2C27A; }
-  .w { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; padding: 16px 0; border-top: 1px solid rgba(232,230,223,.14); }
-  .w b { font-size: 18px; font-weight: 500; }
-  .w p { margin: 2px 0 0; color: #A9A69D; font-size: 14px; grid-column: 1 / -1; }
-  .w .l { display: flex; gap: 10px; align-self: start; }
-  a { color: #0B0B0A; background: #E8A23A; text-decoration: none; padding: 5px 12px; font: 600 12px/1.4 monospace; letter-spacing: .08em; white-space: nowrap; }
-  a.lp { background: transparent; color: #F2C27A; border: 1px solid #F2C27A; }
-  footer { margin-top: 48px; color: #6B6357; font-size: 12px; }
-</style>
+<link rel="stylesheet" href="_shell/index.css">
 </head>
 <body>
-<main>
-  <h1>PHENOMENA LAB</h1>
-  <div class="sub">自然現象・物理現象を触って、原因を見て、表現に持ち出すラボ。アプリと、その仕組みを読む解説スクロール LP の組。</div>
-  <div id="works"></div>
-  <footer>PC のブラウザ推奨（WebGL2）。画像：となりのトトロ © 1988 Hayao Miyazaki / Studio Ghibli（スタジオジブリ公式の場面写真）。</footer>
-</main>
+<div class="ix">
+  <div class="ix-grid" aria-hidden="true"></div>
+  <svg class="ix-lines" aria-hidden="true" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+    <line x1="0" y1="80" x2="1000" y2="520"></line><line x1="1000" y1="60" x2="0" y2="700"></line>
+    <line x1="200" y1="0" x2="760" y2="1000"></line><line x1="0" y1="900" x2="1000" y2="420"></line>
+  </svg>
+  <main id="ix-main"></main>
+  <div class="bleed" aria-hidden="true"><span>INDEX</span></div>
+</div>
 <script>
-const WORKS = [
-  ['WAVE', 'RELIGHT POSTER', 'ポスターカラーで描いた絵に、街灯・電球・夕日などの光を当てる。逆算・条件等色のペアも。', 'wave/relight_poster.html', 'wave/scroll/SCROLL_RELIGHT_LP.html'],
-  ['WAVE', 'W1 ONE OCTAVE', '光を 1 オクターブの音に。黄色 1 本と、赤＋緑 2 本の違い。', 'wave/01_one_octave.html', 'wave/scroll/SCROLL_ONEOCTAVE_LP.html'],
-  ['WAVE', 'W4 SKY', 'なぜ昼の空は青く、夕方は赤く、雲は白いのか。太陽の高さと粒の大きさで空を作る。', 'wave/04_sky.html', 'wave/scroll/SCROLL_SKY_LP.html'],
-  ['WAVE', 'W6 RAINBOW', '虹はなぜ弧で、なぜいつも同じ大きさなのか。雨粒 1 つの光の道と分度器・霧の白い虹・過剰虹。', 'wave/06_rainbow.html', 'wave/scroll/SCROLL_RAINBOW_LP.html'],
-  ['WAVE', 'W6+ RAINBOW READER', '虹の写真 1 枚から、その日の雨粒の大きさを読む（W6 の逆向き）。見本の写真でクイズもできる。', 'wave/06_rainbow_reader.html', 'wave/scroll/SCROLL_RAINBOW_LP.html#s=9'],
-  ['EARTH', 'E1 PUSH & CARVE', '山はどうやって高くなり、なぜ無限には高くならないのか。', 'earth/01_push_and_carve.html', 'earth/scroll/SCROLL_PUSHCARVE_LP.html'],
-  ['AIR', 'A1 CLOUD BASE', '雲はなぜそこに出来て、なぜ底が平らなのか。', 'air/01_cloud_base.html', 'air/scroll/SCROLL_CLOUDBASE_LP.html'],
-  ['ZOOM', 'Z2 SELF · ZOOM CORE', 'どこまで寄っても終わらない形は、どう出来ている？ 止まらない無限ズームの芯と、1 周で元の絵に戻る証明・相似の次元 D。', 'zoom/zoom_core.html', 'zoom/scroll/SCROLL_SELF_LP.html'],
-  ['ZOOM', 'Z3 COAST', '海岸線の長さは、なぜ測れないのか。写真の輪郭を物差しで歩いて、荒れ方 D を読む（答えの決まった見本の島でクイズも）。', 'zoom/03_coast.html', 'zoom/scroll/SCROLL_SELF_LP.html#s=7'],
-];
-let html = '', last = '';
-for (const [f, t, d, app, lp] of WORKS) {
-  if (f !== last) { html += '<h2>' + f + '</h2>'; last = f; }
-  html += '<div class="w"><b>' + t + '</b><span class="l"><a href="' + app + '">APP →</a>' + (lp ? '<a class="lp" href="' + lp + '">解説 LP →</a>' : '') + '</span><p>' + d + '</p></div>';
-}
-document.getElementById('works').innerHTML = html;
+/* GitHub Pages の入口（標本棚）。
+   作品を足したら labs に 1 行足すだけ。配置は _shell/index.js が自動で組む（きまりはそのファイルの先頭）。
+   - できた作品：app（と lp）を書く。img は _shell/thumbs/ の切り抜き（無くても札になる）。d は日付（新しい順に大きく置かれる）。
+   - 予定の作品：app を書かない。chips はその形式の紙の色（SPEC_02 §1）。
+   - 手で直したいときだけ lay: { col: '1 / 9', mt: 40, ratio: '16 / 8', big: true }。 */
+window.PH_INDEX = {
+  lead: '自然現象・物理現象を触って、原因を見て、表現に持ち出すラボ。アプリと、その仕組みを読む解説スクロール LP の組。',
+  footer: 'PC のブラウザ推奨（WebGL2）。画像：となりのトトロ © 1988 Hayao Miyazaki / Studio Ghibli（スタジオジブリ公式の場面写真）。',
+  fields: [
+    { k: 'W', name: 'WAVE', jp: '波の橋 — 光と音を、波でつなぐ' },
+    { k: 'E', name: 'EARTH', jp: '大地 — 押す・削る・積もる・流れる' },
+    { k: 'A', name: 'AIR', jp: '空と水 — 雲・湯気・煙・波' },
+    { k: 'Z', name: 'ZOOM', jp: '無限ズーム — 寄っても終わらない' },
+    { k: 'M', name: 'MATTER', jp: '物の形' },
+    { k: 'S', name: 'SOFT', jp: 'しなやかなもの' },
+    { k: 'G', name: 'GROW', jp: '育つもの' },
+  ],
+  labs: [
+    // ---- できた作品 ----
+    { f: 'W', code: 'W1×', t: 'RELIGHT POSTER', jp: 'ポスターに光を当てる', acc: ['#E8A23A', '#0B0B0A', '#F2C27A'], img: '_shell/thumbs/relight.jpg', pos: '50% 40%', d: '2026-11-22', fmt: 'ポスター ＋ 分光',
+      q: 'ポスターカラーで描いた絵に、街灯・電球・夕日などの光を当てる。逆算・条件等色のペアも。', app: 'wave/relight_poster.html', lp: 'wave/scroll/SCROLL_RELIGHT_LP.html' },
+    { f: 'W', code: 'W1', t: 'ONE OCTAVE', jp: '光を音で聴く', acc: ['#ECEAE3', '#0B0B0A', '#ECEAE3'], img: '_shell/thumbs/w1.jpg', pos: '40% 50%', d: '2026-11-22', fmt: '分光チャート ＋ ピアノロール',
+      q: '光を 1 オクターブの音に。黄色 1 本と、赤＋緑 2 本の違い。', app: 'wave/01_one_octave.html', lp: 'wave/scroll/SCROLL_ONEOCTAVE_LP.html' },
+    { f: 'W', code: 'W4', t: 'SKY', jp: '空の色', acc: ['#25478F', '#FFFFFF', '#9CB6E6'], img: '_shell/thumbs/w4.jpg', pos: '28% 50%', d: '2026-11-23', fmt: 'シアノメーター ＋ 色の帯',
+      q: 'なぜ昼の空は青く、夕方は赤く、雲は白いのか。太陽の高さと粒の大きさで空を作る。', app: 'wave/04_sky.html', lp: 'wave/scroll/SCROLL_SKY_LP.html' },
+    { f: 'W', code: 'W6', t: 'RAINBOW', jp: '虹', acc: ['#5E3A8C', '#FFFFFF', '#C3ABE8'], img: '_shell/thumbs/w6.jpg', pos: '30% 50%', d: '2026-11-24', fmt: '光線の作図 ＋ 分度器',
+      q: '虹はなぜ弧で、なぜいつも同じ大きさなのか。雨粒 1 つの光の道と分度器・霧の白い虹・過剰虹。', app: 'wave/06_rainbow.html', lp: 'wave/scroll/SCROLL_RAINBOW_LP.html' },
+    { f: 'W', code: 'W6+', t: 'RAINBOW READER', jp: '虹から雨粒を読む', acc: ['#5E3A8C', '#FFFFFF', '#C3ABE8'], note: 'REVERSE OF W6', d: '2026-11-24', fmt: '写真 ＋ 光の強さの断面',
+      q: '虹の写真 1 枚から、その日の雨粒の大きさを読む（W6 の逆向き）。見本の写真でクイズもできる。', app: 'wave/06_rainbow_reader.html', lp: 'wave/scroll/SCROLL_RAINBOW_LP.html#s=9' },
+    { f: 'E', code: 'E1', t: 'PUSH & CARVE', jp: '隆起と侵食', acc: ['#F3D21C', '#0B0B0A', '#F3D21C'], img: '_shell/thumbs/e1.jpg', d: '2026-11-22', fmt: '地質断面図',
+      q: '山はどうやって高くなり、なぜ無限には高くならないのか。', app: 'earth/01_push_and_carve.html', lp: 'earth/scroll/SCROLL_PUSHCARVE_LP.html' },
+    { f: 'A', code: 'A1', t: 'CLOUD BASE', jp: '雲の底', acc: ['#3A74A0', '#FFFFFF', '#8DB8D8'], img: '_shell/thumbs/a1.jpg', d: '2026-11-11', fmt: '高層気象図（高さ × 温度）',
+      q: '雲はなぜそこに出来て、なぜ底が平らなのか。', app: 'air/01_cloud_base.html', lp: 'air/scroll/SCROLL_CLOUDBASE_LP.html' },
+    { f: 'Z', code: 'Z2', t: 'SELF', jp: '同じ形の中へ · ZOOM CORE', acc: ['#1F8A80', '#FFFFFF', '#7FD6CB'], img: '_shell/thumbs/z2.jpg', pos: '30% 50%', d: '2026-11-25', fmt: 'Powers of Ten の画面',
+      q: 'どこまで寄っても終わらない形は、どう出来ている？ 1 周で元の絵に戻る証明と、相似の次元 D。', app: 'zoom/zoom_core.html', lp: 'zoom/scroll/SCROLL_SELF_LP.html' },
+    { f: 'Z', code: 'Z3', t: 'COAST', jp: '荒れ方の物差し', acc: ['#1F8A80', '#FFFFFF', '#7FD6CB'], img: '_shell/thumbs/z3.jpg', pos: '40% 50%', d: '2026-11-25', fmt: 'リチャードソンの図',
+      q: '海岸線の長さは、なぜ測れないのか。写真の輪郭を物差しで歩いて、荒れ方 D を読む。', app: 'zoom/03_coast.html', lp: 'zoom/scroll/SCROLL_COAST_LP.html' },
+
+    // ---- 予定（SPEC_01・SPEC_03・SPEC_04） ----
+    { f: 'W', code: 'W2', t: 'BEND', jp: '回り込む', q: 'なぜ声は角を曲がるのに、光は影を作る？', fmt: 'リップルタンク', chips: ['#F2F2F0', '#111111'] },
+    { f: 'W', code: 'W3', t: 'THIN FILM', jp: '膜の色', q: 'シャボン玉はなぜ虹色？', fmt: '干渉色の色票', chips: ['#0B0B0B', '#C9A227', '#7B3FA0', '#2F7FB5', '#3FA36B'] },
+    { f: 'W', code: 'W5', t: 'MIRAGE', jp: '逃げ水', q: 'なぜ熱い道路に水たまりが見える？', fmt: '光線の作図・方眼紙', chips: ['#EEF0EA', '#7A7F86'] },
+    { f: 'W', code: 'W7', t: 'AURORA', jp: 'オーロラ', q: 'なぜカーテンの形で、なぜ緑と赤？', fmt: '全天カメラ ＋ 高さ', chips: ['#05070A', '#3DDC84', '#D9455F', '#8B5CF6'] },
+    { f: 'E', code: 'E2', t: 'DRAINAGE', jp: '水が刻む', q: 'なぜ川は木の枝の形になる？', fmt: '陰影起伏図 ＋ 等高線', chips: ['#C9D8B6', '#B59B72', '#3C78B5'] },
+    { f: 'E', code: 'E3', t: 'REPOSE', jp: '積もる角度', q: '砂山はなぜいつも同じ角度？', fmt: '青焼き（土木の断面）', chips: ['#1F4E8C', '#FFFFFF'] },
+    { f: 'E', code: 'E4', t: 'STRATA', jp: '曲がる・割れる', q: '地層はなぜ波打ち、なぜずれる？', fmt: '柱状図・フィールドノート', chips: ['#F1ECDD', '#3A3A3A'] },
+    { f: 'E', code: 'E5', t: 'LAVA', jp: '溶岩', q: '流れる溶岩と、盛り上がって爆発する溶岩の違いは？', fmt: 'サーモグラフィ', chips: ['#000000', '#C0261B', '#F07A1A', '#F5D547', '#FFFFFF'] },
+    { f: 'A', code: 'A2', t: 'RISE', jp: '雲の背', q: 'なぜ薄い雲と、もくもくの入道雲がある？', fmt: '高層気象図 ＋ 雲形図鑑', chips: ['#E4EEF2', '#22323A'] },
+    { f: 'A', code: 'A3', t: 'STEAM', jp: '湯気', q: '湯気は何？ なぜ白く、なぜ消える？', fmt: '実験図 ＋ 飽和の曲線', chips: ['#FFFFFF', '#111111'] },
+    { f: 'A', code: 'A4', t: 'PLUME', jp: '煙と炎', q: '煙はなぜ途中からもつれ、炎はなぜ涙の形？', fmt: 'シュリーレン写真', chips: ['#8A8A88', '#D8D8D6', '#3A3A3A'] },
+    { f: 'A', code: 'A5', t: 'SHORE', jp: '岸の波', q: '波はなぜ岸で立ち上がって砕けるのか？', fmt: '海図 ＋ 断面', chips: ['#DCE9EF', '#EFE8D6', '#2C4C66'] },
+    { f: 'Z', code: 'Z1', t: 'POWERS', jp: '10 の何乗', q: '自分の大きさは、世界のどのあたり？', fmt: 'Powers of Ten の画面', chips: ['#000000', '#FFFFFF'] },
+    { f: 'Z', code: 'Z4', t: 'DOT TO WORLD', jp: '点・線・面・世界', q: '点に寄ると何が見える？', fmt: 'Powers of Ten の画面', chips: ['#000000', '#FFFFFF', '#F3D21C'] },
+    { f: 'Z', code: 'Z5', t: 'MANDELBROT', jp: 'マンデルブロ', q: '2 行の式から、なぜ尽きない形が出る？', fmt: '複素平面の色帯', chips: ['#000000', '#1B3A8C', '#F07A1A', '#FFFFFF'] },
+    { f: 'M', code: 'M1', t: 'CRACK', jp: 'ひび', q: '泥のひびと、柱状の岩（六角）は何が違う？', fmt: '貫入・拓本', chips: ['#F4F2EC', '#111111'] },
+    { f: 'M', code: 'M2', t: 'BRANCH', jp: '枝分かれ', q: '雷・霜・川の三角州はなぜ似ている？', fmt: 'リヒテンベルク図形', chips: ['#05060A', '#E6F0FF', '#4A7BFF'] },
+    { f: 'M', code: 'M3', t: 'SNOW', jp: '雪の結晶', q: 'なぜ六角で、なぜ 1 つずつ違う？', fmt: '黒い板の結晶写真', chips: ['#000000', '#FFFFFF'] },
+    { f: 'S', code: 'S1', t: 'CLOTH', jp: '布', q: 'しわはどこに、なぜその向きに出来る？', fmt: '服の型紙', chips: ['#D9C29A', '#C0392B'] },
+    { f: 'S', code: 'S2', t: 'HAIR', jp: '髪', q: '直毛・ウェーブ・カールは何が違う？', fmt: '毛束の展開図', chips: ['#FFFFFF', '#111111'] },
+    { f: 'G', code: 'G1', t: 'SEED', jp: '葉と種の並び', q: 'ひまわりの種はなぜ渦に見える？', fmt: '植物画', chips: ['#EFE8D6', '#4E7A3A', '#7A5A3A'] },
+    { f: 'G', code: 'G2', t: 'BRANCH RULE', jp: '枝の決まり', q: '木を木らしく見せているのは何？', fmt: '植物画', chips: ['#EFE8D6', '#4E7A3A', '#7A5A3A'] },
+    { f: 'G', code: 'G3', t: 'LIGHT SEEK', jp: '光を探す', q: '森の中と野原で、同じ種の形がなぜ違う？', fmt: '植物画', chips: ['#EFE8D6', '#4E7A3A', '#7A5A3A'] },
+    { f: 'G', code: 'G4', t: 'LOAD', jp: '重さと風', q: '枝はなぜ垂れ、風の強い所の木はなぜ傾く？', fmt: '押し葉標本', chips: ['#EFE8D6', '#4E7A3A', '#7A5A3A'] },
+    { f: 'G', code: 'G5', t: 'AGE', jp: '年をとる', q: '若木と老木は、大きさ以外に何が違う？', fmt: '押し葉標本', chips: ['#EFE8D6', '#4E7A3A', '#7A5A3A'] },
+    { f: 'G', code: 'G6', t: 'FRACTAL', jp: '同じ形のくり返し', q: 'シダ・ブロッコリーはなぜ部分が全体に似る？', fmt: '植物画', chips: ['#EFE8D6', '#4E7A3A', '#7A5A3A'] },
+  ],
+};
 </script>
+<script src="_shell/index.js"></script>
 </body>
 </html>

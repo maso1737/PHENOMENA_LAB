@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Z3 COAST 荒れ方の物差し 解説 LP — PHENOMENA LAB</title>
+<link rel="stylesheet" href="../../_shell/shell.css">
+<style>
+  /* ★ アクセント＝アプリと同じ 3 変数だけ変える（スクリプトの ACC・ACCL も同じ値に）。下の CSS は 3 本の LP で共通・触らない */
+  :root { --accent: #1F8A80; --accent-ink: #FFFFFF; --accent-line: #7FD6CB; }
+  html, body { height: auto; overflow-x: hidden; overflow-y: auto; }
+  #track { position: relative; width: 1px; pointer-events: none; }
+  .ph-viewport { z-index: 1; }
+  #cv { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; }
+  .ab { position: absolute; }
+  .lay { position: absolute; inset: 0; pointer-events: none; transition: opacity .25s; opacity: 0; }
+  .lay.on { opacity: 1; }
+  .lay.on .hit { pointer-events: auto; }
+
+  /* ヘッダ */
+  .brand b { display: block; width: 300px; font: 400 22px/1.35 var(--f-wide); letter-spacing: .24em; color: var(--ink); }
+  .brand span { display: block; margin-top: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .2em; color: var(--accent-line); }
+  .ids { display: grid; grid-template-columns: 96px 1fr; row-gap: 6px; width: 340px; font-size: 11px; }
+  .ids dt { font-family: var(--f-thin); letter-spacing: .18em; color: var(--ink-2); }
+  .ids dd { margin: 0; font-family: var(--f-num); color: var(--ink); }
+  .tab { left: 1704px; top: 24px; width: 176px; height: 152px; background: var(--accent); color: var(--accent-ink); padding: 18px 18px 0; }
+  .tab .k { display: flex; justify-content: center; position: relative; font: 600 13px/1 var(--f-thin); letter-spacing: .24em; }
+  .tab .k span + span { position: absolute; right: 0; }   /* 11-24 アプリの STAGE の箱と同じく中央合わせ */
+  .tab .n, .tab .s { display: flex; justify-content: center; white-space: nowrap; }   /* 11-25 flex の中央＝はみ出しても左右に等しく。入らない番号は shell.js の fitStage が字を縮める */
+  .tab .n { font: 400 62px/1 var(--f-wide); margin-top: 12px; }
+  .tab .s { font: 400 12px/1 var(--f-num); margin-top: 10px; }
+  .noise { left: 1130px; top: 44px; font: 400 8.5px/13px var(--f-num); color: var(--ink); opacity: .2; white-space: pre; }
+  #bigTop { left: 1100px; top: 36px; width: 590px; text-align: right; font: 400 72px/1 var(--f-wide); color: var(--accent); opacity: .16; white-space: nowrap; }
+  #kanji { font: 500 300px/1 var(--f-jp); color: var(--accent); opacity: .12; white-space: nowrap; }
+  #kanji.num { font: 400 200px/1 var(--f-wide); }
+
+  /* 00 問い */
+  .band { left: 32px; top: 136px; width: 1316px; height: 330px; background: var(--accent); color: var(--accent-ink); padding: 34px 48px; }
+  .band .f { font: 600 13px/1 var(--f-thin); letter-spacing: .42em; }
+  .band h1 { margin: 26px 0 0; font: 400 128px/118px var(--f-wide); letter-spacing: -.01em; }
+  .q { left: 1376px; top: 190px; width: 480px; }
+  .q .k { font: 600 12px/1 var(--f-thin); letter-spacing: .3em; color: var(--accent-line); }
+  .q p { margin: 22px 0 0; font: 500 28px/1.55 var(--f-jp); color: var(--ink); }
+  .howto { left: 40px; top: 486px; width: 212px; }
+  .howto h3, .stl h3 { margin: 0; display: flex; align-items: center; gap: 10px; font: 400 15px/1 var(--f-wide); letter-spacing: .16em; color: var(--ink); }
+  .howto h3 i, .stl h3 i, .railk i { width: 10px; height: 10px; background: var(--accent); }
+  .howto .st { border-bottom: 1px solid var(--line-sub); padding: 18px 0 14px; }
+  .howto .st span { display: block; font: 600 10px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .howto .st b { font: 400 28px/1 var(--f-num); color: var(--ink); margin-right: 10px; }
+  .howto .st small { font: 400 12px/1 var(--f-jp); color: var(--ink-2); }
+  .hint { font: 600 11px/1 var(--f-thin); letter-spacing: .24em; color: var(--accent-line); }
+  .hint em, .nextk em { font-style: normal; display: inline-block; animation: bob 1.2s ease-in-out infinite; }
+  @keyframes bob { 0%, 100% { transform: translateY(-2px); } 50% { transform: translateY(3px); } }
+
+  /* 駅の一覧 */
+  .stl { left: 40px; top: 140px; width: 212px; }
+  .stl ol { list-style: none; margin: 16px 0 0; padding: 0; }
+  .stl li { display: flex; align-items: center; height: 45px; padding: 0 10px; border-bottom: 1px solid var(--line-sub); cursor: pointer; color: var(--ink-3); }
+  .stl li u { text-decoration: none; font: 400 12px/1 var(--f-num); width: 32px; }
+  .stl li b { font: 400 14px/1 var(--f-jp); flex: 1; }
+  .stl li s { text-decoration: none; font: 600 9px/1 var(--f-thin); letter-spacing: .14em; }
+  .stl li.done { color: var(--ink); }
+  .stl li.done s::before { content: '✓'; font-size: 11px; color: var(--ink-2); }
+  .stl li.done s { font-size: 0; }
+  .stl li.now { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .stl li.now b { font-weight: 500; }
+  .stl li.now s { font-size: 0; }
+  .stl li.now s::after { content: '◀ NOW'; font-size: 9px; }
+  .stl li:hover:not(.now) { color: var(--ink); background: rgba(232,230,223,.04); }
+  .read { margin-top: 26px; display: flex; justify-content: space-between; font: 600 10px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .read b { font: 400 12px/1 var(--f-num); color: var(--ink); }
+  .bar { margin-top: 8px; height: 5px; background: rgba(232,230,223,.1); }
+  .bar i { display: block; height: 100%; background: var(--accent); width: 0; }
+
+  /* 図の札 */
+  .figtag { left: 302px; top: 168px; height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: #0B0B0A; color: var(--ink); }
+  .figtag i { width: 10px; height: 10px; background: var(--accent); }
+  .figtag b { font: 400 15px/1 var(--f-wide); letter-spacing: .1em; }
+  .figtag span { font: 500 12px/1 var(--f-jp); }
+  .brkchip { left: 1166px; top: 168px; height: 30px; padding: 0 12px; display: flex; align-items: center; gap: 8px; background: #0B0B0A; color: var(--ink); font: 600 11px/1 var(--f-thin); letter-spacing: .2em; }
+  .brkchip b { font: 500 12px/1 var(--f-jp); letter-spacing: 0; }
+
+  /* 右の欄 */
+  .rc { left: 1360px; top: 158px; width: 520px; display: flex; flex-direction: column; }
+  .rc .hd { display: flex; align-items: baseline; gap: 22px; }
+  .rc .num { font: 400 82px/1 var(--f-wide); color: var(--accent-line); }
+  .rc .en { font: 600 12px/1 var(--f-thin); letter-spacing: .24em; color: var(--ink-2); }
+  .rc h2 { margin: 18px 0 0; font: 500 40px/1.38 var(--f-jp); color: var(--ink); letter-spacing: .02em; }
+  .rc .body { margin: 20px 0 0; font: 400 16px/1.78 var(--f-jp); color: var(--ink); padding-bottom: 20px; border-bottom: 1px solid var(--line-main); }
+  .rc .kl { margin-top: 20px; font: 600 10px/1 var(--f-thin); letter-spacing: .22em; color: var(--ink-2); }
+  .rc .kv { margin-top: 10px; display: flex; align-items: baseline; gap: 12px; }
+  .rc .kv b { font: 400 64px/1 var(--f-num); color: var(--accent-line); }
+  .rc .kv span { font: 400 18px/1 var(--f-num); color: var(--ink-2); }
+  .rc .kn { margin-top: 12px; font: 400 13px/1.6 var(--f-jp); color: var(--ink-2); }
+  .rc .kn sup { font-size: 9px; }
+  .rc .wow { margin-top: 18px; display: flex; gap: 12px; font: 400 14px/1.65 var(--f-jp); color: var(--ink); }
+  .rc .wow i { flex: none; font: 600 10px/1 var(--f-jp); background: var(--ink); color: #0B0B0A; padding: 5px 8px; height: 20px; margin-top: 2px; font-style: normal; }
+  .nextk { left: 1360px; top: 838px; width: 520px; display: flex; align-items: center; gap: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .24em; color: var(--ink-2); }
+  .nextk hr { flex: 1; border: 0; border-top: 1px solid var(--line-sub); margin: 0; }
+  .nextk span { font: 500 13px/1 var(--f-jp); letter-spacing: 0; color: var(--ink); }
+  .nextk span small { font-size: 12px; color: var(--ink-2); margin-right: 10px; }
+
+  /* 文字の入り方：左から（0.26〜0.34 秒） */
+  .in { clip-path: inset(0 100% 0 0); }
+  .go .in { animation: wipe .32s cubic-bezier(.2,.8,.2,1) forwards; animation-delay: calc(var(--d, 0) * 60ms); }
+  @keyframes wipe { from { clip-path: inset(0 100% 0 0); transform: translateX(-10px); } to { clip-path: inset(0 0 0 0); transform: none; } }
+
+  /* 09 持ち出す */
+  .endh { left: 284px; top: 160px; display: flex; align-items: baseline; gap: 26px; }
+  .endh b { font: 400 96px/1 var(--f-wide); color: var(--accent-line); }
+  .endh span { font: 400 32px/1 var(--f-wide); letter-spacing: .08em; color: var(--ink); }
+  .endh em { font: 500 22px/1 var(--f-jp); font-style: normal; color: var(--ink); }
+  .endn { left: 1300px; top: 230px; width: 580px; text-align: right; font: 600 11px/1 var(--f-thin); letter-spacing: .2em; color: var(--ink-2); }
+  .cards { left: 280px; top: 272px; width: 1600px; height: 332px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .cards > div { border-left: 2px solid var(--accent); padding: 16px 16px; color: var(--ink); transition: background .2s, color .2s; }
+  .cards > div:hover { background: var(--accent); color: var(--accent-ink); }
+  .cards h4 { margin: 0; font: 400 15px/1 var(--f-wide); letter-spacing: .08em; }
+  .cards h4 u { text-decoration: none; font: 400 12px/1 var(--f-num); color: var(--accent-line); margin-right: 8px; }
+  .cards h4 small { font: 400 11px/1 var(--f-jp); color: var(--ink-2); margin-left: 8px; letter-spacing: 0; }
+  .cards > div:hover h4 u, .cards > div:hover h4 small { color: var(--accent-ink); }
+  .cards p { margin: 26px 0 0; font: 400 15px/1.85 var(--f-jp); }
+  .cards p em { display: block; margin-top: 12px; font: 400 11px/1.5 var(--f-num); font-style: normal; color: var(--ink-2); }
+  .cards > div:hover p em { color: var(--accent-ink); }
+  .cards > div { transform: translateY(16px); opacity: 0; transition: transform .4s cubic-bezier(.2,.8,.2,1), opacity .4s, background .2s, color .2s; }
+  .go .cards > div { transform: none; opacity: 1; }
+  .cta { left: 280px; top: 628px; width: 1254px; height: 200px; background: var(--accent); color: var(--accent-ink); padding: 44px 36px; display: block; text-decoration: none; }
+  .cta .k { font: 600 12px/1 var(--f-thin); letter-spacing: .32em; }
+  .cta b { display: block; margin-top: 18px; font: 400 58px/1 var(--f-wide); }
+  .cta b em { font-style: normal; display: inline-block; transition: transform .2s; }
+  .cta:hover b em { transform: translateX(10px); }
+  .cta span { display: block; margin-top: 16px; font: 500 16px/1 var(--f-jp); }
+  .ctaf { left: 1208px; top: 812px; font: 400 10px/1 var(--f-num); color: var(--accent-ink); }
+  .nextc { left: 1550px; top: 628px; width: 330px; height: 200px; border: 1px solid var(--line-main); padding: 26px; }
+  .nextc .k { font: 600 11px/1 var(--f-thin); letter-spacing: .26em; color: var(--ink-2); }
+  .nextc b { display: block; margin-top: 16px; font: 400 28px/1 var(--f-wide); color: var(--ink); }
+  .nextc p { margin: 14px 0 0; font: 400 14px/1.6 var(--f-jp); color: var(--ink); }
+  .nextc small { display: block; margin-top: 12px; font: 600 11px/1 var(--f-thin); letter-spacing: .14em; color: var(--ink-2); }
+
+  /* 式の線路 */
+  .railk { left: 40px; top: 882px; display: flex; align-items: center; gap: 12px; }
+  .railk i { width: 24px; height: 8px; }
+  .railk b { font: 400 15px/1 var(--f-wide); letter-spacing: .16em; color: var(--ink); }
+  .railk span { font: 400 12px/1 var(--f-jp); color: var(--ink-2); }
+  .rail { left: 40px; top: 912px; width: 1840px; height: 120px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .rb { border: 1px solid var(--line-sub); padding: 16px 16px; position: relative; color: var(--ink-3); transition: background .3s, color .3s, border-color .3s; }
+  .rb .rt { display: flex; justify-content: space-between; font: 600 11px/1 var(--f-thin); letter-spacing: .14em; }
+  .rb .rt b { font: 500 11px/1 var(--f-jp); letter-spacing: 0; margin-left: 4px; }
+  .rb .rt i { font-style: normal; }
+  .rb .rf { margin-top: 18px; font: 400 24px/1 var(--f-num); white-space: nowrap; }
+  .rb .rf sup { font-size: 13px; }
+  .rb .rd { margin-top: 14px; font: 400 12px/1.35 var(--f-jp); }
+  .rb .dots { display: none; margin-top: 18px; font: 400 18px/1 var(--f-num); letter-spacing: .9em; }
+  .rb.fut .rf { display: none; }
+  .rb.fut .dots { display: block; }
+  .rb.done { border-color: var(--line-main); color: var(--ink); }
+  .rb.done .rd { color: var(--ink-2); }
+  .rb.ref { border-color: var(--accent-line); color: var(--ink); }
+  .rb.ref .rt i, .rb.ref .rf { color: var(--accent-line); }
+  .rb.now { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); animation: grow .3s cubic-bezier(.2,.8,.2,1); transform-origin: left; }
+  @keyframes grow { from { transform: scaleX(.3); } to { transform: none; } }
+  .rb.lab { border: 1px dashed var(--accent-line); color: var(--accent-line); text-decoration: none; display: block; }
+  .rb.lab .rf { font: 400 25px/1 var(--f-wide); }
+  .rb.lab .rd { color: var(--ink); }
+  .rb.lab:hover, .rb.lab.now { background: var(--accent); color: var(--accent-ink); border-style: solid; }
+  .rb.lab:hover .rd, .rb.lab.now .rd { color: var(--accent-ink); }
+  .foot { left: 300px; top: 1050px; font: 400 9px/1 var(--f-num); letter-spacing: .14em; color: var(--ink-3); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .in, .go .in { clip-path: none; animation: none; }
+    .hint em, .nextk em { animation: none; }
+    .cards > div { transform: none; opacity: 1; transition: none; }
+    .rb.now { animation: none; }
+  }
+</style>
+</head>
+<body>
+<!-- ===== 差し替える所は「★」で探す。構造（外枠・駅の一覧・本文・式の線路・間合い）は触らない ===== -->
+<div class="ph-viewport"><div class="ph-shell" id="shell">
+  <div class="ph-grid"></div>
+  <div class="ab" id="kanji"></div>
+  <div class="ab" id="bigTop"></div>
+  <div class="ab noise" id="noise"></div>
+  <svg class="ab" id="frame" width="1920" height="1080" viewBox="0 0 1920 1080" aria-hidden="true" style="left:0;top:0;pointer-events:none"></svg>
+  <canvas id="cv"></canvas>
+
+  <!-- ヘッダ（全駅共通）★ OBS.No・DOC・FIELD・CARD -->
+  <div class="ab brand" style="left:48px;top:46px"><b>PHENOMENA LAB</b><span>EARTH SURVEY ARCHIVE · EXPLAINER</span></div>
+  <dl class="ab ids" style="left:392px;top:62px;margin:0"><dt>OBS.No</dt><dd>Z-003-1967</dd><dt>DOC</dt><dd>SCROLL-Z3-LP</dd><dt>TIMESTAMP</dt><dd>2125-11-25T15:00:00Z</dd></dl>
+  <dl class="ab ids" style="left:760px;top:62px;margin:0"><dt>FIELD</dt><dd>ZOOM</dd><dt>CARD</dt><dd>Z3 / 05</dd><dt>STATION</dt><dd id="o_stn">00</dd></dl>
+  <div class="ab tab"><div class="k"><span>SCROLL</span><span>/</span></div><div class="n">Z3</div><div class="s" id="o_tab">LP · 00</div></div>
+
+  <!-- 00 問い ★ 帯の英字・タイトル・問い・HOW TO READ の数 -->
+  <div class="lay" id="L0">
+    <div class="ab band"><div class="f in">Z3 — ZOOM · COAST · 荒れ方の物差し · SCROLL EXPLAINER</div><h1 class="in" style="--d:1">HOW LONG<br>IS A COAST</h1></div>
+    <div class="ab q"><div class="k in" style="--d:2">QUESTION</div><p class="in" style="--d:3">海岸線の長さは、<br>なぜ<br>測れないのか。</p></div>
+    <div class="ab howto"><h3><i></i>HOW TO READ</h3>
+      <div class="st"><span>STATIONS</span><b id="o_nst">0</b><small>の駅</small></div>
+      <div class="st"><span>READING</span><b>≈ 5</b><small>分</small></div>
+      <div class="st"><span>FORMULAS</span><b id="o_nrail">0</b><small>本の式</small></div></div>
+    <div class="ab figtag" style="left:302px;top:504px"><i></i><b>LOOK</b><span>— 実物の姿</span></div>
+    <div class="ab hint" style="left:40px;top:842px">SCROLL <em>▼</em>　<span id="o_hint"></span></div>
+  </div>
+
+  <!-- 01〜最後：駅の一覧 -->
+  <div class="lay" id="LS">
+    <div class="ab stl hit"><h3><i></i>STATIONS <small style="font:400 12px var(--f-jp);color:var(--ink-2)">駅</small></h3><ol id="stl"></ol>
+      <div class="read"><span>READ</span><b id="o_read">01</b></div><div class="bar"><i id="o_bar"></i></div></div>
+  </div>
+
+  <!-- 01〜最後の 1 つ前：図と本文 -->
+  <div class="lay" id="L1">
+    <div class="ab figtag in" id="figtag"><i></i><b id="o_fig">FIG. 01</b><span id="o_figt"></span></div>
+    <div class="ab brkchip" id="brkchip" style="display:none">BREAK <b>現実の外</b></div>
+    <div class="ab rc" id="rc">
+      <div class="hd"><span class="num in" id="r_num">01</span><span class="en in" style="--d:1" id="r_en"></span></div>
+      <h2 class="in" style="--d:2" id="r_h"></h2>
+      <p class="body in" style="--d:3" id="r_body"></p>
+      <div class="kl in" style="--d:4" id="r_kl"></div>
+      <div class="kv in" style="--d:5"><b id="r_kv"></b><span id="r_ku"></span></div>
+      <div class="kn in" style="--d:6" id="r_kn"></div>
+      <div class="wow in" style="--d:7"><i>驚き</i><span id="r_wow"></span></div>
+    </div>
+    <div class="ab nextk">SCROLL <em>▼</em><hr><span><small>次の駅</small><b id="r_next"></b></span></div>
+  </div>
+
+  <!-- 最後：持ち出す ★ TRANSFER 5 枚はアプリの TRANSFER と同じ文・NEXT CARD -->
+  <div class="lay" id="LE">
+    <div class="ab endh"><b class="in" id="o_endn">09</b><span class="in" style="--d:1">TRANSFER</span><em class="in" style="--d:2">表現に持ち出す</em></div>
+    <div class="ab endn in" style="--d:3">NOTES FOR CG / ANIMATION · カードに触れると色が変わる</div>
+    <div class="ab cards hit">
+      <div style="transition-delay:0ms"><h4><u>01</u>LOOK RULES<small>絵の決まり</small></h4><p>海岸・雲の縁・山の稜線は、寄っても同じ割合で荒れている（D 1.0〜1.3）。引きの絵で省いた細部は、寄りのカットで同じ割合で足す。</p></div>
+      <div style="transition-delay:60ms"><h4><u>02</u>CG</h4><p>輪郭のノイズは、周波数 2 倍ごとに振れ幅を 2⁻ᴴ 倍で重ねると D ≈ 2 − H（H 0.75 で 1.25・目安）。重ねる回数は、画面で 2 px になるまで。</p></div>
+      <div style="transition-delay:120ms"><h4><u>03</u>GEN CHECK<small>嘘の見つけ方</small></h4><p>寄るとつるつる／どの大きさでも凸凹が同じ大きさ（ノイズ 1 段だけ）／両対数がまっすぐな範囲が無い、なら作り物に見える。<em>coastline paradox / Richardson plot</em></p></div>
+      <div style="transition-delay:180ms"><h4><u>04</u>BREAK<small>わざと外す</small></h4><p>地図や写真はぼけた分だけ細部が消え、物差しを短くしても長さが伸びない。読む範囲は、画素とぼけより大きい所に取る。</p></div>
+      <div style="transition-delay:240ms"><h4><u>05</u>FIELD NOTE<small>宿題</small></h4><p>地図アプリで同じ海岸を縮尺を変えて 3 枚撮り、ここで読む。縮尺ごとの D がそろうか、どこから下で 1 に近づくか（地図の省略）を見る。</p></div>
+    </div>
+    <a class="ab cta hit in" style="--d:4" id="cta" href="#"><span class="k" style="margin:0">END OF SCROLL · 終点</span><b>OPEN THE LAB <em>→</em></b><span>見本の島でクイズ、自分の空撮で D と「読みの安定度」を見る</span></a>
+    <canvas class="ab" id="tc" width="600" height="300" style="left:1198px;top:652px;width:300px;height:150px"></canvas>
+    <div class="ab ctaf" id="ctaf"></div>
+    <div class="ab nextc in" style="--d:5"><div class="k">NEXT CARD</div><b>Z4 DOT TO WORLD</b><p>点に寄ると線、線に寄ると面、面に寄ると世界。世界を引くと 1 つの点。</p><small>COMING · 仕様のみ</small></div>
+  </div>
+
+  <!-- 式の線路（全駅共通） -->
+  <div class="ab railk"><i></i><b>FORMULA RAIL</b><span id="o_railk">— 式の線路 · 駅を通るたびに式が入線する</span></div>
+  <div class="ab rail hit" id="rail" style="pointer-events:auto"></div>
+  <div class="ab foot" id="foot"></div>
+</div></div>
+<div id="track"></div>
+
+<script src="../../_shell/shell.js"></script>
+<script src="../_law/ph_z3_law.js"></script>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+/* 法則：アプリと同じ ph_z3_law.js。図の数・KEY NUMBER は、開いたときに見本の島を作って実際に読んで出す */
+const L = PH_Z3;
+const C = { paper: '#060606', ink: '#F2EFE6', dim: '#9C9A93', faint: '#6F6D67', rule: 'rgba(242,239,230,.18)', rule2: 'rgba(242,239,230,.07)', up: '#7FD6CB', down: '#E8A23A', sea: '#1E4563', land: '#7E9A55' };
+const ACC = '#1F8A80', ACCL = '#7FD6CB';
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const LAB = '../03_coast.html';
+const DOC = 'ARCHIVE/EARTH/ZOOM/Z3/1967/LP';
+const WW = 1200, WH = 800;
+
+/* ---- 開いたら少しずつ作る：見本の島（D ごと）・答えのある島 3 つ・ぼかし 9 段・しきい値を振った写真 2 枚 ---- */
+const R = { isl: {}, proof: [], blur: [], thr: { flat: [], haze: [] }, img: {}, done: 0, total: 1 };
+function readMask(m, open) { const r = L.openRun(L.traceBoundary(m, WW, WH), WW, WH); return r.P.length < 60 ? null : { P: r.P, open: r.open, A: L.analyze(r.P, { open: r.open }) }; }
+function island(D, seed) { const smp = L.sampleIsland(D, seed, WW / 2, WH / 2, 470), m = L.fillMask(smp.poly, WW, WH); return Object.assign(readMask(m), { poly: smp.poly, mask: m, D }); }
+/* 写真らしい板：海の明るさが左から右へ上がる（かすみ）と、そうでない板 */
+function photo(haze) {
+  const c = document.createElement('canvas'); c.width = WW; c.height = WH; const g = c.getContext('2d'), smp = L.sampleIsland(1.2, 5, WW / 2, WH / 2, 470);
+  g.fillStyle = '#1B4360'; g.fillRect(0, 0, WW, WH);
+  g.beginPath(); smp.poly.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.closePath(); g.fillStyle = '#8CA866'; g.fill('evenodd');
+  if (haze) { g.save(); g.clip('evenodd'); const rb = L.rng(23); for (let q = 0; q < 900; q++) { const v = 70 + rb() * 80 | 0; g.fillStyle = 'rgb(' + v + ',' + v + ',' + (v + 6) + ')'; g.beginPath(); g.arc(250 + rb() * 700, 120 + rb() * 560, 3 + rb() * 11, 0, 7); g.fill(); } g.restore(); }   // 街の写真：陸の中に、海と陸の間の暗さの影・屋根・道路（岸に接する物もある）
+  const id = g.getImageData(0, 0, WW, WH), lum = new Uint8Array(WW * WH), rr = L.rng(11); for (let i = 0; i < lum.length; i++) { const n = (rr() - 0.5) * 14; lum[i] = clamp(Math.round(0.2126 * id.data[i * 4] + 0.7152 * id.data[i * 4 + 1] + 0.0722 * id.data[i * 4 + 2] + n), 0, 255); }
+  return { c, lum, otsu: L.otsu(lum) };
+}
+const TH = Array.from({ length: 21 }, (_, k) => 60 + k * 7);
+function* prep() {
+  const Ds = []; for (let D = 1.02; D <= L.D_MAX + 1e-9; D += 0.02) Ds.push(+D.toFixed(2));
+  R.total = Ds.length + 3 + 9 + 2 + TH.length * 2;
+  R.isl[1.25] = island(1.25, 3); R.done++; yield;
+  for (const D of Ds) { if (!R.isl[D]) R.isl[D] = island(D, 3); R.done++; yield; }
+  for (const D of [1.04, 1.15, 1.25]) { const reads = []; for (const sd of [1, 2, 3, 4, 5]) reads.push(island(D, sd).A.Ddiv); R.proof.push({ D, reads, mean: reads.reduce((a, b) => a + b) / reads.length }); R.done++; yield; }
+  const base = R.isl[1.25]; for (let k = 0; k <= 8; k++) { const r = k * 2, m = r ? L.smoothMask(base.mask, WW, WH, r) : base.mask; R.blur.push(Object.assign(readMask(m), { r })); R.done++; yield; }
+  for (const key of ['flat', 'haze']) { R.img[key] = photo(key === 'haze'); R.done++; yield; }
+  for (const key of ['flat', 'haze']) { const ph = R.img[key]; for (const t of TH) { let sx = WW / 2; while (sx < WW - 1 && ph.lum[(WH / 2) * WW + sx] <= t) sx++; const c = L.component(ph.lum, WW, WH, t, sx, WH / 2, false); /* 陸を押す（暗い影の上を避けて、中心から右へ最初の明るい点） */ const rd = c.n > 4000 && c.n < WW * WH * 0.8 ? readMask(c.mask) : null; R.thr[key].push(rd ? { t, D: rd.A.Ddiv, P: rd.P, open: rd.open } : { t, D: null }); R.done++; yield; } }
+}
+const PREP = prep();
+function work(ms) { const t0 = performance.now(); while (performance.now() - t0 < ms) { if (PREP.next().done) return true; } return false; }
+const ready = () => R.done >= R.total && R.total > 1;
+const pct = () => Math.round(R.done / Math.max(1, R.total) * 100);
+const isl = D => { const k = +(Math.round(D / 0.02) * 0.02).toFixed(2); return R.isl[k] || R.isl[1.25]; };
+const SP = () => R.isl[1.25];
+
+const ST = [
+  { name: '問い', en: '', big: 'COAST', kanji: '岸', lab: '', noise: '1967 > SCROLL-Z3 LOAD OK\nLAW ph_z3_law.js\nLINK 03_coast.html ACK' },
+  { name: '物差しで歩く', en: 'DIVIDER', big: 'L = Nε', kanji: '歩', lab: '#d=1.25&seed=3&eps=60', fig: 'FIG. 01', figt: '— コンパスで岸を歩く',
+    num: '01', ren: 'DIVIDER · 物差しで歩く', h: 'コンパスを開いて、<br>岸を歩く。', body: '物差しの長さ ε にコンパスを開き、岸の上を一歩ずつ進む。歩いた数 N に ε を掛けたものが、その物差しで測った長さ L。',
+    kl: 'KEY NUMBER · 物差し 60 px で歩いた数', kv: () => SP() ? L.divider(SP().P, 60).n : null, kf: 0, ku: '歩', kn: '見本の島（答え D 1.25）を、法則ファイルの物差しで実際に歩いた', wow: '物差しより細かい入り江は、ひとまたぎで飛ばされる。', next: '02 短いほど長い',
+    noise: '1967 > STATION 01 DIVIDER\nCIRCLE x SEGMENT · NEXT PIVOT\nOK' },
+  { name: '短いほど長い', en: 'PARADOX', big: 'L(ε) ↑', kanji: '伸', lab: '#d=1.25&seed=3&auto=1', fig: 'FIG. 02', figt: '— 物差しを短くすると',
+    num: '02', ren: 'PARADOX · 長さが決まらない', h: '物差しを短くするほど、<br>岸は長くなる。', body: '短い物差しは、長い物差しが飛ばした入り江にも入っていく。入り江の中にまた入り江があるので、いくら短くしても長さは止まらない。',
+    kl: 'KEY NUMBER · 物差し 120 px → 6 px で長さは', kv: () => SP() ? Lavg(SP().P, 6) / Lavg(SP().P, 120) : null, kf: 2, kp: '×', ku: '', kn: '同じ島・同じ岸。変えたのは物差しだけ', wow: 'Richardson は、国境の長さが国ごとの地図で 20% も違うことに気づいた。', next: '03 両対数',
+    noise: '1967 > STATION 02 PARADOX\nRULER 120 → 6 PX\nLENGTH GROWS' },
+  { name: '両対数', en: 'RICHARDSON', big: 'ε¹⁻ᴰ', kanji: '傾', lab: '#d=1.25&seed=3&proof=1', fig: 'FIG. 03', figt: '— PROOF · 物差しと長さを両対数で',
+    num: '03', ren: 'PROOF · 傾きが D', h: '両対数に並べると、<br>まっすぐになる。', body: '物差しと長さを、どちらも対数の目盛りで並べると、点が 1 本の直線に乗る。その傾き b から D = 1 − b。なめらかな線なら傾き 0（D 1）。',
+    kl: 'KEY NUMBER · 見本の島の D（物差し）', kv: () => SP() ? SP().A.Ddiv : null, kf: 3, ku: '', kn: () => SP() ? '答え 1.25・読む範囲 6〜' + SP().A.hi.toFixed(0) + ' px・r² ' + SP().A.fd.r2.toFixed(3) : '', wow: 'まっすぐ＝どの大きさでも同じ割合で荒れている、の印。', next: '04 箱で数える',
+    noise: '1967 > STATION 03 RICHARDSON\nLOG L vs LOG EPS · FIT\nD = 1 - B' },
+  { name: '箱で数える', en: 'BOX', big: 'N ∝ ε⁻ᴰ', kanji: '箱', lab: '#d=1.25&seed=3', fig: 'FIG. 04', figt: '— 別の道で同じ D',
+    num: '04', ren: 'BOX · 箱で数える', h: '升目をかぶせて、<br>岸が通る箱を数える。', body: '大きさ ε の升目をかぶせ、岸が通る箱の数 N を数える。箱を半分にすると、線なら 2 倍・面なら 4 倍。その間の何倍かが D。',
+    kl: 'KEY NUMBER · 見本の島の D（箱）', kv: () => SP() ? SP().A.Dbox : null, kf: 3, ku: '', kn: () => SP() ? '物差しとの差 ' + Math.abs(SP().A.Dbox - SP().A.Ddiv).toFixed(3) + '。箱は荒い形ほど低めに出る' : '', wow: '歩き方も数え方も違うのに、同じ数に近づく。', next: '05 答えのある島',
+    noise: '1967 > STATION 04 BOX\nGRID EPS · OCCUPIED CELLS\nN ∝ EPS^-D' },
+  { name: '答えのある島', en: 'CHECK', big: 'log4/log(1/s)', kanji: '答', lab: '#d=1.15&seed=2&ans=1', fig: 'FIG. 05', figt: '— 答えを先に決めた島で確かめる',
+    num: '05', ren: 'CHECK · 測り方を確かめる', h: '答えを先に決めて、<br>当たるかを見る。', body: '1 本の線を長さ s の 4 本に置きかえる、をくり返すと、D = log 4 ÷ log(1/s) の島ができる。答えを知っている島を測って、測り方が正しいかを確かめる。',
+    kl: 'KEY NUMBER · 3 種 × 5 島の、いちばん大きい外れ', kv: () => R.proof.length === 3 ? Math.max(...R.proof.map(p => Math.abs(p.mean - p.D))) : null, kf: 3, kp: '±', ku: '', kn: '島の形の乱数を 5 通り替えた平均と、答えの差', wow: '本物の海岸では答えが分からない。だから先に「答えのある島」で測り方を試す。', next: '06 荒れ方',
+    noise: '1967 > STATION 05 CHECK\nKOCH ISLAND · N 4 · S\nREAD vs TRUTH' },
+  { name: '荒れ方', en: 'STATE', big: 'D 1.0–1.3', kanji: '荒', lab: '#d=1.04&seed=3', fig: 'FIG. 06', figt: '— D を 1.02 → 1.26',
+    num: '06', ren: 'STATE · なめらか・ぎざぎざ・入り組む', h: 'D が 0.2 違うだけで、<br>岸の顔が変わる。', body: '島の作り方の D（原因）を上げると、入り江の中の入り江が深くなる。読んだ D（結果）は後からついてくる。区切りは文献値の間に置いた。',
+    kl: 'KEY NUMBER · ブリテン島の西岸（Richardson の測定）', kv: () => 1.25, kf: 2, ku: '', kn: '南アフリカ 1.02・オーストラリア 1.13・ドイツの国境 1.15（Mandelbrot 1967 の表）', wow: '南アフリカの海岸は、ほとんどただの線（D 1.02）。', next: '07 写真を読む',
+    noise: '1967 > STATION 06 STATE\nSMOOTH < 1.1 <= RUGGED < 1.2 <= WILD\nLIT MANDELBROT 1967' },
+  { name: '写真を読む', en: 'PHOTO', big: 't ± 8', kanji: '写', lab: '', fig: 'FIG. 07', figt: '— 明るさのしきい値で岸が動く',
+    num: '07', ren: 'PHOTO · 岸はどこか', h: '写真では、まず<br>岸がどこかを決める。', body: '写真は明るさで陸と海を分けてから測る。陸の中に海と同じくらい暗い所（影・屋根・道路）が岸に接していると、しきい値しだいでそこが海の側に数えられ、岸が長く荒れて見える。',
+    kl: 'KEY NUMBER · 街の写真で、しきい値を振った D の幅', kv: () => { const v = R.thr.haze.filter(r => r.D != null && r.t >= 67).map(r => r.D); return v.length ? Math.max(...v) - Math.min(...v) : null; }, kf: 2, ku: '', kn: () => { const v = R.thr.flat.filter(r => r.D != null && r.t >= 67).map(r => r.D); return v.length ? 'むらのない写真では幅 ' + (Math.max(...v) - Math.min(...v)).toFixed(3) + '（同じ島・答え D 1.2。海の明るさ 60 のすぐ上は海のざらつきを拾うので除く）' : ''; }, wow: '実際の空撮で試すと、真上から撮った湖岸は 1.22 前後、街の暗さが岸に接する斜めの港は 1.2〜1.46 と定まらなかった。', next: '08 BREAK',
+    noise: '1967 > STATION 07 PHOTO\nOTSU · COMPONENT · TRACE\nSTABILITY t ± 8' },
+  { name: 'ぼかした地図', en: 'BREAK', big: 'BLUR', kanji: '省', lab: '#d=1.25&seed=3&brk=1', fig: 'FIG. 08', figt: '— BREAK · 地図の省略', brk: true,
+    num: '08', ren: 'BREAK · わざと外す', h: 'ぼかすと、小さい物差しで<br>長さが伸びなくなる。', body: '地図はその縮尺で細部を省く。岸をぼかすと、ぼけより短い物差しでは長さが伸びず、両対数の線がそこで折れて寝る。',
+    kl: 'KEY NUMBER · 半径 10 px でぼかした島の D', kv: () => R.blur.length > 5 ? R.blur[5].A.Ddiv : null, kf: 3, ku: '', kn: () => R.blur.length ? 'ぼかす前 ' + R.blur[0].A.Ddiv.toFixed(3) + '。読む範囲はぼけより大きい所に取る' : '', wow: '縮尺の違う地図で同じ海岸を測ると、D がそろう範囲と、そろわなくなる所がある。', next: '09 持ち出す',
+    noise: '1967 > STATION 08 BREAK\nBOX BLUR x3 · R 0-16\nOUT OF SCALE' },
+  { name: '持ち出す', en: 'TRANSFER', big: '→ LAB', kanji: '渡', lab: '', noise: '1967 > STATION 09 TRANSFER · 5 NOTES\nRAIL COMPLETE · LAB LINK READY\nNEXT Z4 · STATUS SPEC' },
+];
+const RAIL = [
+  { k: '① WALK', ja: '歩く', f: 'L = N·ε', d: '歩いた数 × 物差し', at: 1 },
+  { k: '② RICHARDSON', ja: '傾き', f: 'L ∝ ε<sup>1−D</sup>', d: '両対数の傾き＝1 − D', at: 3 },
+  { k: '③ BOX', ja: '箱', f: 'N ∝ ε<sup>−D</sup>', d: '別の道で同じ D', at: 4 },
+  { k: '④ ISLAND', ja: '答え', f: 'D = log 4 / log(1/s)', d: '答えを決めた島の作り方', at: 5 },
+];
+const REF = { 2: [1], 6: [2], 7: [2], 8: [2] };
+const LEN = [1.6, 3, 3, 3.4, 2.8, 3, 3.4, 3, 2.6, 1.4];
+const STEPPED = { 5: true };
+
+/* ================= 描く道具（そのまま使う） ================= */
+const NST = ST.length, LAST = NST - 1, NR = RAIL.length, pad = n => String(n).padStart(2, '0');
+const cv = $('cv'), ctx = cv.getContext('2d');
+let SC = 1;
+function resize() { SC = Math.min(2, (PHShell.scale || 1) * (window.devicePixelRatio || 1)); cv.width = Math.round(1920 * SC); cv.height = Math.round(1080 * SC); }
+const mono = (px, w) => (w || 400) + ' ' + px + 'px "JetBrains Mono",monospace', note = px => px + 'px "M PLUS 1 Code","IBM Plex Sans JP",monospace', jp = (px, w) => (w || 400) + ' ' + px + 'px "IBM Plex Sans JP",sans-serif';
+function clamp(v, a = 0, b = 1) { return Math.max(a, Math.min(b, v)); }
+const ease = v => { v = clamp(v); return v * v * (3 - 2 * v); }, eo = v => 1 - Math.pow(1 - clamp(v), 3);
+function num(v, d) { return v == null ? '—' : (+v).toLocaleString('en-US', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+function txt(s, x, y, o) { o = o || {}; ctx.font = o.f || note(12); ctx.fillStyle = o.c || C.ink; ctx.textAlign = o.a || 'left'; ctx.textBaseline = o.b || 'alphabetic'; if (o.bg) { const w = ctx.measureText(s).width, x0 = o.a === 'center' ? x - w / 2 : o.a === 'right' ? x - w : x; ctx.save(); ctx.fillStyle = o.bg; ctx.fillRect(x0 - 3, y - 13, w + 6, 17); ctx.restore(); ctx.fillStyle = o.c || C.ink; } ctx.fillText(s, x, y); }
+function arrow(x0, y0, x1, y1, col, w) {
+  const a = Math.atan2(y1 - y0, x1 - x0), L2 = Math.hypot(x1 - x0, y1 - y0); if (L2 < 3) return;
+  ctx.strokeStyle = ctx.fillStyle = col; ctx.lineWidth = w || 2.5; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1 - Math.cos(a) * 9, y1 - Math.sin(a) * 9); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x1 - Math.cos(a) * 13 + Math.sin(a) * 6, y1 - Math.sin(a) * 13 - Math.cos(a) * 6); ctx.lineTo(x1 - Math.cos(a) * 13 - Math.sin(a) * 6, y1 - Math.sin(a) * 13 + Math.cos(a) * 6); ctx.closePath(); ctx.fill();
+}
+const bob = (t, f, a) => RM ? 0 : Math.sin(t * Math.PI * 2 * (f || 0.9)) * (a || 4);   // 矢印の上下のゆれ
+function plate(x, y, w, h, dashed) {   // 図の紙（四隅のトンボ・BREAK は外に破線）
+  ctx.fillStyle = C.paper; ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath();
+  for (const [bx, by, sx, sy] of [[x + 10, y + 10, 1, 1], [x + w - 10, y + 10, -1, 1], [x + 10, y + h - 10, 1, -1], [x + w - 10, y + h - 10, -1, -1]]) { ctx.moveTo(bx + sx * 20, by); ctx.lineTo(bx, by); ctx.lineTo(bx, by + sy * 20); }
+  ctx.stroke();
+  if (dashed) { ctx.strokeStyle = '#E8E6DF'; ctx.setLineDash([6, 5]); ctx.lineWidth = 2; ctx.strokeRect(x - 7, y - 7, w + 14, h + 14); ctx.setLineDash([]); }
+}
+
+/* ================= 駅ごとの図 =================
+   島・岸・物差しの歩み・数は、どれも ph_z3_law.js で作って読んだ物（開いたときに少しずつ作る）。 */
+const PL = { x: 280, y: 150, w: 1040, h: 706 };
+let railLive = '';
+const FIG = [];
+/* 島の板の座標 → 図の座標（中心 600,400 を、幅 w の枠に） */
+function view(x, y, w, h, span) { const k = Math.min(w, h) / (span || 620); return { k, X: p => x + w / 2 + (p[0] - WW / 2) * k, Y: p => y + h / 2 + (p[1] - WH / 2) * k }; }
+function drawIsland(I, v, o) { o = o || {};
+  ctx.fillStyle = C.sea; ctx.fillRect(o.x, o.y, o.w, o.h);
+  ctx.beginPath(); I.poly.forEach((p, i) => i ? ctx.lineTo(v.X(p), v.Y(p)) : ctx.moveTo(v.X(p), v.Y(p))); ctx.closePath(); ctx.fillStyle = C.land; ctx.fill('evenodd');
+  if (o.outline !== false) { ctx.strokeStyle = 'rgba(242,239,230,.6)'; ctx.lineWidth = 0.8; ctx.beginPath(); I.P.forEach((p, i) => i ? ctx.lineTo(v.X(p), v.Y(p)) : ctx.moveTo(v.X(p), v.Y(p))); ctx.closePath(); ctx.stroke(); } }
+function drawHops(I, v, eps, upto) { const d = L.divider(I.P, eps, true), hs = d.hops, n = upto == null ? hs.length : Math.max(1, Math.min(hs.length, Math.floor(upto)));
+  ctx.strokeStyle = C.up; ctx.lineWidth = 2.2; ctx.beginPath(); for (let i = 0; i < n; i++) i ? ctx.lineTo(v.X(hs[i]), v.Y(hs[i])) : ctx.moveTo(v.X(hs[i]), v.Y(hs[i])); if (n >= hs.length) ctx.lineTo(v.X(I.P[0]), v.Y(I.P[0])); ctx.stroke();
+  if (hs.length < 160) { ctx.fillStyle = C.up; for (let i = 0; i < n; i++) { ctx.beginPath(); ctx.arc(v.X(hs[i]), v.Y(hs[i]), 3, 0, 7); ctx.fill(); } }
+  ctx.fillStyle = C.down; ctx.beginPath(); ctx.arc(v.X(hs[0]), v.Y(hs[0]), 5, 0, 7); ctx.fill(); return d; }
+/* 出発点を 4 か所ずらして歩いた長さの平均（1 回だけだと、どこから歩き始めたかで ±数 % ゆれる） */
+function Lavg(P, e) { const n = P.length; let s = 0; for (let k = 0; k < 4; k++) { const off = Math.floor(k * n / 4); s += L.divider(P.slice(off).concat(P.slice(0, off)), e).L; } return s / 4; }
+function clip(x, y, w, h) { ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); }
+/* 両対数の図（Richardson か箱）：xs・ys は対数。upto＝ここまでの点を出す */
+function loglog(x0, y0, w, h, A, kind, o) { o = o || {};
+  const ys = (kind === 'box' ? A.N : A.L).map(v => Math.log10(v)), xs = A.eps.map(e => Math.log10(e)), xa = xs[0], xb = xs[xs.length - 1], ya = Math.min(...ys) - 0.03, yb = Math.max(...ys) + 0.03;
+  const X = v => x0 + (v - xa) / (xb - xa) * w, Y = v => y0 + h - (v - ya) / (yb - ya) * h, f = kind === 'box' ? A.fb : A.fd;
+  ctx.fillStyle = 'rgba(127,214,203,.07)'; ctx.fillRect(X(Math.log10(A.lo)), y0, X(Math.log10(A.hi)) - X(Math.log10(A.lo)), h);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, y0 + h); ctx.lineTo(x0 + w, y0 + h); ctx.stroke();
+  ctx.font = mono(10); ctx.fillStyle = C.dim; ctx.textAlign = 'center'; for (let p = Math.ceil(xa); p <= xb; p++) ctx.fillText(p === 1 ? '10 px' : p === 2 ? '100 px' : '10^' + p, X(p), y0 + h + 16);
+  const show = k => o.upto == null || A.eps[k] >= o.upto;
+  if (o.line !== false) { clip(x0, y0, w, h); ctx.strokeStyle = o.col || C.up; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(X(xa), Y(f.a + f.b * xa)); ctx.lineTo(X(xb), Y(f.a + f.b * xb)); ctx.stroke(); ctx.restore(); ctx.lineWidth = 1; }
+  A.eps.forEach((e, k) => { if (!show(k)) return; ctx.beginPath(); ctx.arc(X(xs[k]), Y(ys[k]), 5, 0, 7); if (A.pick.includes(k)) { ctx.fillStyle = o.col || C.up; ctx.fill(); } else { ctx.strokeStyle = C.dim; ctx.stroke(); } });
+  return { X, Y, xa, xb };
+}
+FIG[0] = (a, t) => {   // 00 問い：見本の島を、物差しを長く ⇄ 短くして歩く
+  const x = 280, y = 486, w = 1600, h = 370; plate(x, y, w, h);
+  if (!SP()) { txt('法則で島を作っています… ' + pct() + '%', x + w / 2, y + h / 2, { a: 'center', f: mono(16, 600), c: C.dim }); return; }
+  const I = SP(), v = view(x + 30, y + 20, 560, 330, 640); clip(x + 30, y + 20, 560, 330); drawIsland(I, v, { x: x + 30, y: y + 20, w: 560, h: 330 });
+  const eps = 4 * Math.pow(30, 0.5 + 0.5 * Math.cos(RM ? 1 : t * 0.5)), d = drawHops(I, v, eps); ctx.restore();
+  txt('物差し ' + eps.toFixed(1) + ' px → ' + d.n + ' 歩・長さ ' + Math.round(d.L).toLocaleString() + ' px', x + 640, y + 120, { f: mono(22, 600), c: C.up });
+  txt('物差しを短くするほど、同じ島の岸が長くなる', x + 640, y + 170, { f: note(16), c: C.ink });
+  txt('見本の島（答えを先に決めた形）・アプリと同じ法則で歩いている', x + 640, y + h - 30, { f: note(12), c: C.dim });
+};
+FIG[1] = (a, t) => {   // 01 物差しで歩く：ε 120 → 20、歩みが 1 歩ずつ伸びる
+  const { x, y, w, h } = PL; if (!SP()) return wait(); const I = SP(), eps = 120 * Math.pow(20 / 120, a), d0 = L.divider(I.P, eps), upto = 1 + (a * 3 % 1) * d0.n + (a > 0.95 ? 1e9 : 0);
+  const v = view(x + 40, y + 120, 640, 520, 620); clip(x + 40, y + 120, 640, 520); drawIsland(I, v, { x: x + 40, y: y + 120, w: 640, h: 520 }); const d = drawHops(I, v, eps, a > 0.95 ? null : upto); ctx.restore();
+  // コンパスの絵：いまの一歩
+  txt('物差し ε ＝ ' + eps.toFixed(0) + ' px', x + 720, y + 200, { f: mono(26, 600), c: C.up });
+  txt('歩いた数 N ＝ ' + d.n, x + 720, y + 250, { f: mono(20), c: C.ink }); txt('長さ L ＝ N × ε ＋ 余り ＝ ' + Math.round(d.L).toLocaleString() + ' px', x + 720, y + 290, { f: mono(16), c: C.ink });
+  txt('橙＝出発点。青緑の点＝コンパスの針を置いた所', x + 720, y + 350, { f: note(13), c: C.dim });
+  txt('次の点＝いまの点から半径 ε の円が岸と交わる所', x + 720, y + 376, { f: note(13), c: C.dim });
+  txt('物差し ' + eps.toFixed(0) + ' px で、岸を一歩ずつ歩く', x + 40, y + 90, { f: note(14) });
+  txt('島の板は 1200 × 800 px。物差しの長さはその板の px', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = 'L ＝ ' + d.n + ' × ' + eps.toFixed(0) + ' ＋ 余り ＝ ' + Math.round(d.L).toLocaleString() + ' px';
+};
+FIG[2] = (a, t) => {   // 02 短いほど長い：ε 120 → 6 と L（ふつうの目盛り）
+  const { x, y, w, h } = PL; if (!SP()) return wait(); const I = SP(), eps = 120 * Math.pow(6 / 120, a), d = { L: Lavg(I.P, eps) }, L0 = Lavg(I.P, 120);
+  const v = view(x + 40, y + 120, 460, 460, 640); clip(x + 40, y + 120, 460, 460); drawIsland(I, v, { x: x + 40, y: y + 120, w: 460, h: 460 }); drawHops(I, v, eps); ctx.restore();
+  const gx0 = x + 580, gx1 = x + w - 50, gy0 = y + 160, gy1 = y + 560, Lmax = Lavg(I.P, 6) * 1.05, GX = e => gx1 - (e - 6) / 114 * (gx1 - gx0), GY = l => gy1 - l / Lmax * (gy1 - gy0);
+  ctx.strokeStyle = C.ink; ctx.beginPath(); ctx.moveTo(gx0, gy0); ctx.lineTo(gx0, gy1); ctx.lineTo(gx1, gy1); ctx.stroke();
+  const pts = []; for (let q = 0; q <= 13; q++) { const e = 120 * Math.pow(6 / 120, q / 13); if (e < eps * 0.999) break; pts.push([GX(e), GY(Lavg(I.P, e))]); }   // 物差し 14 通り（対数で等間隔）で測った点
+  ctx.strokeStyle = C.up; ctx.lineWidth = 2; ctx.beginPath(); pts.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.stroke(); ctx.lineWidth = 1; ctx.fillStyle = C.up; for (const q of pts) { ctx.beginPath(); ctx.arc(q[0], q[1], 4.5, 0, 7); ctx.fill(); }
+  ctx.fillStyle = C.down; ctx.beginPath(); ctx.arc(GX(eps), GY(d.L), 6, 0, 7); ctx.fill();
+  ctx.font = mono(10); ctx.fillStyle = C.dim; ctx.textAlign = 'center'; for (const e of [120, 90, 60, 30, 6]) ctx.fillText(e + ' px', GX(e), gy1 + 16);
+  txt('← 物差しを短く', gx1, gy1 + 36, { a: 'right', f: note(11), c: C.faint }); txt('測った長さ L（ふつうの目盛り）', gx0 + 6, gy0 - 8, { f: note(11), c: C.faint });
+  txt('物差し ' + eps.toFixed(1) + ' px → 長さ ' + Math.round(d.L).toLocaleString() + ' px（120 px の ×' + (d.L / L0).toFixed(2) + '）', x + 40, y + 90, { f: note(14) });
+  txt('出発点を 4 か所ずらした平均。小さな上下は島の作りの周期（1 段 ×2.8）で、全体は短くするほど伸び続ける', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = 'L(' + eps.toFixed(0) + ') ＝ ' + Math.round(d.L).toLocaleString() + ' ＝ L(120) × ' + (d.L / L0).toFixed(2);
+};
+FIG[3] = (a, t) => {   // 03 PROOF：両対数に点が出て、最後に線と傾き
+  const { x, y, w, h } = PL; if (!SP()) return wait(); const A = SP().A, eps = A.eps[A.eps.length - 1] * Math.pow(A.eps[0] / A.eps[A.eps.length - 1], Math.min(1, a / 0.8));
+  const g = loglog(x + 100, y + 140, 600, 380, A, 'div', { upto: eps * 0.999, line: a > 0.82 });
+  txt('物差し（対数）→', x + 700, y + 556, { a: 'right', f: note(11), c: C.faint }); txt('長さ L（対数）', x + 108, y + 130, { f: note(11), c: C.faint });
+  const st = ['① 長い物差しから順に測る', '② 物差しを 1/10 にすると、長さは ' + Math.pow(10, -A.fd.b).toFixed(2) + ' 倍', '③ 傾き b ＝ ' + A.fd.b.toFixed(3) + ' → D ＝ 1 − b ＝ ' + A.Ddiv.toFixed(3)], k3 = a < 0.3 ? 0 : a < 0.82 ? 1 : 2;
+  st.forEach((s, i) => { if (i <= k3) txt(s, x + 100, y + 596 + i * 28, { f: note(15), c: i === k3 ? C.up : C.dim }); });
+  if (a > 0.82) { txt('D ' + A.Ddiv.toFixed(3), x + 740, y + 300, { f: '400 46px Michroma,sans-serif', c: C.up }); txt('答え 1.25', x + 740, y + 336, { f: mono(14), c: C.down }); }
+  txt('物差し ' + eps.toFixed(1) + ' px まで測った', x + 40, y + 90, { f: note(14) });
+  txt('塗った帯＝読む範囲（6 px〜差し渡しの 1/5）。それより細かい所は画素の階段、粗い所は島全体の大きさが効く', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = 'b ＝ ' + A.fd.b.toFixed(3) + '　D ＝ 1 − b ＝ ' + A.Ddiv.toFixed(3);
+};
+FIG[4] = (a, t) => {   // 04 箱で数える：升目 ε 80 → 8
+  const { x, y, w, h } = PL; if (!SP()) return wait(); const I = SP(), eps = 80 * Math.pow(8 / 80, a), v = view(x + 40, y + 120, 520, 520, 620);
+  clip(x + 40, y + 120, 520, 520); drawIsland(I, v, { x: x + 40, y: y + 120, w: 520, h: 520 });
+  const S2 = new Set(); for (const p of I.P) S2.add(Math.floor(p[0] / eps) + ',' + Math.floor(p[1] / eps));
+  ctx.fillStyle = 'rgba(127,214,203,.35)'; ctx.strokeStyle = 'rgba(127,214,203,.8)'; ctx.lineWidth = 0.8;
+  for (const key of S2) { const [i, j] = key.split(',').map(Number), X0 = v.X([i * eps, j * eps]), Y0 = v.Y([i * eps, j * eps]), s = eps * v.k; ctx.fillRect(X0, Y0, s, s); if (s > 5) ctx.strokeRect(X0 + .5, Y0 + .5, s - 1, s - 1); }
+  ctx.restore();
+  loglog(x + 620, y + 160, 360, 400, I.A, 'box', { upto: eps * 0.999, line: a > 0.85 });
+  txt('箱 ' + eps.toFixed(1) + ' px → 岸が通る箱 ' + S2.size.toLocaleString() + ' 個', x + 40, y + 90, { f: note(14) });
+  if (a > 0.85) txt('傾き ' + I.A.fb.b.toFixed(3) + ' → D ＝ ' + I.A.Dbox.toFixed(3), x + 620, y + 610, { f: mono(16, 600), c: C.up });
+  txt('箱を半分にすると、数は 2^D 倍（線なら 2・面なら 4）', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = 'N(' + eps.toFixed(0) + ') ＝ ' + S2.size + '　D ＝ ' + I.A.Dbox.toFixed(3);
+};
+FIG[5] = (a, t) => {   // 05 答えのある島：3 種を 1 つずつ（答えの棒と読みの点）
+  const { x, y, w, h } = PL; if (R.proof.length < 3) return wait(); const k = Math.min(2, Math.floor(a * 3)), Ds = [1.04, 1.15, 1.25];
+  const I = isl(Ds[k]), v = view(x + 40, y + 130, 420, 420, 640); clip(x + 40, y + 130, 420, 420); drawIsland(I, v, { x: x + 40, y: y + 130, w: 420, h: 420 }); ctx.restore();
+  txt('答え D ' + Ds[k].toFixed(2) + '（s ＝ ' + L.sOfD(Ds[k]).toFixed(3) + '・山の角 ' + L.thetaOfD(Ds[k]).toFixed(0) + '°）', x + 40, y + 580, { f: mono(14, 600), c: C.down });
+  const gx0 = x + 540, gx1 = x + w - 60, gy0 = y + 170, gy1 = y + 560, DA = 1.0, DB = 1.32, GY = d => gy1 - (d - DA) / (DB - DA) * (gy1 - gy0);
+  ctx.strokeStyle = C.ink; ctx.beginPath(); ctx.moveTo(gx0, gy0); ctx.lineTo(gx0, gy1); ctx.lineTo(gx1, gy1); ctx.stroke();
+  ctx.font = mono(10); ctx.fillStyle = C.dim; ctx.textAlign = 'right'; for (const d of [1, 1.1, 1.2, 1.3]) { ctx.fillText(d.toFixed(1), gx0 - 6, GY(d) + 4); ctx.strokeStyle = C.rule2; ctx.beginPath(); ctx.moveTo(gx0, GY(d)); ctx.lineTo(gx1, GY(d)); ctx.stroke(); }
+  R.proof.forEach((p, i) => { if (i > k) return; const cx = gx0 + (i + 0.5) / 3 * (gx1 - gx0);
+    ctx.strokeStyle = C.down; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(cx - 40, GY(p.D)); ctx.lineTo(cx + 40, GY(p.D)); ctx.stroke(); ctx.lineWidth = 1;
+    p.reads.forEach((r, j) => { ctx.fillStyle = C.up; ctx.beginPath(); ctx.arc(cx - 24 + j * 12, GY(r), 4, 0, 7); ctx.fill(); });
+    txt('答え ' + p.D.toFixed(2), cx, gy1 + 22, { a: 'center', f: mono(12), c: C.down }); txt('読み ' + p.mean.toFixed(3), cx, gy1 + 40, { a: 'center', f: mono(12), c: C.up }); });
+  txt('橙の棒＝答え・青緑の点＝島の形の乱数を 5 通り替えて読んだ D', gx0, gy0 - 14, { f: note(12), c: C.dim });
+  txt('答えのある島 ' + (k + 1) + ' / 3', x + 40, y + 90, { f: note(14) });
+  txt('1 本 → 長さ s の 4 本の置きかえ。山を外へ出すか内へ入れるかは乱数（4 本ずつそろえる）', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = 'D ＝ log 4 / log(1/' + L.sOfD(Ds[k]).toFixed(3) + ') ＝ ' + Ds[k].toFixed(2) + '　読み ' + R.proof[k].mean.toFixed(3);
+};
+FIG[6] = (a, t) => {   // 06 STATE：D 1.02 → 1.26
+  const { x, y, w, h } = PL; if (!ready()) return wait(); const D = 1.02 + a * (L.D_MAX - 1.02), I = isl(D), Dr = I.A.Ddiv, st = L.stateOf(Dr);
+  const v = view(x + 40, y + 120, 520, 520, 640); clip(x + 40, y + 120, 520, 520); drawIsland(I, v, { x: x + 40, y: y + 120, w: 520, h: 520 }); ctx.restore();
+  const bx0 = x + 620, bw = 360, BX = d => bx0 + (d - 1) / 0.35 * bw;
+  // 区切りと文献値
+  for (const [z, d0, d1] of [['SMOOTH なめらか', 1, 1.1], ['RUGGED ぎざぎざ', 1.1, 1.2], ['WILD 入り組む', 1.2, 1.35]]) { const on = st === z.split(' ')[0]; ctx.fillStyle = on ? 'rgba(127,214,203,.18)' : 'rgba(242,239,230,.04)'; ctx.fillRect(BX(d0), y + 220, BX(d1) - BX(d0) - 2, 40); txt(z, (BX(d0) + BX(d1)) / 2, y + 245, { a: 'center', f: note(12), c: on ? C.ink : C.faint }); }
+  L.LIT.forEach(([n, d], i) => { const xx = BX(d); ctx.strokeStyle = C.dim; ctx.beginPath(); ctx.moveTo(xx, y + 264); ctx.lineTo(xx, y + 300 + i * 22); ctx.stroke(); txt(n + ' ' + d.toFixed(2), xx + 4, y + 300 + i * 22, { f: note(11), c: C.dim }); });
+  const mx = BX(Dr); ctx.fillStyle = C.up; ctx.beginPath(); ctx.moveTo(mx, y + 218); ctx.lineTo(mx - 8, y + 204); ctx.lineTo(mx + 8, y + 204); ctx.fill(); txt('▼ 読んだ D ' + Dr.toFixed(3), mx, y + 196, { a: 'center', f: mono(12, 600), c: C.up });
+  const cx = BX(I.D); ctx.fillStyle = C.down; ctx.beginPath(); ctx.moveTo(cx, y + 402); ctx.lineTo(cx - 7, y + 414); ctx.lineTo(cx + 7, y + 414); ctx.fill(); txt('▲ 島の作り方の D ' + I.D.toFixed(2) + '（原因）', cx, y + 432, { a: 'center', f: note(11), c: C.down });
+  txt('作り方の D ' + I.D.toFixed(2) + ' → 読んだ D ' + Dr.toFixed(3) + '（' + st + '）', x + 40, y + 90, { f: note(14) });
+  txt('区切りは文献値の間：1.1・1.2。文献値は Richardson の測定を Mandelbrot 1967 がまとめた表', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = 'L ∝ ε^(1−' + Dr.toFixed(3) + ')';
+};
+FIG[7] = (a, t) => {   // 07 写真を読む：しきい値を振って、岸と D がどう動くか（むらのない写真／かすんだ写真）
+  const { x, y, w, h } = PL; if (!ready()) return wait(); const k = Math.min(TH.length - 1, Math.round(a * (TH.length - 1)));
+  [['flat', 'むらのない写真'], ['haze', '街の写真（陸に暗い影・屋根・道路）']].forEach(([key, lab], r) => {
+    const Y0 = y + 120 + r * 280, ph = R.img[key], rd = R.thr[key][k], pw = 360, phh = 240, sk = pw / WW;
+    ctx.drawImage(ph.c, x + 40, Y0, pw, phh);
+    if (rd.P) { ctx.strokeStyle = C.down; ctx.lineWidth = 1.2; ctx.beginPath(); rd.P.forEach((p, i) => i ? ctx.lineTo(x + 40 + p[0] * sk, Y0 + p[1] * sk) : ctx.moveTo(x + 40 + p[0] * sk, Y0 + p[1] * sk)); if (!rd.open) ctx.closePath(); ctx.stroke(); }
+    ctx.strokeStyle = C.rule; ctx.strokeRect(x + 40.5, Y0 + .5, pw - 1, phh - 1); txt(lab, x + 40, Y0 - 8, { f: note(12), c: C.ink });
+    // D と しきい値
+    const gx0 = x + 450, gx1 = x + w - 60, gy0 = Y0 + 10, gy1 = Y0 + 220, GX = tt => gx0 + (tt - TH[0]) / (TH[TH.length - 1] - TH[0]) * (gx1 - gx0), GY = d => gy1 - (d - 1.0) / 0.6 * (gy1 - gy0);
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(gx0, gy0); ctx.lineTo(gx0, gy1); ctx.lineTo(gx1, gy1); ctx.stroke();
+    ctx.font = mono(9); ctx.fillStyle = C.dim; ctx.textAlign = 'right'; for (const d of [1, 1.2, 1.4, 1.6]) ctx.fillText(d.toFixed(1), gx0 - 5, GY(d) + 3); ctx.textAlign = 'center'; for (const tt of [60, 100, 140, 180]) ctx.fillText(tt, GX(tt), gy1 + 13);
+    ctx.setLineDash([4, 4]); ctx.strokeStyle = C.down; ctx.beginPath(); ctx.moveTo(gx0, GY(1.2)); ctx.lineTo(gx1, GY(1.2)); ctx.stroke(); ctx.setLineDash([]); txt('答え 1.2', gx1, GY(1.2) - 5, { a: 'right', f: note(10), c: C.down });
+    ctx.strokeStyle = 'rgba(127,214,203,.4)'; ctx.beginPath(); ctx.moveTo(GX(ph.otsu), gy0); ctx.lineTo(GX(ph.otsu), gy1); ctx.stroke(); txt('自動 ' + ph.otsu, GX(ph.otsu) + 4, gy0 + 10, { f: note(10), c: C.up });
+    R.thr[key].forEach((q, j) => { if (q.D == null) { txt('×', GX(q.t), gy1 - 6, { a: 'center', f: mono(10), c: C.faint }); return; } ctx.fillStyle = j === k ? C.down : C.up; ctx.beginPath(); ctx.arc(GX(q.t), GY(clamp(q.D, 1, 1.6)), j === k ? 6 : 3.5, 0, 7); ctx.fill(); });
+    txt('しきい値 ' + rd.t + ' → ' + (rd.D == null ? '塊が取れない' : 'D ' + rd.D.toFixed(3)), gx0 + 10, gy0 + 6, { f: mono(12, 600), c: C.ink });
+  });
+  txt('しきい値（陸と海を分ける明るさ）を 60 → 200 へ', x + 40, y + 90, { f: note(14) });
+  txt('陸を押して測る。暗い所が陸の穴になり、岸に接すると入り江になる。×＝塊が取れない。アプリはしきい値 ±8 で幅を出す', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = 'しきい値 ' + TH[k] + '：むらなし ' + (R.thr.flat[k].D ? R.thr.flat[k].D.toFixed(3) : '—') + '／かすみ ' + (R.thr.haze[k].D ? R.thr.haze[k].D.toFixed(3) : '—');
+};
+FIG[8] = (a, t) => {   // 08 BREAK：ぼかし r 0 → 16
+  const { x, y, w, h } = PL; if (R.blur.length < 9) return wait(); const k = Math.min(8, Math.round(a * 8)), B = R.blur[k], B0 = R.blur[0];
+  const v = view(x + 40, y + 120, 480, 480, 640); ctx.fillStyle = C.sea; ctx.fillRect(x + 40, y + 120, 480, 480);
+  clip(x + 40, y + 120, 480, 480); ctx.beginPath(); B.P.forEach((p, i) => i ? ctx.lineTo(v.X(p), v.Y(p)) : ctx.moveTo(v.X(p), v.Y(p))); ctx.closePath(); ctx.fillStyle = C.land; ctx.fill(); ctx.strokeStyle = 'rgba(242,239,230,.6)'; ctx.lineWidth = 0.8; ctx.stroke(); ctx.restore();
+  const g = loglog(x + 600, y + 160, 380, 400, B0.A, 'div', { col: 'rgba(127,214,203,.45)' });
+  // ぼかした島の点（同じ目盛りで）
+  const ys = B.A.L.map(v2 => Math.log10(v2)), ya = Math.min(...B0.A.L.map(v2 => Math.log10(v2))) - 0.03, yb = Math.max(...B0.A.L.map(v2 => Math.log10(v2))) + 0.03, Y = v2 => y + 160 + 400 - (v2 - ya) / (yb - ya) * 400;
+  ctx.strokeStyle = C.down; ctx.lineWidth = 2.5; ctx.beginPath(); B.A.eps.forEach((e, j) => { const X = g.X(Math.log10(e)); j ? ctx.lineTo(X, Y(ys[j])) : ctx.moveTo(X, Y(ys[j])); }); ctx.stroke(); ctx.lineWidth = 1;
+  B.A.eps.forEach((e, j) => { ctx.fillStyle = C.down; ctx.beginPath(); ctx.arc(g.X(Math.log10(e)), Y(ys[j]), 4, 0, 7); ctx.fill(); });
+  if (B.r) { const xr = g.X(Math.log10(Math.max(2, B.r))); ctx.setLineDash([3, 3]); ctx.strokeStyle = C.down; ctx.beginPath(); ctx.moveTo(xr, y + 160); ctx.lineTo(xr, y + 560); ctx.stroke(); ctx.setLineDash([]); txt('ぼけ ' + B.r + ' px', xr + 4, y + 176, { f: note(11), c: C.down }); }
+  txt('青緑＝ぼかす前・橙＝ぼかした島', x + 600, y + 610, { f: note(12), c: C.dim });
+  txt('半径 ' + B.r + ' px でぼかした岸 → D ' + B.A.Ddiv.toFixed(3) + '（前 ' + B0.A.Ddiv.toFixed(3) + '）', x + 40, y + 90, { f: note(14) });
+  txt('ぼけより短い物差しでは長さが伸びず、線が左で寝る', x + 40, y + h - 20, { f: note(12), c: C.dim });
+  railLive = 'r ' + B.r + ' px：L ∝ ε^(1−' + B.A.Ddiv.toFixed(3) + ')';
+};
+function wait() { const { x, y, w, h } = PL; txt('法則で島を作って読んでいます… ' + pct() + '%', x + w / 2, y + h / 2, { a: 'center', f: mono(16, 600), c: C.dim }); }
+function thumb(g2) { g2.fillStyle = '#0B0B0A'; g2.fillRect(0, 0, 300, 150); g2.fillStyle = ACC; g2.fillRect(12, 12, 150, 20); g2.fillStyle = C.sea; g2.fillRect(40, 44, 130, 92); g2.fillStyle = C.land; g2.beginPath(); g2.arc(105, 90, 30, 0, 7); g2.fill(); g2.strokeStyle = ACCL; g2.lineWidth = 1; g2.strokeRect(8, 8, 284, 134);
+  g2.strokeStyle = ACCL; g2.beginPath(); g2.moveTo(190, 60); g2.lineTo(276, 126); g2.stroke(); g2.fillStyle = 'rgba(242,239,230,.2)'; g2.fillRect(184, 44, 96, 4); }
+
+/* ================= 画面の部品（そのまま使う） ================= */
+$('o_nst').textContent = LAST; $('o_nrail').textContent = NR; $('o_hint').textContent = '01 ' + ST[1].name; $('o_endn').textContent = pad(LAST);
+$('ctaf').textContent = LAB.split('/').pop(); $('cta').href = LAB;
+{ const g2 = $('tc').getContext('2d'); g2.setTransform(2, 0, 0, 2, 0, 0); thumb(g2); }
+const stl = $('stl'); ST.forEach((s, i) => { const li = document.createElement('li'); li.innerHTML = '<u>' + pad(i) + '</u><b>' + s.name + '</b><s>' + s.en + '</s>'; li.addEventListener('click', () => goTo(i)); stl.appendChild(li); });
+const rail = $('rail'); rail.style.gridTemplateColumns = 'repeat(' + (NR + 1) + ', 1fr)';
+RAIL.forEach(r => { const d = document.createElement('div'); d.className = 'rb'; d.innerHTML = '<div class="rt"><span>' + r.k + '<b>' + r.ja + '</b></span><i></i></div><div class="rf">' + r.f + '</div><div class="dots">···</div><div class="rd"></div>'; rail.appendChild(d); });
+const labA = document.createElement('a'); labA.className = 'rb lab'; labA.href = LAB; labA.innerHTML = '<div class="rt"><span>LAB<b>終点</b></span><i></i></div><div class="rf">OPEN THE LAB →</div><div class="rd">いつでもアプリへ飛べる</div>'; rail.appendChild(labA);
+function frame() { const svg = $('frame'), M = 'rgba(232,230,223,0.55)', S = 'rgba(232,230,223,0.10)'; let s = '';
+  for (const p of ['52,24 24,24 24,52', '1868,24 1896,24 1896,52', '52,1056 24,1056 24,1028', '1868,1056 1896,1056 1896,1028']) s += '<polyline points="' + p + '" fill="none" stroke="' + M + '" stroke-width="1.5"/>';
+  for (const yy of [124, 870]) s += '<line x1="24" y1="' + yy + '" x2="1896" y2="' + yy + '" stroke="' + S + '"/>';
+  s += '<line x1="372" y1="44" x2="372" y2="108" stroke="' + ACCL + '" stroke-width="2"/><line x1="1090" y1="78" x2="1110" y2="78" stroke="' + ACCL + '"/><line x1="1100" y1="68" x2="1100" y2="88" stroke="' + ACCL + '"/>';
+  svg.innerHTML = s; }
+frame();
+
+const val = v => typeof v === 'function' ? v() : v;
+let cur = -1, kvAnim = { t0: 0 };
+function setStation(i) {
+  if (i === cur) return; cur = i; const s = ST[i], two = pad(i), of = two + ' / ' + pad(LAST);
+  $('o_stn').textContent = of; $('o_tab').textContent = 'LP · ' + of; $('noise').textContent = s.noise; $('bigTop').textContent = s.big;
+  const kj = $('kanji'); kj.textContent = s.kanji; kj.classList.toggle('num', /\d/.test(s.kanji));
+  Object.assign(kj.style, i === 0 ? { left: '1300px', top: '806px' } : /\d/.test(s.kanji) ? { left: '30px', top: '900px' } : { left: '-6px', top: '560px' });
+  $('L0').classList.toggle('on', i === 0); $('LS').classList.toggle('on', i > 0); $('L1').classList.toggle('on', i > 0 && i < LAST); $('LE').classList.toggle('on', i === LAST);
+  [...stl.children].forEach((li, k) => { li.className = k < i ? 'done' : k === i ? 'now' : ''; });
+  $('o_read').textContent = of; $('o_bar').style.width = (i / LAST * 100) + '%';
+  if (i > 0 && i < LAST) { $('o_fig').textContent = s.fig; $('o_figt').textContent = s.figt; $('r_num').textContent = s.num; $('r_en').textContent = s.ren; $('r_h').innerHTML = s.h; $('r_body').textContent = s.body; $('r_kl').textContent = val(s.kl); $('r_ku').textContent = s.ku; $('r_kn').innerHTML = val(s.kn); $('r_wow').textContent = val(s.wow); $('r_next').textContent = s.next; }
+  $('brkchip').style.display = s.brk ? 'flex' : 'none';
+  $('foot').textContent = DOC + ' — ' + (i === LAST ? 'END OF RECORD' : 'STATION ' + two + (s.fig ? ' · ' + s.fig.replace('. ', '.') : ''));
+  [...rail.children].forEach((d, j) => {
+    if (j === NR) { d.className = 'rb lab' + (i === LAST ? ' now' : ''); d.querySelector('.rt i').textContent = i === LAST ? 'NOW' : ''; d.querySelector('.rd').textContent = i === LAST ? NR + ' つの式を、アプリで確かめる' : 'いつでもアプリへ飛べる'; d.href = (s.lab || '').includes('.html') ? s.lab : LAB + (s.lab || ''); return; }   // lab に別ページ（.html）を書いたらそのまま
+    const r = RAIL[j], ref = (REF[i] || []).includes(j + 1), st = i < r.at ? 'fut' : i === r.at ? 'now' : ref ? 'ref' : 'done';
+    d.className = 'rb ' + st; d.querySelector('.rt i').textContent = st === 'fut' ? '— 未着' : st === 'now' ? 'NOW' : st === 'ref' ? 'REF · 再登場' : '✓';
+    d.querySelector('.rd').textContent = st === 'fut' ? pad(r.at) + ' の駅で入線' : r.d; d.dataset.st = st;
+  });
+  for (const id of ['L0', 'L1', 'LE']) { const el = $(id); el.classList.remove('go'); void el.offsetWidth; if (el.classList.contains('on')) el.classList.add('go'); }
+  kvAnim.t0 = performance.now();
+}
+function keyNumber() {   // KEY NUMBER は 0 から数え上げる（0.6 秒）
+  const s = ST[cur]; if (!s || !s.kv) return; const v = s.kv(), el = $('r_kv');
+  if (v == null) { el.textContent = '—'; return; } if (typeof v === 'string') { el.textContent = v; return; }
+  const f = RM ? 1 : eo((performance.now() - kvAnim.t0 - 300) / 600); el.textContent = (s.kp || '') + num(v * f, s.kf);
+}
+function railLiveSet() { [...rail.children].forEach((d, j) => { if (j < NR && d.dataset.st === 'now' && railLive) d.querySelector('.rd').textContent = railLive; }); }
+
+/* ================= スクロールと間合い（数値はユーザーの赤で決まった物・変えるなら聞く） =================
+   駅の長さ LEN（画面の枚数）・駅の頭 12% と終わり 18% は図を止める・間は smootherstep・追いかけ dt×4.5 */
+const OFF = LEN.reduce((o, l, i) => (o.push(o[i] + l), o), [0]);
+const track = $('track'); let vh = innerHeight; function size() { vh = innerHeight; track.style.height = (OFF[NST] * vh) + 'px'; }
+function toP(y) { const u = y / vh; for (let i = 0; i < NST; i++) if (u < OFF[i + 1] || i === NST - 1) return Math.min(NST - 0.001, i + clamp((u - OFF[i]) / LEN[i], 0, 0.999)); }
+const fromP = v => { const i = Math.min(NST - 1, Math.floor(v)); return (OFF[i] + (v - i) * LEN[i]) * vh; };
+const hold = a => { const t = clamp((a - 0.12) / 0.7); return t * t * t * (t * (t * 6 - 15) + 10); };
+const holdLin = a => clamp((a - 0.12) / 0.7);
+size(); addEventListener('resize', () => { size(); resize(); });
+let P = 0, last = performance.now(), tSec = 0, FIX = null;   // FIX：検証用 #s=..&fix=1 でスクロールせずにその位置で止める
+const target = () => FIX != null ? FIX : toP(scrollY);
+function goTo(i) { scrollTo({ top: OFF[i] * vh + 2, behavior: RM ? 'auto' : 'smooth' }); }
+addEventListener('keydown', e => { if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); goTo(Math.min(NST - 1, Math.floor(P + 0.02) + 1)); } if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); goTo(Math.max(0, Math.ceil(P - 0.02) - 1)); } });
+PHShell.onScale(resize); resize();
+function render(P) {
+  const i = Math.min(NST - 1, Math.floor(P + 1e-6)), a = P - i; setStation(i);
+  ctx.setTransform(SC, 0, 0, SC, 0, 0); ctx.clearRect(0, 0, 1920, 1080);
+  if (i === 0) FIG[0](a, tSec);
+  else if (i < LAST) { plate(PL.x, PL.y, PL.w, PL.h, ST[i].brk); ctx.save(); ctx.beginPath(); ctx.rect(PL.x, PL.y, PL.w, PL.h); ctx.clip(); railLive = ''; FIG[i](RM ? a : STEPPED[i] ? holdLin(a) : hold(a), tSec); ctx.restore(); }
+  keyNumber(); railLiveSet();
+}
+function loop(now) {
+  const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now; tSec += dt;   // 最初の rAF は performance.now() より前の時刻のことがある（負の t を防ぐ）
+  const T = target(); P = RM ? T : P + (T - P) * Math.min(1, dt * 4.5); if (Math.abs(T - P) < 1e-4) P = T;
+  work(9); render(P);   // 島づくりは 1 コマ 9 ms まで
+  requestAnimationFrame(loop);
+}
+// 直リンク：#s=駅&p=駅の中の進み（例 #s=1&p=0.5）・&fix=1（検証の撮影用）
+{ const Q = new URLSearchParams(location.hash.slice(1)); if (Q.has('s')) { const s = clamp(+Q.get('s') + (+Q.get('p') || 0), 0, NST - 1); if (Q.get('fix') === '1') { FIX = s; P = s; } else requestAnimationFrame(() => { scrollTo(0, fromP(s)); P = s; }); } }
+if (document.fonts) ["13px 'M PLUS 1 Code'", "13px 'IBM Plex Sans JP'", "19px Michroma", "12px 'JetBrains Mono'"].forEach(f => document.fonts.load(f));
+window.__LP = { R, prepAll: () => { while (!PREP.next().done); }, ST, FIG, LEN, get P() { return P; }, render, setP: v => { P = v; FIX = v; render(v); }, setFix: v => { FIX = v; } };   // 検証用
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
